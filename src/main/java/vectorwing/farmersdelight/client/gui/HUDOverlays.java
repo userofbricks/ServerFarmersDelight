@@ -5,7 +5,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.LayeredDrawer;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffects;
@@ -32,15 +34,6 @@ public class HUDOverlays
 	public static int healthIconsOffset = 39;
 	public static int foodIconsOffset = 39;
 	private static final Identifier MOD_ICONS_TEXTURE = Identifier.of(FarmersDelight.MODID, "textures/gui/fd_icons.png");
-
-	/**
-	 * Moved to GuiMixin.
-	 */
-	@Deprecated
-	public static void register() {
-//		HudRenderCallback.EVENT.register(ComfortOverlay.INSTANCE::render);
-//		HudRenderCallback.EVENT.register(NourishmentOverlay.INSTANCE::render);
-	}
 
 	public static abstract class BaseOverlay implements LayeredDrawer.Layer
 	{
@@ -75,10 +68,7 @@ public class HUDOverlays
 		public void render(MinecraftClient minecraft, PlayerEntity player, DrawContext guiGraphics, int left, int right, int top, int guiTicks) {
 			HungerManager stats = player.getHungerManager();
 
-			boolean isPlayerHealingWithSaturation =
-					player.getWorld().getGameRules().getBoolean(GameRules.NATURAL_REGENERATION)
-							&& player.canFoodHeal()
-							&& stats.getFoodLevel() >= 18;
+			boolean isPlayerHealingWithSaturation = player.canFoodHeal() && stats.getFoodLevel() >= 18;
 
 			if (player.getStatusEffect(ModEffects.NOURISHMENT) != null) {
 				drawNourishmentOverlay(stats, minecraft, guiGraphics, right, top - foodIconsOffset, isPlayerHealingWithSaturation);
@@ -130,8 +120,6 @@ public class HUDOverlays
 		Random rand = new Random();
 		rand.setSeed(ticks * 312871);
 
-		RenderSystem.enableBlend();
-
 		for (int j = 0; j < 10; ++j) {
 			int x = right - j * 8 - 9;
 			int y = top;
@@ -141,19 +129,17 @@ public class HUDOverlays
 			}
 
 			// Background texture
-			graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 0, 0, 9, 9);
+			graphics.drawTexture(RenderLayer::getGuiTextured, MOD_ICONS_TEXTURE, x, y, 0, 0, 9, 9, 265, 265);
 
 			float effectiveHungerOfBar = (foodData.getFoodLevel()) / 2.0F - j;
 			int naturalHealingOffset = naturalHealing ? 18 : 0;
 
 			// Gilded hunger icons
 			if (effectiveHungerOfBar >= 1)
-				graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 18 + naturalHealingOffset, 0, 9, 9);
+				graphics.drawTexture(RenderLayer::getGuiTextured, MOD_ICONS_TEXTURE, x, y, 18 + naturalHealingOffset, 0, 9, 9, 265, 265);
 			else if (effectiveHungerOfBar >= .5)
-				graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 9 + naturalHealingOffset, 0, 9, 9);
+				graphics.drawTexture(RenderLayer::getGuiTextured, MOD_ICONS_TEXTURE, x, y, 9 + naturalHealingOffset, 0, 9, 9, 265, 265);
 		}
-
-		RenderSystem.disableBlend();
 	}
 
 	public static void drawComfortOverlay(PlayerEntity player, MinecraftClient minecraft, DrawContext graphics, int left, int top) {
@@ -176,8 +162,6 @@ public class HUDOverlays
 		int comfortHeartFrame = comfortSheen % 2;
 		int[] textureWidth = {5, 9};
 
-		RenderSystem.enableBlend();
-
 		int healthMaxSingleRow = MathHelper.ceil(Math.min(healthMax, 20) / 2.0F);
 		int leftHeightOffset = ((healthRows - 1) * rowHeight); // This keeps the overlay on the bottommost row of hearts
 
@@ -190,13 +174,11 @@ public class HUDOverlays
 			if (i == regen) y -= 2;
 
 			if (column == comfortSheen / 2) {
-				graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 0, 9, textureWidth[comfortHeartFrame], 9);
+				graphics.drawTexture(RenderLayer::getGuiTextured, MOD_ICONS_TEXTURE, x, y, 0, 9, textureWidth[comfortHeartFrame], 9, 265, 265);
 			}
 			if (column == (comfortSheen / 2) - 1 && comfortHeartFrame == 0) {
-				graphics.drawTexture(MOD_ICONS_TEXTURE, x + 5, y, 5, 9, 4, 9);
+				graphics.drawTexture(RenderLayer::getGuiTextured, MOD_ICONS_TEXTURE, x + 5, y, 5, 9, 4, 9, 265, 265);
 			}
 		}
-
-		RenderSystem.disableBlend();
 	}
 }

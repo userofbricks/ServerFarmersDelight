@@ -34,6 +34,15 @@ public class ModDataComponents
 			"skillet_ingredient", (builder) -> builder.codec(ItemStackWrapper.CODEC).packetCodec(ItemStackWrapper.STREAM_CODEC).cache()
 	);
 
+	/*  //TODO: add to Skillet for model change
+        // could have been done with item renderer but this way we can have easier control over item positioning using the model json
+        ItemProperties.register(ModItems.SKILLET.get(), Identifier.ofVanilla("cooking"),
+                (stack, world, entity, s) -> stack.getOrDefault(ModDataComponents.SKILLET_INGREDIENT.get(), ItemStackWrapper.EMPTY).getStack().isEmpty() ? 0 : 1);
+	 */
+	public static final Supplier<ComponentType<Boolean>> COOKING =regComponent(
+			"cooking", (builder) -> builder.codec(Codec.BOOL).packetCodec(PacketCodecs.BOOLEAN).cache()
+	);
+
 	// Enchantment Effects
 	public static final Supplier<ComponentType<List<EnchantmentEffectEntry<EnchantmentValueEffect>>>> BACKSTABBING = regEnchComponent(
 			"backstabbing", builder -> builder.codec(

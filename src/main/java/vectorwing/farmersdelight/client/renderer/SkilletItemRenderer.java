@@ -1,9 +1,13 @@
 package vectorwing.farmersdelight.client.renderer;
 
-import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import com.mojang.serialization.MapCodec;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.entity.model.LoadedEntityModels;
+import net.minecraft.client.render.item.model.special.SpecialModelRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemDisplayContext;
@@ -14,12 +18,11 @@ import vectorwing.farmersdelight.common.item.SkilletItem;
 import vectorwing.farmersdelight.common.item.component.ItemStackWrapper;
 import vectorwing.farmersdelight.common.registry.ModDataComponents;
 
-public class SkilletItemRenderer implements BuiltinItemRendererRegistry.DynamicItemRenderer {
+public class SkilletItemRenderer implements SpecialModelRenderer<ItemStack> {
     public SkilletItemRenderer() {
     }
 
-    @Override
-    public void render(ItemStack stack, ItemDisplayContext mode, MatrixStack poseStack, VertexConsumerProvider buffer, int packedLight, int packedOverlay) {
+    public void render(ItemStack stack, ItemDisplayContext mode, MatrixStack poseStack, VertexConsumerProvider buffer, int packedLight, int packedOverlay, boolean glint) {
         //render block
         BlockItem item = ((BlockItem) stack.getItem());
         BlockState state = item.getBlock().getDefaultState();
@@ -39,7 +42,7 @@ public class SkilletItemRenderer implements BuiltinItemRendererRegistry.DynamicI
             long gameTime = mc.world.getTime();
             if (stack.contains(ModDataComponents.SKILLET_FLIP_TIMESTAMP.get()) && mode != ItemDisplayContext.GUI) {
                 long time = stack.get(ModDataComponents.SKILLET_FLIP_TIMESTAMP.get());
-                float partialTicks = mc.getTimer().getGameTimeDeltaPartialTick(false);
+                float partialTicks = mc.getRenderTickCounter().getTickProgress(false);
                 animation = ((gameTime - time) + partialTicks) / SkilletItem.FLIP_TIME;
                 animation = MathHelper.clamp(animation, 0, 1);
                 float maxH = 0.4F;
@@ -74,5 +77,26 @@ public class SkilletItemRenderer implements BuiltinItemRendererRegistry.DynamicI
 
         poseStack.pop();
 
+    }
+
+    //stack held, flip timestamp, flipped
+    @Override
+    public ItemStack getData(ItemStack stack) {
+        return stack;
+    }
+
+    @Environment(EnvType.CLIENT)
+    public record Unbaked() implements SpecialModelRenderer.Unbaked {
+        public static final MapCodec<Unbaked> CODEC = MapCodec.unit(new Unbaked());
+
+        public Unbaked() {}
+
+        public MapCodec<Unbaked> getCodec() {
+            return CODEC;
+        }
+
+        public SpecialModelRenderer<?> bake(LoadedEntityModels entityModels) {
+            return new SkilletItemRenderer();
+        }
     }
 }

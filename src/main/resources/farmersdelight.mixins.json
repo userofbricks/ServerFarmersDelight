@@ -23,10 +23,10 @@
   ],
   "client": [
     "HideBlockBreakProgressMixin",
-    "refabricated.ClientRecipeBookMixin",
     "refabricated.GuiMixin",
     "refabricated.HumanoidModelMixin",
-    "refabricated.RecipeBookCategoriesMixin"
+    "refabricated.RecipeBookCategoriesMixin",
+    "refabricated.SpecialModelTypesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

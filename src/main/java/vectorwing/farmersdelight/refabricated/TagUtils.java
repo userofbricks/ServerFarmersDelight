@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
+import net.minecraft.registry.RegistryKeys;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 import java.io.Reader;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityType;
 import net.minecraft.registry.RegistryWrapper;
@@ -33,9 +35,9 @@ public class TagUtils {
     // This exists so we don't modify literally every loot table in the game just to add loot to a few
     public static boolean isCandleDropsCakeSliceTag(RegistryEntry<Block> block, RegistryWrapper<Block> lookup) {
         if (earlyDropsCakeTag == null) {
-            TagGroupLoader<RegistryEntry<Block>> loader = new TagGroupLoader<>(rl -> lookup.get(ResourceKey.create(Registries.BLOCK, rl)), "tags/block");
+            TagGroupLoader<RegistryEntry<Block>> loader = new TagGroupLoader<>((rl,b) -> lookup.getOptional(RegistryKey.of(RegistryKeys.BLOCK, rl)), "tags/block");
             var dropsLeatherMap = loadTag(ModTags.DROPS_CAKE_SLICE);
-            Map<Identifier, Collection<RegistryEntry<Block>>> loaded = loader.buildGroup(dropsLeatherMap);
+            Map<Identifier, List<RegistryEntry<Block>>> loaded = loader.buildGroup(dropsLeatherMap);
             earlyDropsCakeTag = loaded.get(ModTags.DROPS_CAKE_SLICE.id());
             if (earlyDropsCakeTag == null)
                 earlyDropsCakeTag = List.of();
@@ -47,9 +49,9 @@ public class TagUtils {
     // This exists so we don't modify literally every loot table in the game just to add loot to a few
     public static boolean isDropsLeatherTag(RegistryEntry<EntityType<?>> entityType, RegistryWrapper<EntityType<?>> lookup) {
         if (earlyDropsLeatherTag == null) {
-            TagGroupLoader<RegistryEntry<EntityType<?>>> loader = new TagGroupLoader<>(rl -> lookup.get(ResourceKey.create(Registries.ENTITY_TYPE, rl)), "tags/entity_type");
+            TagGroupLoader<RegistryEntry<EntityType<?>>> loader = new TagGroupLoader<>((rl,b) -> lookup.getOptional(RegistryKey.of(RegistryKeys.ENTITY_TYPE, rl)), "tags/entity_type");
             var dropsLeatherMap = loadTag(ModTags.DROPS_LEATHER);
-            Map<Identifier, Collection<RegistryEntry<EntityType<?>>>> loaded = loader.buildGroup(dropsLeatherMap);
+            Map<Identifier, List<RegistryEntry<EntityType<?>>>> loaded = loader.buildGroup(dropsLeatherMap);
             earlyDropsLeatherTag = loaded.get(ModTags.DROPS_LEATHER.id());
             if (earlyDropsLeatherTag == null)
                 earlyDropsLeatherTag = List.of();

@@ -1,5 +1,6 @@
 package vectorwing.farmersdelight.client.renderer;
 
+import net.minecraft.util.math.Vec3d;
 import vectorwing.farmersdelight.common.block.StoveBlock;
 import vectorwing.farmersdelight.common.block.entity.SkilletBlockEntity;
 import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
@@ -24,7 +25,7 @@ public class SkilletRenderer implements BlockEntityRenderer<SkilletBlockEntity>
 	}
 
 	@Override
-	public void render(SkilletBlockEntity skilletEntity, float partialTicks, MatrixStack poseStack, VertexConsumerProvider buffer, int combinedLight, int combinedOverlay) {
+	public void render(SkilletBlockEntity skilletEntity, float partialTicks, MatrixStack poseStack, VertexConsumerProvider buffer, int combinedLight, int combinedOverlay, Vec3d cameraPos) {
 		Direction direction = skilletEntity.getCachedState().get(StoveBlock.FACING);
 		ItemStackHandler inventory = skilletEntity.getInventory();
 		int posLong = (int) skilletEntity.getPos().asLong();

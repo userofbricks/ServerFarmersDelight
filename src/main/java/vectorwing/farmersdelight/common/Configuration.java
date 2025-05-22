@@ -29,7 +29,6 @@ public class Configuration {
     public static Supplier<Boolean> ENABLE_TOMATO_VINE_CLIMBING_TAGGED_ROPES;
 
     public static final String CATEGORY_RECIPE_BOOK = "recipe_book";
-    public static Supplier<Boolean> ENABLE_RECIPE_BOOK_COOKING_POT;
 
     public static final String CATEGORY_OVERRIDES = "overrides";
     public static Supplier<Boolean> VANILLA_SOUP_EXTRA_EFFECTS;
@@ -87,11 +86,6 @@ public class Configuration {
         ENABLE_TOMATO_VINE_CLIMBING_TAGGED_ROPES = builder.comment("Should tomato vines be able to climb any rope tagged as farmersdelight:ropes?\n"+
                         "Beware: this will convert these blocks into the block specified in defaultTomatoVineRope.")
                 .define("enableTomatoVineClimbingTaggedRopes", true);
-        builder.pop();
-
-        builder.comment("Recipe book").push(CATEGORY_RECIPE_BOOK);
-        ENABLE_RECIPE_BOOK_COOKING_POT = builder.comment("Should the Cooking Pot have a Recipe Book available on its interface?")
-                .define("enableRecipeBookCookingPot", true);
         builder.pop();
 
         builder.comment("Vanilla item overrides").push(CATEGORY_OVERRIDES);

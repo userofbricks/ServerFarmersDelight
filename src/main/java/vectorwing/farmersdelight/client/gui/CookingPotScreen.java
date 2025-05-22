@@ -1,6 +1,9 @@
 package vectorwing.farmersdelight.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.screen.AbstractFurnaceScreenHandler;
+import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.Configuration;
@@ -25,62 +28,27 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-public class CookingPotScreen extends HandledScreen<CookingPotMenu> implements RecipeBookProvider
+public class CookingPotScreen extends HandledScreen<CookingPotMenu>
 {
-	private static final ButtonTextures RECIPE_BUTTON = new ButtonTextures(Identifier.ofVanilla("recipe_book/button"), Identifier.ofVanilla("recipe_book/button"));
-	private static final Identifier BACKGROUND_TEXTURE = Identifier.of(FarmersDelight.MODID, "textures/gui/cooking_pot.png");
+    private static final Identifier BACKGROUND_TEXTURE = Identifier.of(FarmersDelight.MODID, "textures/gui/cooking_pot.png");
 	private static final Rectangle HEAT_ICON = new Rectangle(47, 55, 17, 15);
 	private static final Rectangle PROGRESS_ARROW = new Rectangle(89, 25, 0, 17);
 
-	private final CookingPotRecipeBookComponent recipeBookComponent = new CookingPotRecipeBookComponent();
-	private boolean widthTooNarrow;
-
-	public CookingPotScreen(CookingPotMenu screenContainer, PlayerInventory inv, Text titleIn) {
+    public CookingPotScreen(CookingPotMenu screenContainer, PlayerInventory inv, Text titleIn) {
 		super(screenContainer, inv, titleIn);
 	}
 
 	@Override
 	public void init() {
 		super.init();
-		this.widthTooNarrow = this.width < 379;
-		this.titleX = 28;
-		this.recipeBookComponent.initialize(this.width, this.height, this.client, this.widthTooNarrow, this.handler);
-		this.x = this.recipeBookComponent.findLeftEdge(this.width, this.backgroundWidth);
-		if (Configuration.ENABLE_RECIPE_BOOK_COOKING_POT.get()) {
-			this.addDrawableChild(new TexturedButtonWidget(this.x + 5, this.height / 2 - 49, 20, 18, RECIPE_BUTTON, (button) ->
-			{
-				this.recipeBookComponent.toggleOpen();
-				this.x = this.recipeBookComponent.findLeftEdge(this.width, this.backgroundWidth);
-				button.setPosition(this.x + 5, this.height / 2 - 49);
-			}));
-		} else {
-			this.recipeBookComponent.hide();
-			this.x = this.recipeBookComponent.findLeftEdge(this.width, this.backgroundWidth);
-		}
-		this.addSelectableChild(this.recipeBookComponent);
-		this.setInitialFocus(this.recipeBookComponent);
-	}
-
-	@Override
-	protected void handledScreenTick() {
-		super.handledScreenTick();
-		this.recipeBookComponent.update();
+        this.titleX = 28;
 	}
 
 	@Override
 	public void render(DrawContext gui, final int mouseX, final int mouseY, float partialTicks) {
-		if (this.recipeBookComponent.isOpen() && this.widthTooNarrow) {
-			this.renderBackground(gui, mouseX, mouseY, partialTicks);
-			this.recipeBookComponent.render(gui, mouseX, mouseY, partialTicks);
-		} else {
-			super.render(gui, mouseX, mouseY, partialTicks);
-			this.recipeBookComponent.render(gui, mouseX, mouseY, partialTicks);
-			this.recipeBookComponent.drawGhostSlots(gui, this.x, this.y, false, partialTicks);
-		}
-
+		super.render(gui, mouseX, mouseY, partialTicks);
 		this.renderMealDisplayTooltip(gui, mouseX, mouseY);
 		this.renderHeatIndicatorTooltip(gui, mouseX, mouseY);
-		this.recipeBookComponent.drawTooltip(gui, this.x, this.y, mouseX, mouseY);
 	}
 
 	private void renderHeatIndicatorTooltip(DrawContext gui, int mouseX, int mouseY) {
@@ -91,15 +59,15 @@ public class CookingPotScreen extends HandledScreen<CookingPotMenu> implements R
 	}
 
 	protected void renderMealDisplayTooltip(DrawContext gui, int mouseX, int mouseY) {
-		if (this.client != null && this.client.player != null && this.handler.getCarried().isEmpty() && this.focusedSlot != null && this.focusedSlot.hasStack()) {
+		if (this.client != null && this.client.player != null && this.handler.getCursorStack().isEmpty() && this.focusedSlot != null && this.focusedSlot.hasStack()) {
 			if (this.focusedSlot.id == 6) {
 				List<Text> tooltip = new ArrayList<>();
 
 				ItemStack mealStack = this.focusedSlot.getStack();
-				tooltip.add(((MutableText) mealStack.getItem().getDescription()).formatted(mealStack.getRarity().getFormatting()));
+				tooltip.add(((MutableText) mealStack.getItem().getName()).formatted(mealStack.getRarity().getFormatting()));
 
 				ItemStack containerStack = this.handler.blockEntity.getContainer();
-				String container = !containerStack.isEmpty() ? containerStack.getItem().getDescription().getString() : "";
+				String container = !containerStack.isEmpty() ? containerStack.getItem().getName().getString() : "";
 
 				tooltip.add(TextUtils.getTranslation("container.cooking_pot.served_on", container).formatted(Formatting.GRAY));
 
@@ -123,58 +91,15 @@ public class CookingPotScreen extends HandledScreen<CookingPotMenu> implements R
 		if (this.client == null)
 			return;
 
-		gui.drawTexture(BACKGROUND_TEXTURE, this.x, this.y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+		gui.drawTexture(RenderLayer::getGuiTextured, BACKGROUND_TEXTURE, this.x, this.y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
 
 		// Render heat icon
 		if (this.handler.isHeated()) {
-			gui.drawTexture(BACKGROUND_TEXTURE, this.x + HEAT_ICON.x, this.y + HEAT_ICON.y, 176, 0, HEAT_ICON.width, HEAT_ICON.height);
+			gui.drawTexture(RenderLayer::getGuiTextured, BACKGROUND_TEXTURE, this.x + HEAT_ICON.x, this.y + HEAT_ICON.y, 176, 0, HEAT_ICON.width, HEAT_ICON.height, 256, 256);
 		}
 
 		// Render progress arrow
 		int l = this.handler.getCookProgressionScaled();
-		gui.drawTexture(BACKGROUND_TEXTURE, this.x + PROGRESS_ARROW.x, this.y + PROGRESS_ARROW.y, 176, 15, l + 1, PROGRESS_ARROW.height);
-	}
-
-	@Override
-	protected boolean isPointWithinBounds(int x, int y, int width, int height, double mouseX, double mouseY) {
-		return (!this.widthTooNarrow || !this.recipeBookComponent.isOpen()) && super.isPointWithinBounds(x, y, width, height, mouseX, mouseY);
-	}
-
-	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int buttonId) {
-		if (this.recipeBookComponent.mouseClicked(mouseX, mouseY, buttonId)) {
-			this.setFocused(this.recipeBookComponent);
-			return true;
-		}
-		return this.widthTooNarrow && this.recipeBookComponent.isOpen() || super.mouseClicked(mouseX, mouseY, buttonId);
-	}
-
-	@Override
-	protected boolean isClickOutsideBounds(double mouseX, double mouseY, int x, int y, int buttonIdx) {
-		boolean flag = mouseX < (double) x || mouseY < (double) y || mouseX >= (double) (x + this.backgroundWidth) || mouseY >= (double) (y + this.backgroundHeight);
-		return flag && this.recipeBookComponent.isClickOutsideBounds(mouseX, mouseY, this.x, this.y, this.backgroundWidth, this.backgroundHeight, buttonIdx);
-	}
-
-	@Override
-	protected void onMouseClick(Slot slot, int mouseX, int mouseY, SlotActionType clickType) {
-		super.onMouseClick(slot, mouseX, mouseY, clickType);
-		this.recipeBookComponent.onMouseClick(slot);
-	}
-
-	@Override
-	public void refreshRecipeBook() {
-		this.recipeBookComponent.refresh();
-	}
-
-//	@Override
-//	public void removed() {
-//		this.recipeBookComponent.removed();
-//		super.removed();
-//	}
-
-	@Override
-	@NotNull
-	public RecipeBookWidget getRecipeBookComponent() {
-		return this.recipeBookComponent;
+		gui.drawTexture(RenderLayer::getGuiTextured, BACKGROUND_TEXTURE, this.x + PROGRESS_ARROW.x, this.y + PROGRESS_ARROW.y, 176, 15, l + 1, PROGRESS_ARROW.height, 256, 256);
 	}
 }

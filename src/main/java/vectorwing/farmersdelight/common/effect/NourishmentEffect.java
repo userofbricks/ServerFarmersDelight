@@ -5,6 +5,7 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.GameRules;
 
 public class NourishmentEffect extends StatusEffect
@@ -18,15 +19,15 @@ public class NourishmentEffect extends StatusEffect
 		super(StatusEffectCategory.BENEFICIAL, 15971072);
 	}
 
-	public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+	public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
 		if (!entity.getEntityWorld().isClient && entity instanceof PlayerEntity player) {
 			HungerManager foodData = player.getHungerManager();
 			boolean isPlayerHealingWithHunger =
-					player.getWorld().getGameRules().getBoolean(GameRules.NATURAL_REGENERATION)
+					world.getGameRules().getBoolean(GameRules.NATURAL_REGENERATION)
 							&& player.canFoodHeal()
 							&& foodData.getFoodLevel() >= 18;
 			if (!isPlayerHealingWithHunger) {
-				float exhaustion = foodData.getExhaustionLevel();
+				float exhaustion = foodData.getSaturationLevel();
 				float reduction = Math.min(exhaustion, 4.0F);
 				if (exhaustion > 0.0F) {
 					player.addExhaustion(-reduction);

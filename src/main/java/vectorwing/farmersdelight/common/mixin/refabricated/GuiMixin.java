@@ -17,17 +17,17 @@ public class GuiMixin {
     @Unique
     private RenderTickCounter farmersdelightrefabricated$deltaTracker;
 
-    @Inject(method = "renderHotbarAndDecorations", at = @At("HEAD"))
+    @Inject(method = "renderMainHud", at = @At("HEAD"))
     private void farmersdelightrefabricated$captureDeltaTracker(DrawContext guiGraphics, RenderTickCounter deltaTracker, CallbackInfo ci) {
         farmersdelightrefabricated$deltaTracker = deltaTracker;
     }
 
-    @Inject(method = "renderHotbarAndDecorations", at = @At("TAIL"))
+    @Inject(method = "renderMainHud", at = @At("TAIL"))
     private void farmersdelightrefabricated$clearDeltaTracker(DrawContext guiGraphics, RenderTickCounter deltaTracker, CallbackInfo ci) {
         farmersdelightrefabricated$deltaTracker = null;
     }
 
-    @Inject(method = "renderHearts", at = @At("TAIL"))
+    @Inject(method = "renderHealthBar", at = @At("TAIL"))
     private void farmersdelightrefabricated$renderHearts(DrawContext guiGraphics, PlayerEntity player, int x, int y, int height, int offsetHeartIndex, float maxHealth, int currentHealth, int displayHealth, int absorptionAmount, boolean renderHighlight, CallbackInfo ci) {
         HUDOverlays.ComfortOverlay.INSTANCE.render(guiGraphics, farmersdelightrefabricated$deltaTracker);
     }

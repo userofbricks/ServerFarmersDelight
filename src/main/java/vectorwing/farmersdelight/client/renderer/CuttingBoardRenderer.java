@@ -5,16 +5,11 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.HoeItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.TridentItem;
+import net.minecraft.item.*;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.world.item.*;
+import net.minecraft.util.math.Vec3d;
 import vectorwing.farmersdelight.common.block.CuttingBoardBlock;
 import vectorwing.farmersdelight.common.block.entity.CuttingBoardBlockEntity;
 import vectorwing.farmersdelight.common.tag.ModTags;
@@ -25,8 +20,9 @@ public class CuttingBoardRenderer implements BlockEntityRenderer<CuttingBoardBlo
 	}
 
 	@Override
-	public void render(CuttingBoardBlockEntity cuttingBoardEntity, float partialTicks, MatrixStack poseStack, VertexConsumerProvider buffer, int combinedLight, int combinedOverlay) {
-		Direction direction = cuttingBoardEntity.getCachedState().get(CuttingBoardBlock.FACING).getOpposite();
+	public void render(CuttingBoardBlockEntity cuttingBoardEntity, float partialTicks, MatrixStack poseStack, VertexConsumerProvider buffer, int combinedLight, int combinedOverlay, Vec3d cameraPos) {
+		Direction direction1 = cuttingBoardEntity.getCachedState().get(CuttingBoardBlock.FACING);
+		Direction direction = direction1.getOpposite();
 		ItemStack boardStack = cuttingBoardEntity.getStoredItem();
 		int posLong = (int) cuttingBoardEntity.getPos().asLong();
 
@@ -36,11 +32,7 @@ public class CuttingBoardRenderer implements BlockEntityRenderer<CuttingBoardBlo
 			ItemRenderer itemRenderer = MinecraftClient.getInstance()
 					.getItemRenderer();
 
-			poseStack.push();
-			BakedModel model = itemRenderer.getModel(boardStack, cuttingBoardEntity.getWorld(), null, 0);
-			model.getTransforms().getTransform(ItemDisplayContext.FIXED).apply(false, poseStack);
-			boolean isBlockItem = model.isGui3d();
-			poseStack.pop();
+			boolean isBlockItem = boardStack.getItem() instanceof BlockItem;
 
 			if (cuttingBoardEntity.isItemCarvingBoard()) {
 				renderItemCarved(poseStack, direction, boardStack);
@@ -50,7 +42,7 @@ public class CuttingBoardRenderer implements BlockEntityRenderer<CuttingBoardBlo
 				renderItemLayingDown(poseStack, direction);
 			}
 
-			MinecraftClient.getInstance().getItemRenderer().renderItem(boardStack, ItemDisplayContext.FIXED, combinedLight, combinedOverlay, poseStack, buffer, cuttingBoardEntity.getWorld(), posLong);
+			itemRenderer.renderItem(boardStack, ItemDisplayContext.FIXED, combinedLight, combinedOverlay, poseStack, buffer, cuttingBoardEntity.getWorld(), posLong);
 			poseStack.pop();
 		}
 	}
@@ -93,7 +85,7 @@ public class CuttingBoardRenderer implements BlockEntityRenderer<CuttingBoardBlo
 		// Rotate item to be carved on the surface, A little less so for hoes and pickaxes.
 		Item toolItem = itemStack.getItem();
 		float poseAngle;
-		if (toolItem instanceof PickaxeItem || toolItem instanceof HoeItem) {
+		if (toolItem.getRegistryEntry().registryKey().getValue().getPath().contains("pickaxe") || toolItem instanceof HoeItem) {
 			poseAngle = 225.0F;
 		} else if (toolItem instanceof TridentItem) {
 			poseAngle = 135.0F;
