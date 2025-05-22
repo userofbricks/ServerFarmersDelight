@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditionType;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.core.HolderLookup;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.Configuration;
@@ -27,7 +26,7 @@ public class VanillaCrateEnabledCondition implements ResourceCondition
 	}
 
 	@Override
-	public boolean test(HolderLookup.@Nullable Provider registryLookup) {
+	public boolean test(RegistryWrapper.@Nullable WrapperLookup registryLookup) {
 		return Configuration.ENABLE_VANILLA_CROP_CRATES.get();
 	}
 }

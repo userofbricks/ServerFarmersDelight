@@ -1,7 +1,7 @@
 package vectorwing.farmersdelight.common.block.entity.container;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import vectorwing.farmersdelight.refabricated.inventory.ItemHandlerSlot;
 import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
@@ -12,12 +12,12 @@ public class CookingPotMealSlot extends ItemHandlerSlot
 	}
 
 	@Override
-	public boolean mayPlace(ItemStack stack) {
+	public boolean canInsert(ItemStack stack) {
 		return false;
 	}
 
 	@Override
-	public boolean mayPickup(Player playerIn) {
+	public boolean canTakeItems(PlayerEntity playerIn) {
 		return false;
 	}
 }

@@ -1,10 +1,10 @@
 package vectorwing.farmersdelight.common.mixin.refabricated;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.CropBlock;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -19,13 +19,13 @@ import vectorwing.farmersdelight.common.utility.SoilUtils;
 @Mixin(CropBlock.class)
 public class CropBlockMixin {
     @ModifyVariable(method = "getGrowthSpeed", at = @At(value = "LOAD", ordinal = 1), ordinal = 1)
-    private static float farmersdelightrefabricated$modifyGrowthSpeedForNonFarmland(float original, Block block, BlockGetter level, BlockPos pos) {
-        BlockState belowState = level.getBlockState(pos.below());
+    private static float farmersdelightrefabricated$modifyGrowthSpeedForNonFarmland(float original, Block block, BlockView level, BlockPos pos) {
+        BlockState belowState = level.getBlockState(pos.down());
         if (belowState.getBlock() instanceof RichSoilBlock && SoilUtils.isAbleToPlaceRichSoil(block) && original < 0.00001F)
             return 1.0F;
 
         if (belowState.getBlock() instanceof RichSoilFarmlandBlock && SoilUtils.isAbleToPlaceRichSoilFarmland(block) && original < 0.00001F) {
-            if (belowState.hasProperty(RichSoilFarmlandBlock.MOISTURE) && belowState.getValue(RichSoilFarmlandBlock.MOISTURE) > 0)
+            if (belowState.contains(RichSoilFarmlandBlock.MOISTURE) && belowState.get(RichSoilFarmlandBlock.MOISTURE) > 0)
                 return 3.0F;
             return 1.0F;
         }

@@ -6,9 +6,6 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.SlotWidget;
 import dev.emi.emi.api.widget.WidgetHolder;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.utility.ClientRenderUtils;
@@ -16,19 +13,22 @@ import vectorwing.farmersdelight.integration.emi.FDRecipeCategories;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.gui.tooltip.TooltipComponent;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 public class CookingPotEmiRecipe implements EmiRecipe {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "textures/gui/cooking_pot.png");
+    private static final Identifier BACKGROUND = Identifier.of(FarmersDelight.MODID, "textures/gui/cooking_pot.png");
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final List<EmiIngredient> inputs;
     private final EmiStack output;
     private final EmiStack container;
     private final int cookTime;
     private final float experience;
-    private final List<ClientTooltipComponent> tooltipComponents;
+    private final List<TooltipComponent> tooltipComponents;
 
-    public CookingPotEmiRecipe(ResourceLocation id, List<EmiIngredient> inputs, EmiStack output,
+    public CookingPotEmiRecipe(Identifier id, List<EmiIngredient> inputs, EmiStack output,
                                EmiStack container, int cookTime, float experience) {
         this.id = id;
         this.inputs = inputs;
@@ -39,15 +39,15 @@ public class CookingPotEmiRecipe implements EmiRecipe {
         this.tooltipComponents = createTooltipComponents();
     }
 
-    private List<ClientTooltipComponent> createTooltipComponents() {
-        List<ClientTooltipComponent> tooltipStrings = new ArrayList<>();
+    private List<TooltipComponent> createTooltipComponents() {
+        List<TooltipComponent> tooltipStrings = new ArrayList<>();
 
         if (cookTime > 0) {
             int cookTimeSeconds = cookTime / 20;
-            tooltipStrings.add(ClientTooltipComponent.create(Component.translatable("emi.cooking.time", cookTimeSeconds).getVisualOrderText()));
+            tooltipStrings.add(TooltipComponent.of(Text.translatable("emi.cooking.time", cookTimeSeconds).asOrderedText()));
         }
         if (experience > 0) {
-            tooltipStrings.add(ClientTooltipComponent.create(Component.translatable("emi.cooking.experience", experience).getVisualOrderText()));
+            tooltipStrings.add(TooltipComponent.of(Text.translatable("emi.cooking.experience", experience).asOrderedText()));
         }
 
         return tooltipStrings;
@@ -59,7 +59,7 @@ public class CookingPotEmiRecipe implements EmiRecipe {
     }
 
     @Override
-    public @Nullable ResourceLocation getId() {
+    public @Nullable Identifier getId() {
         return id;
     }
 

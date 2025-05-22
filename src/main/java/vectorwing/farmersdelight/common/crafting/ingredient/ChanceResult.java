@@ -3,9 +3,9 @@ package vectorwing.farmersdelight.common.crafting.ingredient;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.util.math.random.Random;
 import vectorwing.farmersdelight.common.Configuration;
 
 /**
@@ -20,7 +20,7 @@ public record ChanceResult(ItemStack stack, float chance)
 	).apply(inst, ChanceResult::new));
 
 
-	public ItemStack rollOutput(RandomSource rand, int fortuneLevel) {
+	public ItemStack rollOutput(Random rand, int fortuneLevel) {
 		int outputAmount = stack.getCount();
 		double fortuneBonus = Configuration.CUTTING_BOARD_FORTUNE_BONUS.get() * fortuneLevel;
 		for (int roll = 0; roll < stack.getCount(); roll++)
@@ -33,12 +33,12 @@ public record ChanceResult(ItemStack stack, float chance)
 		return out;
 	}
 
-	public void write(RegistryFriendlyByteBuf buffer) {
-		ItemStack.STREAM_CODEC.encode(buffer, stack());
+	public void write(RegistryByteBuf buffer) {
+		ItemStack.PACKET_CODEC.encode(buffer, stack());
 		buffer.writeFloat(chance());
 	}
 
-	public static ChanceResult read(RegistryFriendlyByteBuf buffer) {
-		return new ChanceResult(ItemStack.STREAM_CODEC.decode(buffer), buffer.readFloat());
+	public static ChanceResult read(RegistryByteBuf buffer) {
+		return new ChanceResult(ItemStack.PACKET_CODEC.decode(buffer), buffer.readFloat());
 	}
 }

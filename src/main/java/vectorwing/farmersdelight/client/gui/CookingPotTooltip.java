@@ -1,23 +1,23 @@
 package vectorwing.farmersdelight.client.gui;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.tooltip.TooltipComponent;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipData;
+import net.minecraft.text.MutableText;
+import net.minecraft.util.Formatting;
 import org.joml.Matrix4f;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
-public class CookingPotTooltip implements ClientTooltipComponent
+public class CookingPotTooltip implements TooltipComponent
 {
 	private static final int ITEM_SIZE = 16;
 	private static final int MARGIN = 4;
 
-	private final int textSpacing = Minecraft.getInstance().font.lineHeight + 1;
+	private final int textSpacing = MinecraftClient.getInstance().textRenderer.fontHeight + 1;
 	private final ItemStack mealStack;
 
 	public CookingPotTooltip(CookingPotTooltipComponent tooltip) {
@@ -30,42 +30,42 @@ public class CookingPotTooltip implements ClientTooltipComponent
 	}
 
 	@Override
-	public int getWidth(Font font) {
+	public int getWidth(TextRenderer font) {
 		if (!mealStack.isEmpty()) {
-			MutableComponent textServingsOf = mealStack.getCount() == 1
+			MutableText textServingsOf = mealStack.getCount() == 1
 					? TextUtils.getTranslation("tooltip.cooking_pot.single_serving")
 					: TextUtils.getTranslation("tooltip.cooking_pot.many_servings", mealStack.getCount());
-			return Math.max(font.width(textServingsOf), font.width(mealStack.getHoverName()) + 20);
+			return Math.max(font.getWidth(textServingsOf), font.getWidth(mealStack.getName()) + 20);
 		} else {
-			return font.width(TextUtils.getTranslation("tooltip.cooking_pot.empty"));
+			return font.getWidth(TextUtils.getTranslation("tooltip.cooking_pot.empty"));
 		}
 	}
 
 	@Override
-	public void renderImage(Font font, int mouseX, int mouseY, GuiGraphics gui) {
+	public void renderImage(TextRenderer font, int mouseX, int mouseY, DrawContext gui) {
 		if (mealStack.isEmpty()) return;
-		gui.renderItem(mealStack, mouseX, mouseY + textSpacing, 0);
+		gui.drawItem(mealStack, mouseX, mouseY + textSpacing, 0);
 	}
 
 	@Override
-	public void renderText(Font font, int x, int y, Matrix4f matrix4f, MultiBufferSource.BufferSource bufferSource) {
-		Integer color = ChatFormatting.GRAY.getColor();
+	public void drawText(TextRenderer font, int x, int y, Matrix4f matrix4f, VertexConsumerProvider.Immediate bufferSource) {
+		Integer color = Formatting.GRAY.getColorValue();
 		int gray = color == null ? -1 : color;
 
 		if (!mealStack.isEmpty()) {
-			MutableComponent textServingsOf = mealStack.getCount() == 1
+			MutableText textServingsOf = mealStack.getCount() == 1
 					? TextUtils.getTranslation("tooltip.cooking_pot.single_serving")
 					: TextUtils.getTranslation("tooltip.cooking_pot.many_servings", mealStack.getCount());
 
-			font.drawInBatch(textServingsOf, (float) x, (float) y, gray, true, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
-			font.drawInBatch(mealStack.getHoverName(), x + ITEM_SIZE + MARGIN, y + textSpacing + MARGIN, -1, true, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
+			font.draw(textServingsOf, (float) x, (float) y, gray, true, matrix4f, bufferSource, TextRenderer.TextLayerType.NORMAL, 0, 15728880);
+			font.draw(mealStack.getName(), x + ITEM_SIZE + MARGIN, y + textSpacing + MARGIN, -1, true, matrix4f, bufferSource, TextRenderer.TextLayerType.NORMAL, 0, 15728880);
 		} else {
-			MutableComponent textEmpty = TextUtils.getTranslation("tooltip.cooking_pot.empty");
-			font.drawInBatch(textEmpty, x, y, gray, true, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, 15728880);
+			MutableText textEmpty = TextUtils.getTranslation("tooltip.cooking_pot.empty");
+			font.draw(textEmpty, x, y, gray, true, matrix4f, bufferSource, TextRenderer.TextLayerType.NORMAL, 0, 15728880);
 		}
 	}
 
-	public static record CookingPotTooltipComponent(ItemStack mealStack) implements TooltipComponent
+	public static record CookingPotTooltipComponent(ItemStack mealStack) implements TooltipData
 	{
 	}
 }

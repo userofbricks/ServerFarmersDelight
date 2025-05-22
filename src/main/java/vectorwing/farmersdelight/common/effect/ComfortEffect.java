@@ -1,14 +1,14 @@
 package vectorwing.farmersdelight.common.effect;
 
 
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectCategory;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 
 @SuppressWarnings("unused")
-public class ComfortEffect extends MobEffect
+public class ComfortEffect extends StatusEffect
 {
 	/**
 	 * This effect extends the player's natural regeneration, regardless of how hungry they are.
@@ -16,16 +16,16 @@ public class ComfortEffect extends MobEffect
 	 * If the player has saturation to spend, or has the Regeneration effect, Comfort does nothing.
 	 */
 	public ComfortEffect() {
-		super(MobEffectCategory.BENEFICIAL, 14545909);
+		super(StatusEffectCategory.BENEFICIAL, 14545909);
 	}
 
 	@Override
 	public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-		if (entity.hasEffect(MobEffects.REGENERATION)) {
+		if (entity.hasStatusEffect(StatusEffects.REGENERATION)) {
 			return true;
 		}
-		if (entity instanceof Player player) {
-			if (player.getFoodData().getSaturationLevel() > 0.0) {
+		if (entity instanceof PlayerEntity player) {
+			if (player.getHungerManager().getSaturationLevel() > 0.0) {
 				return true;
 			}
 		}
@@ -36,7 +36,7 @@ public class ComfortEffect extends MobEffect
 	}
 
 	@Override
-	public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
+	public boolean canApplyUpdateEffect(int duration, int amplifier) {
 		return duration % 80 == 0;
 	}
 }

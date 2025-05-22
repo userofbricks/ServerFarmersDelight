@@ -5,12 +5,12 @@ import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.util.Identifier;
 import vectorwing.farmersdelight.common.crafting.CookingPotRecipe;
 import vectorwing.farmersdelight.integration.rei.REICategoryIdentifiers;
-
+import Serializer;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,15 +19,15 @@ public class CookingPotDisplay extends BasicDisplay {
     private int cookTime;
     private float experience;
 
-    public CookingPotDisplay(RecipeHolder<CookingPotRecipe> recipe) {
+    public CookingPotDisplay(RecipeEntry<CookingPotRecipe> recipe) {
         this(EntryIngredients.ofIngredients(recipe.value().getIngredients()), List.of(EntryIngredients.of(recipe.value().getResultItem(registryAccess()))), Optional.of(recipe.id()), EntryIngredients.of(recipe.value().getOutputContainer()), recipe.value().getCookTime(), recipe.value().getExperience());
     }
 
-    public CookingPotDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<ResourceLocation> location, CompoundTag tag) {
+    public CookingPotDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<Identifier> location, NbtCompound tag) {
         this(inputs, outputs, location, EntryIngredient.of(EntryStack.read(tag.getCompound("container"))), tag.getInt("cook_time"), tag.getFloat("experience"));
     }
 
-    public CookingPotDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<ResourceLocation> location, EntryIngredient container, int cookTime, float experience) {
+    public CookingPotDisplay(List<EntryIngredient> inputs, List<EntryIngredient> outputs, Optional<Identifier> location, EntryIngredient container, int cookTime, float experience) {
         super(inputs, outputs, location);
         this.container = container;
         this.cookTime = cookTime;

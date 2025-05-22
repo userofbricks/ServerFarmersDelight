@@ -1,13 +1,13 @@
 package vectorwing.farmersdelight.common.effect;
 
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.FoodData;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectCategory;
+import net.minecraft.entity.player.HungerManager;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.GameRules;
 
-public class NourishmentEffect extends MobEffect
+public class NourishmentEffect extends StatusEffect
 {
 	/**
 	 * This effect prevents hunger loss by constantly decreasing the exhaustion level.
@@ -15,21 +15,21 @@ public class NourishmentEffect extends MobEffect
 	 * This means players can grow hungry by healing damage, but no further than 1.5 points, allowing them to eat more and keep healing.
 	 */
 	public NourishmentEffect() {
-		super(MobEffectCategory.BENEFICIAL, 15971072);
+		super(StatusEffectCategory.BENEFICIAL, 15971072);
 	}
 
 	public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-		if (!entity.getCommandSenderWorld().isClientSide && entity instanceof Player player) {
-			FoodData foodData = player.getFoodData();
+		if (!entity.getEntityWorld().isClient && entity instanceof PlayerEntity player) {
+			HungerManager foodData = player.getHungerManager();
 			boolean isPlayerHealingWithHunger =
-					player.level().getGameRules().getBoolean(GameRules.RULE_NATURAL_REGENERATION)
-							&& player.isHurt()
+					player.getWorld().getGameRules().getBoolean(GameRules.NATURAL_REGENERATION)
+							&& player.canFoodHeal()
 							&& foodData.getFoodLevel() >= 18;
 			if (!isPlayerHealingWithHunger) {
 				float exhaustion = foodData.getExhaustionLevel();
 				float reduction = Math.min(exhaustion, 4.0F);
 				if (exhaustion > 0.0F) {
-					player.causeFoodExhaustion(-reduction);
+					player.addExhaustion(-reduction);
 				}
 			}
 		}
@@ -38,7 +38,7 @@ public class NourishmentEffect extends MobEffect
 	}
 
 	@Override
-	public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
+	public boolean canApplyUpdateEffect(int duration, int amplifier) {
 		return true;
 	}
 }

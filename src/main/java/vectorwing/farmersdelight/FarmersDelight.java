@@ -1,7 +1,7 @@
 package vectorwing.farmersdelight;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import vectorwing.farmersdelight.common.CommonSetup;
@@ -29,8 +29,8 @@ public class FarmersDelight implements ModInitializer
 	public static final String MODID = "farmersdelight";
 	public static final Logger LOGGER = LogManager.getLogger();
 
-	public static ResourceLocation res(String name) {
-		return ResourceLocation.fromNamespaceAndPath(MODID, name);
+	public static Identifier res(String name) {
+		return Identifier.of(MODID, name);
 	}
 
 	@Override

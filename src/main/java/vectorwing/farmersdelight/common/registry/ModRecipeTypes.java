@@ -1,12 +1,12 @@
 package vectorwing.farmersdelight.common.registry;
 
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeType;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.crafting.CookingPotRecipe;
 import vectorwing.farmersdelight.common.crafting.CuttingBoardRecipe;
 
 import java.util.function.Supplier;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeType;
 
 import static vectorwing.farmersdelight.refabricated.RegUtils.regRecipe;
 

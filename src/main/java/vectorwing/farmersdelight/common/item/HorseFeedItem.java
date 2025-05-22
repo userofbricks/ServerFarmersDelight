@@ -2,27 +2,26 @@ package vectorwing.farmersdelight.common.item;
 
 import com.google.common.collect.Lists;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffectUtil;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.animal.horse.Horse;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffectUtil;
+import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModItems;
@@ -35,11 +34,11 @@ import java.util.List;
 
 public class HorseFeedItem extends Item
 {
-	public static final List<MobEffectInstance> EFFECTS = Lists.newArrayList(
-			new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 6000, 1),
-			new MobEffectInstance(MobEffects.JUMP, 6000, 0));
+	public static final List<StatusEffectInstance> EFFECTS = Lists.newArrayList(
+			new StatusEffectInstance(MobEffects.MOVEMENT_SPEED, 6000, 1),
+			new StatusEffectInstance(MobEffects.JUMP, 6000, 0));
 
-	public HorseFeedItem(Properties properties) {
+	public HorseFeedItem(net.minecraft.item.Item.Settings properties) {
 		super(properties);
 	}
 
@@ -49,74 +48,74 @@ public class HorseFeedItem extends Item
 
 	public static class HorseFeedEvent
 	{
-		public static InteractionResult onHorseFeedApplied(Player player, Level level, InteractionHand hand, Entity target, @Nullable EntityHitResult entityHitResult) {
+		public static ActionResult onHorseFeedApplied(PlayerEntity player, World level, Hand hand, Entity target, @Nullable EntityHitResult entityHitResult) {
 			if (player.isSpectator())
-				return InteractionResult.PASS;
+				return ActionResult.PASS;
 
-			ItemStack heldStack = player.getItemInHand(hand);
+			ItemStack heldStack = player.getStackInHand(hand);
 
-			if (target instanceof LivingEntity entity && target.getType().is(ModTags.HORSE_FEED_USERS)) {
-				boolean isTameable = entity instanceof AbstractHorse;
+			if (target instanceof LivingEntity entity && target.getType().isIn(ModTags.HORSE_FEED_USERS)) {
+				boolean isTameable = entity instanceof AbstractHorseEntity;
 
-				if (entity.isAlive() && (!isTameable || ((AbstractHorse) entity).isTamed()) && heldStack.getItem().equals(ModItems.HORSE_FEED.get())) {
+				if (entity.isAlive() && (!isTameable || ((AbstractHorseEntity) entity).isTame()) && heldStack.getItem().equals(ModItems.HORSE_FEED.get())) {
 					entity.setHealth(entity.getMaxHealth());
-					for (MobEffectInstance effect : EFFECTS) {
-						entity.addEffect(new MobEffectInstance(effect));
+					for (StatusEffectInstance effect : EFFECTS) {
+						entity.addStatusEffect(new StatusEffectInstance(effect));
 					}
-					entity.level().playSound(null, target.blockPosition(), SoundEvents.HORSE_EAT, SoundSource.PLAYERS, 0.8F, 0.8F);
+					entity.getWorld().playSound(null, target.getBlockPos(), SoundEvents.ENTITY_HORSE_EAT, SoundCategory.PLAYERS, 0.8F, 0.8F);
 
 					for (int i = 0; i < 5; ++i) {
 						double d0 = MathUtils.RAND.nextGaussian() * 0.02D;
 						double d1 = MathUtils.RAND.nextGaussian() * 0.02D;
 						double d2 = MathUtils.RAND.nextGaussian() * 0.02D;
-						entity.level().addParticle(ModParticleTypes.STAR.get(), entity.getRandomX(1.0D), entity.getRandomY() + 0.5D, entity.getRandomZ(1.0D), d0, d1, d2);
+						entity.getWorld().addParticleClient(ModParticleTypes.STAR.get(), entity.getParticleX(1.0D), entity.getRandomBodyY() + 0.5D, entity.getParticleZ(1.0D), d0, d1, d2);
 					}
 
 					if (!player.isCreative()) {
-						heldStack.shrink(1);
+						heldStack.decrement(1);
 					}
 
-					return InteractionResult.SUCCESS;
+					return ActionResult.SUCCESS;
 				}
 			}
-			return InteractionResult.PASS;
+			return ActionResult.PASS;
 		}
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType isAdvanced) {
 		if (!Configuration.FOOD_EFFECT_TOOLTIP.get()) {
 			return;
 		}
 
-		MutableComponent textWhenFeeding = TextUtils.getTranslation("tooltip.horse_feed.when_feeding");
-		tooltip.add(textWhenFeeding.withStyle(ChatFormatting.GRAY));
+		MutableText textWhenFeeding = TextUtils.getTranslation("tooltip.horse_feed.when_feeding");
+		tooltip.add(textWhenFeeding.formatted(Formatting.GRAY));
 
-		for (MobEffectInstance effectInstance : EFFECTS) {
-			MutableComponent effectDescription = Component.literal(" ");
-			MutableComponent effectName = Component.translatable(effectInstance.getDescriptionId());
+		for (StatusEffectInstance effectInstance : EFFECTS) {
+			MutableText effectDescription = Text.literal(" ");
+			MutableText effectName = Text.translatable(effectInstance.getTranslationKey());
 			effectDescription.append(effectName);
-			MobEffect effect = effectInstance.getEffect().value();
+			StatusEffect effect = effectInstance.getEffectType().value();
 
 			if (effectInstance.getAmplifier() > 0) {
-				effectDescription.append(" ").append(Component.translatable("potion.potency." + effectInstance.getAmplifier()));
+				effectDescription.append(" ").append(Text.translatable("potion.potency." + effectInstance.getAmplifier()));
 			}
 
 			if (effectInstance.getDuration() > 20) {
-				effectDescription.append(" (").append(MobEffectUtil.formatDuration(effectInstance, 1.0F, context.tickRate())).append(")");
+				effectDescription.append(" (").append(StatusEffectUtil.getDurationText(effectInstance, 1.0F, context.getUpdateTickRate())).append(")");
 			}
 
-			tooltip.add(effectDescription.withStyle(effect.getCategory().getTooltipFormatting()));
+			tooltip.add(effectDescription.formatted(effect.getCategory().getFormatting()));
 		}
 	}
 
 	@Override
-	public InteractionResult interactLivingEntity(ItemStack stack, Player playerIn, LivingEntity target, InteractionHand hand) {
-		if (target instanceof Horse horse) {
-			if (horse.isAlive() && horse.isTamed()) {
-				return InteractionResult.SUCCESS;
+	public ActionResult useOnEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
+		if (target instanceof HorseEntity horse) {
+			if (horse.isAlive() && horse.isTame()) {
+				return ActionResult.SUCCESS;
 			}
 		}
-		return InteractionResult.PASS;
+		return ActionResult.PASS;
 	}
 }

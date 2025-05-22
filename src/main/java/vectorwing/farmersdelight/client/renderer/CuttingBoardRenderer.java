@@ -1,14 +1,19 @@
 package vectorwing.farmersdelight.client.renderer;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
+import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Direction;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.HoeItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemDisplayContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.TridentItem;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.item.*;
 import vectorwing.farmersdelight.common.block.CuttingBoardBlock;
 import vectorwing.farmersdelight.common.block.entity.CuttingBoardBlockEntity;
@@ -16,74 +21,74 @@ import vectorwing.farmersdelight.common.tag.ModTags;
 
 public class CuttingBoardRenderer implements BlockEntityRenderer<CuttingBoardBlockEntity>
 {
-	public CuttingBoardRenderer(BlockEntityRendererProvider.Context pContext) {
+	public CuttingBoardRenderer(BlockEntityRendererFactory.Context pContext) {
 	}
 
 	@Override
-	public void render(CuttingBoardBlockEntity cuttingBoardEntity, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
-		Direction direction = cuttingBoardEntity.getBlockState().getValue(CuttingBoardBlock.FACING).getOpposite();
+	public void render(CuttingBoardBlockEntity cuttingBoardEntity, float partialTicks, MatrixStack poseStack, VertexConsumerProvider buffer, int combinedLight, int combinedOverlay) {
+		Direction direction = cuttingBoardEntity.getCachedState().get(CuttingBoardBlock.FACING).getOpposite();
 		ItemStack boardStack = cuttingBoardEntity.getStoredItem();
-		int posLong = (int) cuttingBoardEntity.getBlockPos().asLong();
+		int posLong = (int) cuttingBoardEntity.getPos().asLong();
 
 		if (!boardStack.isEmpty()) {
-			poseStack.pushPose();
+			poseStack.push();
 
-			ItemRenderer itemRenderer = Minecraft.getInstance()
+			ItemRenderer itemRenderer = MinecraftClient.getInstance()
 					.getItemRenderer();
 
-			poseStack.pushPose();
-			BakedModel model = itemRenderer.getModel(boardStack, cuttingBoardEntity.getLevel(), null, 0);
+			poseStack.push();
+			BakedModel model = itemRenderer.getModel(boardStack, cuttingBoardEntity.getWorld(), null, 0);
 			model.getTransforms().getTransform(ItemDisplayContext.FIXED).apply(false, poseStack);
 			boolean isBlockItem = model.isGui3d();
-			poseStack.popPose();
+			poseStack.pop();
 
 			if (cuttingBoardEntity.isItemCarvingBoard()) {
 				renderItemCarved(poseStack, direction, boardStack);
-			} else if (isBlockItem && !boardStack.is(ModTags.FLAT_ON_CUTTING_BOARD)) {
+			} else if (isBlockItem && !boardStack.isIn(ModTags.FLAT_ON_CUTTING_BOARD)) {
 				renderBlock(poseStack, direction);
 			} else {
 				renderItemLayingDown(poseStack, direction);
 			}
 
-			Minecraft.getInstance().getItemRenderer().renderStatic(boardStack, ItemDisplayContext.FIXED, combinedLight, combinedOverlay, poseStack, buffer, cuttingBoardEntity.getLevel(), posLong);
-			poseStack.popPose();
+			MinecraftClient.getInstance().getItemRenderer().renderItem(boardStack, ItemDisplayContext.FIXED, combinedLight, combinedOverlay, poseStack, buffer, cuttingBoardEntity.getWorld(), posLong);
+			poseStack.pop();
 		}
 	}
 
-	public void renderItemLayingDown(PoseStack matrixStackIn, Direction direction) {
+	public void renderItemLayingDown(MatrixStack matrixStackIn, Direction direction) {
 		// Center item above the cutting board
 		matrixStackIn.translate(0.5D, 0.08D, 0.5D);
 
 		// Rotate item to face the cutting board's front side
-		float f = -direction.toYRot();
-		matrixStackIn.mulPose(Axis.YP.rotationDegrees(f));
+		float f = -direction.getPositiveHorizontalDegrees();
+		matrixStackIn.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(f));
 
 		// Rotate item flat on the cutting board. Use X and Y from now on
-		matrixStackIn.mulPose(Axis.XP.rotationDegrees(90.0F));
+		matrixStackIn.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90.0F));
 
 		// Resize the item
 		matrixStackIn.scale(0.6F, 0.6F, 0.6F);
 	}
 
-	public void renderBlock(PoseStack matrixStackIn, Direction direction) {
+	public void renderBlock(MatrixStack matrixStackIn, Direction direction) {
 		// Center block above the cutting board
 		matrixStackIn.translate(0.5D, 0.27D, 0.5D);
 
 		// Rotate block to face the cutting board's front side
-		float f = -direction.toYRot();
-		matrixStackIn.mulPose(Axis.YP.rotationDegrees(f));
+		float f = -direction.getPositiveHorizontalDegrees();
+		matrixStackIn.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(f));
 
 		// Resize the block
 		matrixStackIn.scale(0.8F, 0.8F, 0.8F);
 	}
 
-	public void renderItemCarved(PoseStack matrixStackIn, Direction direction, ItemStack itemStack) {
+	public void renderItemCarved(MatrixStack matrixStackIn, Direction direction, ItemStack itemStack) {
 		// Center item above the cutting board
 		matrixStackIn.translate(0.5D, 0.23D, 0.5D);
 
 		// Rotate item to face the cutting board's front side
-		float f = -direction.toYRot() + 180;
-		matrixStackIn.mulPose(Axis.YP.rotationDegrees(f));
+		float f = -direction.getPositiveHorizontalDegrees() + 180;
+		matrixStackIn.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(f));
 
 		// Rotate item to be carved on the surface, A little less so for hoes and pickaxes.
 		Item toolItem = itemStack.getItem();
@@ -95,7 +100,7 @@ public class CuttingBoardRenderer implements BlockEntityRenderer<CuttingBoardBlo
 		} else {
 			poseAngle = 180.0F;
 		}
-		matrixStackIn.mulPose(Axis.ZP.rotationDegrees(poseAngle));
+		matrixStackIn.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(poseAngle));
 
 		// Resize the item
 		matrixStackIn.scale(0.6F, 0.6F, 0.6F);

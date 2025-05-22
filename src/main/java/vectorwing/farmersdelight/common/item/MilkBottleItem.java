@@ -1,38 +1,38 @@
 package vectorwing.farmersdelight.common.item;
 
-import net.minecraft.core.Holder;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.world.World;
 
 public class MilkBottleItem extends DrinkableItem
 {
-	public MilkBottleItem(Properties properties) {
+	public MilkBottleItem(net.minecraft.item.Item.Settings properties) {
 		super(properties, false, true);
 	}
 
 	@Override
-	public void affectConsumer(ItemStack stack, Level level, LivingEntity consumer) {
-		Iterator<MobEffectInstance> itr = consumer.getActiveEffects().iterator();
-		ArrayList<Holder<MobEffect>> compatibleEffects = new ArrayList<>();
+	public void affectConsumer(ItemStack stack, World level, LivingEntity consumer) {
+		Iterator<StatusEffectInstance> itr = consumer.getStatusEffects().iterator();
+		ArrayList<RegistryEntry<StatusEffect>> compatibleEffects = new ArrayList<>();
 
 		while (itr.hasNext()) {
-			MobEffectInstance effect = itr.next();
-			if (!effect.getEffect().is(ModTags.MILK_BOTTLE_IGNORED)) {
-				compatibleEffects.add(effect.getEffect());
+			StatusEffectInstance effect = itr.next();
+			if (!effect.getEffectType().isIn(ModTags.MILK_BOTTLE_IGNORED)) {
+				compatibleEffects.add(effect.getEffectType());
 			}
 		}
 
 		if (!compatibleEffects.isEmpty()) {
-			MobEffectInstance selectedEffect = consumer.getEffect(compatibleEffects.get(level.random.nextInt(compatibleEffects.size())));
+			StatusEffectInstance selectedEffect = consumer.getStatusEffect(compatibleEffects.get(level.random.nextInt(compatibleEffects.size())));
 			if (selectedEffect != null) {
-				consumer.removeEffect(selectedEffect.getEffect());
+				consumer.removeStatusEffect(selectedEffect.getEffectType());
 			}
 		}
 	}

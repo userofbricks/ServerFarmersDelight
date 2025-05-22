@@ -3,9 +3,9 @@ package vectorwing.farmersdelight.refabricated;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 //This is hacky and tbh not even needed but hey
 public class CompostableHelper {
@@ -15,7 +15,7 @@ public class CompostableHelper {
         if (je != null) {
             var j = je.getAsJsonObject().get("values");
             for (var v : j.getAsJsonObject().asMap().entrySet()) {
-                Item i = BuiltInRegistries.ITEM.get(ResourceLocation.tryParse(v.getKey().toString()));
+                Item i = Registries.ITEM.getEntry(Identifier.tryParse(v.getKey().toString()));
                 CompostingChanceRegistry.INSTANCE.add(i, v.getValue().getAsJsonObject().get("chance").getAsFloat());
             }
         }

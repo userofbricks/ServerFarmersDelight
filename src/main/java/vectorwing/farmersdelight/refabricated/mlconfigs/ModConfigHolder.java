@@ -1,8 +1,5 @@
 package vectorwing.farmersdelight.refabricated.mlconfigs;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,10 +9,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 public abstract class ModConfigHolder {
 
-    private static final Map<ResourceLocation, ModConfigHolder> CONFIG_STORAGE = new ConcurrentHashMap<>(); //wack. multithreading mod loading
+    private static final Map<Identifier, ModConfigHolder> CONFIG_STORAGE = new ConcurrentHashMap<>(); //wack. multithreading mod loading
 
     public static void addTrackedSpec(ModConfigHolder spec) {
         var old = CONFIG_STORAGE.put(spec.getId(), spec);
@@ -28,21 +28,21 @@ public abstract class ModConfigHolder {
         return CONFIG_STORAGE.values();
     }
 
-    private final ResourceLocation configId;
+    private final Identifier configId;
     private final String fileName;
-    private final Component readableName;
+    private final Text readableName;
     private final Path filePath;
     private final ConfigType type;
     @Nullable
     private final Runnable changeCallback;
 
-    protected ModConfigHolder(ResourceLocation id, String fileExtension, Path configDirectory, ConfigType type, @Nullable Runnable changeCallback) {
+    protected ModConfigHolder(Identifier id, String fileExtension, Path configDirectory, ConfigType type, @Nullable Runnable changeCallback) {
         this.configId = id;
         this.fileName = id.getNamespace() + "-" + id.getPath() + "." + fileExtension;
         this.filePath = configDirectory.resolve(fileName);
         this.type = type;
         this.changeCallback = changeCallback;
-        this.readableName = Component.literal(getReadableName(id.toDebugFileName() + "_configs"));
+        this.readableName = Text.literal(getReadableName(id.toUnderscoreSeparatedString() + "_configs"));
 
         ModConfigHolder.addTrackedSpec(this);
     }
@@ -52,7 +52,7 @@ public abstract class ModConfigHolder {
                 .map(StringUtils::capitalize).collect(Collectors.joining(" "));
     }
 
-    public Component getReadableName() {
+    public Text getReadableName() {
         return readableName;
     }
 
@@ -76,7 +76,7 @@ public abstract class ModConfigHolder {
         return configId.getNamespace();
     }
 
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return configId;
     }
 
@@ -93,7 +93,7 @@ public abstract class ModConfigHolder {
     }
 
     //send configs from server -> client
-    public void syncConfigsToPlayer(ServerPlayer player) {
+    public void syncConfigsToPlayer(ServerPlayerEntity player) {
         /*
         if (this.isSynced()) {
             try {

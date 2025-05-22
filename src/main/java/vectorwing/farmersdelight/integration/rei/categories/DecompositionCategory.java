@@ -9,9 +9,9 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DecompositionCategory implements DisplayCategory<DecompositionDisplay> {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "textures/gui/jei/decomposition.png");
+    private static final Identifier BACKGROUND = Identifier.of(FarmersDelight.MODID, "textures/gui/jei/decomposition.png");
     public static final int OUTPUT_GRID_X = 76;
     public static final int OUTPUT_GRID_Y = 10;
 
@@ -33,8 +33,8 @@ public class DecompositionCategory implements DisplayCategory<DecompositionDispl
     }
 
     @Override
-    public Component getTitle() {
-        return Component.translatable("farmersdelight.jei.decomposition");
+    public Text getTitle() {
+        return Text.translatable("farmersdelight.jei.decomposition");
     }
 
     @Override
@@ -72,8 +72,8 @@ public class DecompositionCategory implements DisplayCategory<DecompositionDispl
         return widgets;
     }
 
-    private static MutableComponent translateKey(@NotNull String suffix) {
-        return Component.translatable(FarmersDelight.MODID + ".jei.decomposition" + suffix);
+    private static MutableText translateKey(@NotNull String suffix) {
+        return Text.translatable(FarmersDelight.MODID + ".jei.decomposition" + suffix);
     }
 
     @Override

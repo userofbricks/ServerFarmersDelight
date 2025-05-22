@@ -1,11 +1,11 @@
 package vectorwing.farmersdelight.common.mixin.refabricated;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.client.ClientRecipeBook;
 import net.minecraft.client.RecipeBookCategories;
-import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.client.gui.screen.recipebook.RecipeResultCollection;
+import net.minecraft.client.recipebook.ClientRecipeBook;
+import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.registry.DynamicRegistryManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 @Mixin(ClientRecipeBook.class)
 public class ClientRecipeBookMixin {
     @Inject(method = "setupCollections", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"))
-    private void fdrf$setupAggregateCategories(Iterable<RecipeHolder<?>> iterable, RegistryAccess registryAccess, CallbackInfo ci, @Local(ordinal = 1) Map<RecipeBookCategories, List<RecipeCollection>> aggregateCategories) {
+    private void fdrf$setupAggregateCategories(Iterable<RecipeEntry<?>> iterable, DynamicRegistryManager registryAccess, CallbackInfo ci, @Local(ordinal = 1) Map<RecipeBookCategories, List<RecipeResultCollection>> aggregateCategories) {
         aggregateCategories.put(FDRecipeCategories.COOKING_SEARCH, Stream.of(FDRecipeCategories.COOKING_MEALS, FDRecipeCategories.COOKING_DRINKS, FDRecipeCategories.COOKING_MISC)
                 .flatMap(categories -> aggregateCategories.getOrDefault(categories, List.of()).stream())
                 .toList()
@@ -30,7 +30,7 @@ public class ClientRecipeBookMixin {
     }
 
     @Inject(method = "getCategory", at = @At(value = "INVOKE", target = "Lcom/mojang/logging/LogUtils;defer(Ljava/util/function/Supplier;)Ljava/lang/Object;", ordinal = 0), cancellable = true)
-    private static void fdrf$getCustomRecipeCategory(RecipeHolder<?> recipe, CallbackInfoReturnable<RecipeBookCategories> cir) {
+    private static void fdrf$getCustomRecipeCategory(RecipeEntry<?> recipe, CallbackInfoReturnable<RecipeBookCategories> cir) {
         if (recipe.value() instanceof CookingPotRecipe cookingRecipe) {
             CookingPotRecipeBookTab tab = cookingRecipe.getRecipeBookTab();
             if (tab != null) {

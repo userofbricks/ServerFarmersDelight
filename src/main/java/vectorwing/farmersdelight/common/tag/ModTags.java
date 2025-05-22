@@ -1,15 +1,13 @@
 package vectorwing.farmersdelight.common.tag;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.block.Block;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.item.Item;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.biome.Biome;
 import vectorwing.farmersdelight.FarmersDelight;
 
 /**
@@ -131,26 +129,26 @@ public class ModTags
 
 	public static final TagKey<EntityType<?>> DROPS_LEATHER = modEntityTag("drops_leather");
 
-	public static final TagKey<MobEffect> HOT_COCOA_IGNORED = modEffectTag("ignored/hot_cocoa");
-	public static final TagKey<MobEffect> MILK_BOTTLE_IGNORED = modEffectTag("ignored/milk_bottle");
+	public static final TagKey<StatusEffect> HOT_COCOA_IGNORED = modEffectTag("ignored/hot_cocoa");
+	public static final TagKey<StatusEffect> MILK_BOTTLE_IGNORED = modEffectTag("ignored/milk_bottle");
 
 	private static TagKey<Item> modItemTag(String path) {
-		return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, path));
+		return TagKey.of(RegistryKeys.ITEM, Identifier.of(FarmersDelight.MODID, path));
 	}
 
 	private static TagKey<Block> modBlockTag(String path) {
-		return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, path));
+		return TagKey.of(RegistryKeys.BLOCK, Identifier.of(FarmersDelight.MODID, path));
 	}
 
 	private static TagKey<EntityType<?>> modEntityTag(String path) {
-		return TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, path));
+		return TagKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(FarmersDelight.MODID, path));
 	}
 
 	private static TagKey<Biome> modBiomeTag(String path) {
-		return TagKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, path));
+		return TagKey.of(RegistryKeys.BIOME, Identifier.of(FarmersDelight.MODID, path));
 	}
 
-	private static TagKey<MobEffect> modEffectTag(String path) {
-		return TagKey.create(Registries.MOB_EFFECT, ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, path));
+	private static TagKey<StatusEffect> modEffectTag(String path) {
+		return TagKey.of(RegistryKeys.STATUS_EFFECT, Identifier.of(FarmersDelight.MODID, path));
 	}
 }

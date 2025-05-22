@@ -1,9 +1,9 @@
 package vectorwing.farmersdelight.common.registry;
 
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import vectorwing.farmersdelight.common.block.entity.*;
 
 import java.util.function.Supplier;
+import net.minecraft.block.entity.BlockEntityType;
 
 import static vectorwing.farmersdelight.refabricated.RegUtils.regBlockEntity;
 

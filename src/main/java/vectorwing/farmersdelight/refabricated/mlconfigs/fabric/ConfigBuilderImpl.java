@@ -2,7 +2,6 @@ package vectorwing.farmersdelight.refabricated.mlconfigs.fabric;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
-import net.minecraft.resources.ResourceLocation;
 import org.apache.http.annotation.Experimental;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.refabricated.mlconfigs.ConfigBuilder;
@@ -14,6 +13,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import net.minecraft.util.Identifier;
 
 import static vectorwing.farmersdelight.refabricated.mlconfigs.ModConfigHolder.getReadableName;
 
@@ -22,7 +22,7 @@ import static vectorwing.farmersdelight.refabricated.mlconfigs.ModConfigHolder.g
  */
 public class ConfigBuilderImpl extends ConfigBuilder {
 
-    public static ConfigBuilder create(ResourceLocation name, ConfigType type) {
+    public static ConfigBuilder create(Identifier name, ConfigType type) {
         return new ConfigBuilderImpl(name, type);
     }
 
@@ -30,7 +30,7 @@ public class ConfigBuilderImpl extends ConfigBuilder {
 
     private final Deque<ConfigSubCategory> categoryStack = new ArrayDeque<>();
 
-    public ConfigBuilderImpl(ResourceLocation name, ConfigType type) {
+    public ConfigBuilderImpl(Identifier name, ConfigType type) {
         super(name, type);
         categoryStack.push(mainCategory);
     }

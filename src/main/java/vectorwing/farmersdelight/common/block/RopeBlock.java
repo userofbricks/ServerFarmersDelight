@@ -1,134 +1,133 @@
 package vectorwing.farmersdelight.common.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.BellBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CrossCollisionBlock;
-import net.minecraft.world.level.block.IronBarsBlock;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.BellBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.HorizontalConnectingBlock;
+import net.minecraft.block.PaneBlock;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.entity.ai.pathing.NavigationType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 
 @SuppressWarnings("deprecation")
-public class RopeBlock extends IronBarsBlock
+public class RopeBlock extends PaneBlock
 {
-	public static final BooleanProperty TIED_TO_BELL = BooleanProperty.create("tied_to_bell");
-	protected static final VoxelShape LOWER_SUPPORT_AABB = Block.box(7, 0, 7, 9, 1, 9);
+	public static final BooleanProperty TIED_TO_BELL = BooleanProperty.of("tied_to_bell");
+	protected static final VoxelShape LOWER_SUPPORT_AABB = Block.createCuboidShape(7, 0, 7, 9, 1, 9);
 
-	public RopeBlock(Properties properties) {
+	public RopeBlock(Settings properties) {
 		super(properties);
-		this.registerDefaultState(this.stateDefinition.any()
-				.setValue(CrossCollisionBlock.NORTH, false)
-				.setValue(CrossCollisionBlock.SOUTH, false)
-				.setValue(CrossCollisionBlock.EAST, false)
-				.setValue(CrossCollisionBlock.WEST, false)
-				.setValue(TIED_TO_BELL, false)
-				.setValue(CrossCollisionBlock.WATERLOGGED, false)
+		this.setDefaultState(this.stateManager.getDefaultState()
+				.with(HorizontalConnectingBlock.NORTH, false)
+				.with(HorizontalConnectingBlock.SOUTH, false)
+				.with(HorizontalConnectingBlock.EAST, false)
+				.with(HorizontalConnectingBlock.WEST, false)
+				.with(TIED_TO_BELL, false)
+				.with(HorizontalConnectingBlock.WATERLOGGED, false)
 		);
 	}
 
 	@Override
-	public boolean isPathfindable(BlockState state, PathComputationType type) {
+	public boolean canPathfindThrough(BlockState state, NavigationType type) {
 		return true;
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		BlockGetter world = context.getLevel();
-		BlockPos posAbove = context.getClickedPos().above();
-		BlockState state = super.getStateForPlacement(context);
-		return state != null ? state.setValue(TIED_TO_BELL, world.getBlockState(posAbove).getBlock() == Blocks.BELL) : null;
+	public BlockState getPlacementState(ItemPlacementContext context) {
+		BlockView world = context.getWorld();
+		BlockPos posAbove = context.getBlockPos().up();
+		BlockState state = super.getPlacementState(context);
+		return state != null ? state.with(TIED_TO_BELL, world.getBlockState(posAbove).getBlock() == Blocks.BELL) : null;
 	}
 
 	@Override
-	public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-		if (Configuration.ENABLE_ROPE_REELING.get() && player.isSecondaryUseActive()) {
-			if (player.getAbilities().mayBuild && (player.getAbilities().instabuild || player.getInventory().add(new ItemStack(this.asItem())))) {
-				BlockPos.MutableBlockPos reelingPos = pos.mutable().move(Direction.DOWN);
+	public ActionResult onUse(BlockState state, World level, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+		if (Configuration.ENABLE_ROPE_REELING.get() && player.shouldCancelInteraction()) {
+			if (player.getAbilities().allowModifyWorld && (player.getAbilities().creativeMode || player.getInventory().insertStack(new ItemStack(this.asItem())))) {
+				BlockPos.Mutable reelingPos = pos.mutableCopy().move(Direction.DOWN);
 				int minBuildHeight = level.getMinBuildHeight();
 
 				while (reelingPos.getY() >= minBuildHeight) {
 					BlockState blockStateBelow = level.getBlockState(reelingPos);
-					if (blockStateBelow.is(this)) {
+					if (blockStateBelow.isOf(this)) {
 						reelingPos.move(Direction.DOWN);
 					} else {
 						reelingPos.move(Direction.UP);
-						level.destroyBlock(reelingPos, false, player);
-						return InteractionResult.sidedSuccess(level.isClientSide);
+						level.breakBlock(reelingPos, false, player);
+						return ActionResult.sidedSuccess(level.isClient);
 					}
 				}
 			}
 		} else {
-			BlockPos.MutableBlockPos bellRingingPos = pos.mutable().move(Direction.UP);
+			BlockPos.Mutable bellRingingPos = pos.mutableCopy().move(Direction.UP);
 
 			for (int i = 0; i < 24; i++) {
 				BlockState blockStateAbove = level.getBlockState(bellRingingPos);
 				Block blockAbove = blockStateAbove.getBlock();
 				if (blockAbove == Blocks.BELL) {
-					((BellBlock) blockAbove).attemptToRing(level, bellRingingPos, blockStateAbove.getValue(BellBlock.FACING).getClockWise());
-					return InteractionResult.SUCCESS;
+					((BellBlock) blockAbove).ring(level, bellRingingPos, blockStateAbove.get(BellBlock.FACING).rotateYClockwise());
+					return ActionResult.SUCCESS;
 				} else if (blockAbove == ModBlocks.ROPE.get()) {
 					bellRingingPos.move(Direction.UP);
 				} else {
-					return InteractionResult.PASS;
+					return ActionResult.PASS;
 				}
 			}
 		}
 
-		return InteractionResult.PASS;
+		return ActionResult.PASS;
 	}
 
 	@Override
-	public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return Shapes.empty();
+	public VoxelShape getCollisionShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
+		return VoxelShapes.empty();
 	}
 
 	@Override
-	public VoxelShape getBlockSupportShape(BlockState pState, BlockGetter pReader, BlockPos pPos) {
+	public VoxelShape getSidesShape(BlockState pState, BlockView pReader, BlockPos pPos) {
 		return LOWER_SUPPORT_AABB;
 	}
 
 	@Override
-	public boolean canBeReplaced(BlockState state, BlockPlaceContext useContext) {
-		return useContext.getItemInHand().getItem() == this.asItem();
+	public boolean canReplace(BlockState state, ItemPlacementContext useContext) {
+		return useContext.getStack().getItem() == this.asItem();
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor level, BlockPos currentPos, BlockPos facingPos) {
-		if (state.getValue(CrossCollisionBlock.WATERLOGGED)) {
-			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+		if (state.get(HorizontalConnectingBlock.WATERLOGGED)) {
+			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
 		}
 
-		boolean tiedToBell = state.getValue(TIED_TO_BELL);
+		boolean tiedToBell = state.get(TIED_TO_BELL);
 		if (facing == Direction.UP) {
 			tiedToBell = level.getBlockState(facingPos).getBlock() == Blocks.BELL;
 		}
 
 		return facing.getAxis().isHorizontal()
-				? state.setValue(TIED_TO_BELL, tiedToBell).setValue(CrossCollisionBlock.PROPERTY_BY_DIRECTION.get(facing), this.attachsTo(facingState, facingState.isFaceSturdy(level, facingPos, facing.getOpposite())))
-				: super.updateShape(state.setValue(TIED_TO_BELL, tiedToBell), facing, facingState, level, currentPos, facingPos);
+				? state.with(TIED_TO_BELL, tiedToBell).with(HorizontalConnectingBlock.FACING_PROPERTIES.get(facing), this.connectsTo(facingState, facingState.isSideSolidFullSquare(level, facingPos, facing.getOpposite())))
+				: super.getStateForNeighborUpdate(state.with(TIED_TO_BELL, tiedToBell), facing, facingState, level, currentPos, facingPos);
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(CrossCollisionBlock.NORTH, CrossCollisionBlock.EAST, CrossCollisionBlock.WEST, CrossCollisionBlock.SOUTH, CrossCollisionBlock.WATERLOGGED, TIED_TO_BELL);
+	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+		builder.add(HorizontalConnectingBlock.NORTH, HorizontalConnectingBlock.EAST, HorizontalConnectingBlock.WEST, HorizontalConnectingBlock.SOUTH, HorizontalConnectingBlock.WATERLOGGED, TIED_TO_BELL);
 	}
 }

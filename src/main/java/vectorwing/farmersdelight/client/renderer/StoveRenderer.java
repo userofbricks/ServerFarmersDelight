@@ -1,57 +1,57 @@
 package vectorwing.farmersdelight.client.renderer;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec2;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.ItemDisplayContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec2f;
 import vectorwing.farmersdelight.common.block.StoveBlock;
 import vectorwing.farmersdelight.common.block.entity.StoveBlockEntity;
 import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
 public class StoveRenderer implements BlockEntityRenderer<StoveBlockEntity>
 {
-	public StoveRenderer(BlockEntityRendererProvider.Context context) {
+	public StoveRenderer(BlockEntityRendererFactory.Context context) {
 	}
 
 	@Override
-	public void render(StoveBlockEntity stoveEntity, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int combinedLightIn, int combinedOverlayIn) {
-		Direction direction = stoveEntity.getBlockState().getValue(StoveBlock.FACING).getOpposite();
+	public void render(StoveBlockEntity stoveEntity, float partialTicks, MatrixStack poseStack, VertexConsumerProvider buffer, int combinedLightIn, int combinedOverlayIn) {
+		Direction direction = stoveEntity.getCachedState().get(StoveBlock.FACING).getOpposite();
 
 		ItemStackHandler inventory = stoveEntity.getInventory();
-		int posLong = (int) stoveEntity.getBlockPos().asLong();
+		int posLong = (int) stoveEntity.getPos().asLong();
 
 		for (int i = 0; i < inventory.getSlotCount(); ++i) {
 			ItemStack stoveStack = inventory.getStackInSlot(i);
 			if (!stoveStack.isEmpty()) {
-				poseStack.pushPose();
+				poseStack.push();
 
 				// Center item above the stove
 				poseStack.translate(0.5D, 1.02D, 0.5D);
 
 				// Rotate item to face the stove's front side
-				float f = -direction.toYRot();
-				poseStack.mulPose(Axis.YP.rotationDegrees(f));
+				float f = -direction.getPositiveHorizontalDegrees();
+				poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(f));
 
 				// Rotate item flat on the stove. Use X and Y from now on
-				poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+				poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90.0F));
 
 				// Neatly align items according to their index
-				Vec2 itemOffset = stoveEntity.getStoveItemOffset(i);
+				Vec2f itemOffset = stoveEntity.getStoveItemOffset(i);
 				poseStack.translate(itemOffset.x, itemOffset.y, 0.0D);
 
 				// Resize the items
 				poseStack.scale(0.375F, 0.375F, 0.375F);
 
-				if (stoveEntity.getLevel() != null)
-					Minecraft.getInstance().getItemRenderer().renderStatic(stoveStack, ItemDisplayContext.FIXED, LevelRenderer.getLightColor(stoveEntity.getLevel(), stoveEntity.getBlockPos().above()), combinedOverlayIn, poseStack, buffer, stoveEntity.getLevel(), posLong + i);
-				poseStack.popPose();
+				if (stoveEntity.getWorld() != null)
+					MinecraftClient.getInstance().getItemRenderer().renderItem(stoveStack, ItemDisplayContext.FIXED, WorldRenderer.getLightmapCoordinates(stoveEntity.getWorld(), stoveEntity.getPos().up()), combinedOverlayIn, poseStack, buffer, stoveEntity.getWorld(), posLong + i);
+				poseStack.pop();
 			}
 		}
 	}

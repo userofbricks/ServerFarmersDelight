@@ -1,42 +1,41 @@
 package vectorwing.farmersdelight.common.block;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.block.Waterloggable;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.SkilletBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
@@ -46,49 +45,49 @@ import vectorwing.farmersdelight.common.tag.ModTags;
 import java.util.Optional;
 
 @SuppressWarnings("deprecation")
-public class SkilletBlock extends BaseEntityBlock implements SimpleWaterloggedBlock
+public class SkilletBlock extends BlockWithEntity implements Waterloggable
 {
-	public static final MapCodec<SkilletBlock> CODEC = simpleCodec(SkilletBlock::new);
+	public static final MapCodec<SkilletBlock> CODEC = createCodec(SkilletBlock::new);
 
 	public static final int MINIMUM_COOKING_TIME = 60;
 
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-	public static final BooleanProperty SUPPORT = BooleanProperty.create("support");
-	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+	public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+	public static final BooleanProperty SUPPORT = BooleanProperty.of("support");
+	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
-	protected static final VoxelShape SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 4.0D, 15.0D);
-	protected static final VoxelShape SHAPE_WITH_TRAY = Shapes.or(SHAPE, Block.box(0.0D, -1.0D, 0.0D, 16.0D, 0.0D, 16.0D));
+	protected static final VoxelShape SHAPE = Block.createCuboidShape(1.0D, 0.0D, 1.0D, 15.0D, 4.0D, 15.0D);
+	protected static final VoxelShape SHAPE_WITH_TRAY = VoxelShapes.union(SHAPE, Block.createCuboidShape(0.0D, -1.0D, 0.0D, 16.0D, 0.0D, 16.0D));
 
-	public SkilletBlock(Properties properties) {
+	public SkilletBlock(Settings properties) {
 		super(properties);
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(SUPPORT, false).setValue(WATERLOGGED, false));
+		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).setValue(SUPPORT, false).setValue(WATERLOGGED, false));
 	}
 
 	@Override
-	protected MapCodec<? extends BaseEntityBlock> codec() {
+	protected MapCodec<? extends BlockWithEntity> getCodec() {
 		return CODEC;
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		BlockEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof SkilletBlockEntity skilletEntity) {
-			if (!level.isClientSide) {
-				ItemStack heldStack = player.getItemInHand(hand);
-				EquipmentSlot heldSlot = hand.equals(InteractionHand.MAIN_HAND) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+			if (!level.isClient) {
+				ItemStack heldStack = player.getStackInHand(hand);
+				EquipmentSlot heldSlot = hand.equals(Hand.MAIN_HAND) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
 				if (heldStack.isEmpty()) {
 					ItemStack extractedStack = skilletEntity.removeItem();
 					if (!player.isCreative()) {
-						player.setItemSlot(heldSlot, extractedStack);
+						player.equipStack(heldSlot, extractedStack);
 					}
 					return ItemInteractionResult.SUCCESS;
 				} else {
 					ItemStack remainderStack = skilletEntity.addItemToCook(heldStack, player);
 					if (remainderStack.getCount() != heldStack.getCount()) {
 						if (!player.isCreative()) {
-							player.setItemSlot(heldSlot, remainderStack);
+							player.equipStack(heldSlot, remainderStack);
 						}
-						level.playSound(null, pos, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 0.7F, 1.0F);
+						level.playSound(null, pos, SoundEvents.BLOCK_LANTERN_PLACE, SoundCategory.BLOCKS, 0.7F, 1.0F);
 						return ItemInteractionResult.SUCCESS;
 					}
 				}
@@ -99,16 +98,16 @@ public class SkilletBlock extends BaseEntityBlock implements SimpleWaterloggedBl
 	}
 
 	@Override
-	public RenderShape getRenderShape(BlockState pState) {
-		return RenderShape.MODEL;
+	public BlockRenderType getRenderType(BlockState pState) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+	public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (state.getBlock() != newState.getBlock()) {
 			BlockEntity tileEntity = level.getBlockEntity(pos);
 			if (tileEntity instanceof SkilletBlockEntity) {
-				Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), ((SkilletBlockEntity) tileEntity).getInventory().getStackInSlot(0));
+				ItemScatterer.spawn(level, pos.getX(), pos.getY(), pos.getZ(), ((SkilletBlockEntity) tileEntity).getInventory().getStackInSlot(0));
 			}
 
 			super.onRemove(state, level, pos, newState, isMoving);
@@ -116,53 +115,53 @@ public class SkilletBlock extends BaseEntityBlock implements SimpleWaterloggedBl
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+	public VoxelShape getOutlineShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
 		return SHAPE;
 	}
 
 	@Override
-	public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return state.getValue(SUPPORT).equals(true) ? SHAPE_WITH_TRAY : SHAPE;
+	public VoxelShape getCollisionShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
+		return state.get(SUPPORT).equals(true) ? SHAPE_WITH_TRAY : SHAPE;
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		Level level = context.getLevel();
-		FluidState fluid = level.getFluidState(context.getClickedPos());
+	public BlockState getPlacementState(ItemPlacementContext context) {
+		World level = context.getWorld();
+		FluidState fluid = level.getFluidState(context.getBlockPos());
 
-		return this.defaultBlockState()
-				.setValue(FACING, context.getHorizontalDirection())
-				.setValue(WATERLOGGED, fluid.getType() == Fluids.WATER)
-				.setValue(SUPPORT, getTrayState(context.getLevel(), context.getClickedPos()));
+		return this.getDefaultState()
+				.with(FACING, context.getHorizontalPlayerFacing())
+				.setValue(WATERLOGGED, fluid.getFluid() == Fluids.WATER)
+				.setValue(SUPPORT, getTrayState(context.getWorld(), context.getBlockPos()));
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor level, BlockPos currentPos, BlockPos facingPos) {
-		if (state.getValue(WATERLOGGED)) {
-			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+		if (state.get(WATERLOGGED)) {
+			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
 		}
 		if (facing.getAxis().equals(Direction.Axis.Y)) {
-			return state.setValue(SUPPORT, getTrayState(level, currentPos));
+			return state.with(SUPPORT, getTrayState(level, currentPos));
 		}
 		return state;
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+	public ItemStack getCloneItemStack(WorldView level, BlockPos pos, BlockState state) {
 		if (level.getBlockEntity(pos) instanceof SkilletBlockEntity skillet) {
 			return skillet.getSkilletAsItem();
 		}
 
-		return super.getCloneItemStack(level, pos, state);
+		return super.getPickStack(level, pos, state);
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(FACING, SUPPORT, WATERLOGGED);
 	}
 
 	@Override
-	public void animateTick(BlockState stateIn, Level level, BlockPos pos, RandomSource rand) {
+	public void randomDisplayTick(BlockState stateIn, World level, BlockPos pos, Random rand) {
 		BlockEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof SkilletBlockEntity skilletEntity) {
 			if (skilletEntity.isCooking()) {
@@ -170,7 +169,7 @@ public class SkilletBlock extends BaseEntityBlock implements SimpleWaterloggedBl
 				double y = pos.getY();
 				double z = (double) pos.getZ() + 0.5D;
 				if (rand.nextInt(10) == 0) {
-					level.playLocalSound(x, y, z, ModSounds.BLOCK_SKILLET_SIZZLE.get(), SoundSource.BLOCKS, 0.4F, rand.nextFloat() * 0.2F + 0.9F, false);
+					level.playSoundClient(x, y, z, ModSounds.BLOCK_SKILLET_SIZZLE.get(), SoundCategory.BLOCKS, 0.4F, rand.nextFloat() * 0.2F + 0.9F, false);
 				}
 			}
 		}
@@ -178,26 +177,26 @@ public class SkilletBlock extends BaseEntityBlock implements SimpleWaterloggedBl
 
 	@Override
 	public FluidState getFluidState(BlockState state) {
-		return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+		return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
 	}
 
 	@Nullable
 	@Override
-	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return ModBlockEntityTypes.SKILLET.get().create(pos, state);
+	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+		return ModBlockEntityTypes.SKILLET.get().instantiate(pos, state);
 	}
 
 	@Nullable
-	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntity) {
-		if (level.isClientSide) {
-			return createTickerHelper(blockEntity, ModBlockEntityTypes.SKILLET.get(), SkilletBlockEntity::animationTick);
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World level, BlockState state, BlockEntityType<T> blockEntity) {
+		if (level.isClient) {
+			return validateTicker(blockEntity, ModBlockEntityTypes.SKILLET.get(), SkilletBlockEntity::animationTick);
 		} else {
-			return createTickerHelper(blockEntity, ModBlockEntityTypes.SKILLET.get(), SkilletBlockEntity::cookingTick);
+			return validateTicker(blockEntity, ModBlockEntityTypes.SKILLET.get(), SkilletBlockEntity::cookingTick);
 		}
 	}
 
-	private boolean getTrayState(LevelAccessor world, BlockPos pos) {
-		return world.getBlockState(pos.below()).is(ModTags.TRAY_HEAT_SOURCES);
+	private boolean getTrayState(WorldAccess world, BlockPos pos) {
+		return world.getBlockState(pos.down()).isIn(ModTags.TRAY_HEAT_SOURCES);
 	}
 
 	/**
@@ -216,6 +215,6 @@ public class SkilletBlock extends BaseEntityBlock implements SimpleWaterloggedBl
 
 		int result = (int) (cookingSeconds * cookingTimeReduction) * 20;
 
-		return Mth.clamp(result, MINIMUM_COOKING_TIME, originalCookingTime);
+		return MathHelper.clamp(result, MINIMUM_COOKING_TIME, originalCookingTime);
 	}
 }

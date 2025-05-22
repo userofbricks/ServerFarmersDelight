@@ -9,13 +9,13 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.ChatFormatting;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.NonNullList;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
+import net.minecraft.util.collection.DefaultedList;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.crafting.CuttingBoardRecipe;
 import vectorwing.farmersdelight.common.crafting.ingredient.ChanceResult;
@@ -30,13 +30,13 @@ public class CuttingRecipeCategory implements IRecipeCategory<CuttingBoardRecipe
 	public static final int OUTPUT_GRID_Y = 10;
 	private final IDrawable slot;
 	private final IDrawable slotChance;
-	private final Component title;
+	private final Text title;
 	private final IDrawable background;
 	private final IDrawable icon;
 
 	public CuttingRecipeCategory(IGuiHelper helper) {
 		title = TextUtils.getTranslation("jei.cutting");
-		ResourceLocation backgroundImage = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "textures/gui/jei/cutting_board.png");
+		Identifier backgroundImage = Identifier.of(FarmersDelight.MODID, "textures/gui/jei/cutting_board.png");
 		slot = helper.createDrawable(backgroundImage, 0, 58, 18, 18);
 		slotChance = helper.createDrawable(backgroundImage, 18, 58, 18, 18);
 		background = helper.createDrawable(backgroundImage, 0, 0, 117, 57);
@@ -49,7 +49,7 @@ public class CuttingRecipeCategory implements IRecipeCategory<CuttingBoardRecipe
 	}
 
 	@Override
-	public Component getTitle() {
+	public Text getTitle() {
 		return this.title;
 	}
 
@@ -68,7 +68,7 @@ public class CuttingRecipeCategory implements IRecipeCategory<CuttingBoardRecipe
 		builder.addSlot(RecipeIngredientRole.INPUT, 16, 8).addIngredients(recipe.getTool());
 		builder.addSlot(RecipeIngredientRole.INPUT, 16, 27).addIngredients(recipe.getIngredients().get(0));
 
-		NonNullList<ChanceResult> recipeOutputs = recipe.getRollableResults();
+		DefaultedList<ChanceResult> recipeOutputs = recipe.getRollableResults();
 
 		int size = recipeOutputs.size();
 		int centerX = size > 1 ? 1 : 10;
@@ -86,14 +86,14 @@ public class CuttingRecipeCategory implements IRecipeCategory<CuttingBoardRecipe
 						float chance = output.chance();
 						if (chance != 1)
 							tooltip.add(1, TextUtils.getTranslation("jei.chance", chance < 0.01 ? "<1" : (int) (chance * 100))
-									.withStyle(ChatFormatting.GOLD));
+									.formatted(Formatting.GOLD));
 					});
 		}
 	}
 
 	@Override
-	public void draw(CuttingBoardRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
-		NonNullList<ChanceResult> recipeOutputs = recipe.getRollableResults();
+	public void draw(CuttingBoardRecipe recipe, IRecipeSlotsView recipeSlotsView, DrawContext guiGraphics, double mouseX, double mouseY) {
+		DefaultedList<ChanceResult> recipeOutputs = recipe.getRollableResults();
 
 		int size = recipe.getResults().size();
 		int centerX = size > 1 ? 0 : 9;

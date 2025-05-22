@@ -68,9 +68,7 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
 
     mappings loom.layered() {
-        it.officialMojangMappings {
-            setNameSyntheticMembers(false)
-        }
+        mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
         it.parchment("org.parchmentmc.data:parchment-${project.parchment_version}")
     }
 

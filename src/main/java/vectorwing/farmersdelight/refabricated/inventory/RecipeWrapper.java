@@ -1,8 +1,8 @@
 package vectorwing.farmersdelight.refabricated.inventory;
 
-import net.minecraft.world.entity.player.StackedContents;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.RecipeMatcher;
+import net.minecraft.recipe.input.RecipeInput;
 
 /**
  * Refabricated: Wrapper for ItemStackHandler.
@@ -10,12 +10,12 @@ import net.minecraft.world.item.crafting.RecipeInput;
 public class RecipeWrapper implements RecipeInput {
 
     private final ItemHandler handler;
-    private final StackedContents stackedContents;
+    private final RecipeMatcher stackedContents;
     private final int ingredientAmount;
 
     public RecipeWrapper(ItemHandler handler) {
         this.handler = handler;
-        this.stackedContents = new StackedContents();
+        this.stackedContents = new RecipeMatcher();
         int ingredientAmount = 0;
         for (int value : handler.getInputSlotIndexes()) {
             ItemStack itemstack = handler.getStackInSlot(value);
@@ -27,7 +27,7 @@ public class RecipeWrapper implements RecipeInput {
         this.ingredientAmount = ingredientAmount;
     }
 
-    public StackedContents stackedContents() {
+    public RecipeMatcher stackedContents() {
         return stackedContents;
     }
 
@@ -36,7 +36,7 @@ public class RecipeWrapper implements RecipeInput {
     }
 
     @Override
-    public ItemStack getItem(int slot) {
+    public ItemStack getStackInSlot(int slot) {
         return handler.getStackInSlot(slot);
     }
 

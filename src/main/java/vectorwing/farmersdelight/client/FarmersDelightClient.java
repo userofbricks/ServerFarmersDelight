@@ -7,10 +7,10 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
 import net.fabricmc.fabric.api.event.client.player.ClientPreAttackCallback;
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Identifier;
 import vectorwing.farmersdelight.client.event.ClientSetupEvents;
 import vectorwing.farmersdelight.client.event.TooltipEvents;
 import vectorwing.farmersdelight.client.gui.CookingPotScreen;
@@ -33,26 +33,26 @@ public class FarmersDelightClient implements ClientModInitializer {
         ClientSetupEvents.onRegisterRenderers();
         ClientSetupEvents.registerParticles();
 
-        MenuScreens.register(ModMenuTypes.COOKING_POT.get(), CookingPotScreen::new);
+        HandledScreens.register(ModMenuTypes.COOKING_POT.get(), CookingPotScreen::new);
 
         HUDOverlays.register();
 
         BuiltinItemRendererRegistry.INSTANCE.register(ModItems.SKILLET.get(), new SkilletItemRenderer());
         // could have been done with item renderer but this way we can have easier control over item positioning using the model json
-        ItemProperties.register(ModItems.SKILLET.get(), ResourceLocation.withDefaultNamespace("cooking"),
+        ItemProperties.register(ModItems.SKILLET.get(), Identifier.ofVanilla("cooking"),
                 (stack, world, entity, s) -> stack.getOrDefault(ModDataComponents.SKILLET_INGREDIENT.get(), ItemStackWrapper.EMPTY).getStack().isEmpty() ? 0 : 1);
         ModNetworking.initClient();
 
         // Obscure Fabric event to the rescue!
         ClientPreAttackCallback.EVENT.register((client, player, clickCount) -> {
-            if (player != null && !player.isSpectator() && player.isUsingItem() && player.getUseItem().getItem() instanceof SkilletItem && clickCount != 0 && !player.getUseItem().has(ModDataComponents.SKILLET_FLIP_TIMESTAMP.get())) {
+            if (player != null && !player.isSpectator() && player.isUsingItem() && player.getActiveItem().getItem() instanceof SkilletItem && clickCount != 0 && !player.getActiveItem().contains(ModDataComponents.SKILLET_FLIP_TIMESTAMP.get())) {
                 ClientPlayNetworking.send(ModNetworking.FlipSkilletMessage.INSTANCE);
             }
             return false;
         });
 
         // render type stuff
-        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(),
+        BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutout(),
                 ModBlocks.BROWN_MUSHROOM_COLONY.get(), ModBlocks.RED_MUSHROOM_COLONY.get(), ModBlocks.BUDDING_TOMATO_CROP.get(),
                 ModBlocks.CABBAGE_CROP.get(), ModBlocks.CUTTING_BOARD.get(), ModBlocks.ONION_CROP.get(),
                 ModBlocks.WILD_CABBAGES.get(), ModBlocks.WILD_BEETROOTS.get(), ModBlocks.WILD_CARROTS.get(),

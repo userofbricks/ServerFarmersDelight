@@ -1,31 +1,31 @@
 package vectorwing.farmersdelight.common.crafting;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.level.Level;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.recipe.SpecialCraftingRecipe;
+import net.minecraft.recipe.book.CraftingRecipeCategory;
+import net.minecraft.recipe.input.CraftingRecipeInput;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.world.World;
 import vectorwing.farmersdelight.common.block.entity.CookingPotBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModItems;
 import vectorwing.farmersdelight.common.registry.ModRecipeSerializers;
 
-public class FoodServingRecipe extends CustomRecipe
+public class FoodServingRecipe extends SpecialCraftingRecipe
 {
-	public FoodServingRecipe(CraftingBookCategory category) {
+	public FoodServingRecipe(CraftingRecipeCategory category) {
 		super(category);
 	}
 
 	@Override
-	public boolean matches(CraftingInput input, Level level) {
+	public boolean matches(CraftingRecipeInput input, World level) {
 		ItemStack cookingPotStack = ItemStack.EMPTY;
 		ItemStack containerStack = ItemStack.EMPTY;
 		ItemStack secondStack = ItemStack.EMPTY;
 
 		for (int index = 0; index < input.size(); ++index) {
-			ItemStack selectedStack = input.getItem(index);
+			ItemStack selectedStack = input.getStackInSlot(index);
 			if (!selectedStack.isEmpty()) {
 				if (cookingPotStack.isEmpty()) {
 					ItemStack mealStack = CookingPotBlockEntity.getMealFromItem(selectedStack);
@@ -43,14 +43,14 @@ public class FoodServingRecipe extends CustomRecipe
 			}
 		}
 
-		return !cookingPotStack.isEmpty() && !secondStack.isEmpty() && secondStack.is(containerStack.getItem());
+		return !cookingPotStack.isEmpty() && !secondStack.isEmpty() && secondStack.isOf(containerStack.getItem());
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput input, HolderLookup.Provider access) {
+	public ItemStack assemble(CraftingRecipeInput input, RegistryWrapper.WrapperLookup access) {
 		for (int i = 0; i < input.size(); ++i) {
-			ItemStack selectedStack = input.getItem(i);
-			if (!selectedStack.isEmpty() && selectedStack.is(ModItems.COOKING_POT.get())) {
+			ItemStack selectedStack = input.getStackInSlot(i);
+			if (!selectedStack.isEmpty() && selectedStack.isOf(ModItems.COOKING_POT.get())) {
 				ItemStack resultStack = CookingPotBlockEntity.getMealFromItem(selectedStack).copy();
 				resultStack.setCount(1);
 				return resultStack;
@@ -61,14 +61,14 @@ public class FoodServingRecipe extends CustomRecipe
 	}
 
 	@Override
-	public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
-		NonNullList<ItemStack> remainders = NonNullList.withSize(input.size(), ItemStack.EMPTY);
+	public DefaultedList<ItemStack> getRecipeRemainders(CraftingRecipeInput input) {
+		DefaultedList<ItemStack> remainders = DefaultedList.ofSize(input.size(), ItemStack.EMPTY);
 
 		for (int i = 0; i < remainders.size(); ++i) {
-			ItemStack selectedStack = input.getItem(i);
+			ItemStack selectedStack = input.getStackInSlot(i);
 			if (selectedStack.getRecipeRemainder() != null) {
 				remainders.set(i, selectedStack.getRecipeRemainder());
-			} else if (selectedStack.is(ModItems.COOKING_POT.get())) {
+			} else if (selectedStack.isOf(ModItems.COOKING_POT.get())) {
 				CookingPotBlockEntity.takeServingFromItem(selectedStack);
 				ItemStack newCookingPotStack = selectedStack.copy();
 				newCookingPotStack.setCount(1);

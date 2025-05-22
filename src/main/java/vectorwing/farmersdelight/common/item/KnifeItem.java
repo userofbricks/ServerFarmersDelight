@@ -2,30 +2,30 @@ package vectorwing.farmersdelight.common.item;
 
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.item.v1.EnchantingContext;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.CakeBlock;
+import net.minecraft.block.CarvedPumpkinBlock;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.Items;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 import net.minecraft.world.item.DiggerItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CakeBlock;
-import net.minecraft.world.level.block.CarvedPumpkinBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 import vectorwing.farmersdelight.common.registry.ModItems;
 import vectorwing.farmersdelight.common.tag.ModTags;
 import vectorwing.farmersdelight.common.utility.ItemUtils;
@@ -47,7 +47,7 @@ public class KnifeItem extends DiggerItem
     }
 
     @Override
-    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+    public boolean canAttackBlock(BlockState state, World level, BlockPos pos, PlayerEntity player) {
         return !player.isCreative();
     }
 
@@ -56,8 +56,8 @@ public class KnifeItem extends DiggerItem
         return true;
     }
 
-    public boolean canBeEnchantedWith(ItemStack stack, Holder<Enchantment> enchantment, EnchantingContext context) {
-        if (enchantment.is(Enchantments.SWEEPING_EDGE)) {
+    public boolean canBeEnchantedWith(ItemStack stack, RegistryEntry<Enchantment> enchantment, EnchantingContext context) {
+        if (enchantment.matchesKey(Enchantments.SWEEPING_EDGE)) {
             return false;
         }
         return super.canBeEnchantedWith(stack, enchantment, context);
@@ -66,79 +66,79 @@ public class KnifeItem extends DiggerItem
     public static class KnifeEvents
     {
         public static double onKnifeKnockback(double strength, LivingEntity entity) {
-            LivingEntity attacker = entity.getKillCredit();
-            ItemStack toolStack = attacker != null ? attacker.getItemInHand(InteractionHand.MAIN_HAND) : ItemStack.EMPTY;
+            LivingEntity attacker = entity.getPrimeAdversary();
+            ItemStack toolStack = attacker != null ? attacker.getStackInHand(Hand.MAIN_HAND) : ItemStack.EMPTY;
             if (toolStack.getItem() instanceof KnifeItem) {
                 strength = strength - 0.1F;
             }
             return strength;
         }
 
-        public static InteractionResult onCakeInteraction(Player player, Level level, InteractionHand hand, BlockHitResult hitResult) {
+        public static ActionResult onCakeInteraction(PlayerEntity player, World level, Hand hand, BlockHitResult hitResult) {
             if (player.isSpectator()) // Fabric does not check spectator.
-                return InteractionResult.PASS;
+                return ActionResult.PASS;
 
-            ItemStack toolStack = player.getItemInHand(hand);
+            ItemStack toolStack = player.getStackInHand(hand);
 
-            if (!toolStack.is(ModTags.KNIVES)) {
-                return InteractionResult.PASS;
+            if (!toolStack.isIn(ModTags.KNIVES)) {
+                return ActionResult.PASS;
             }
 
             BlockPos pos = hitResult.getBlockPos();
             BlockState state = level.getBlockState(pos);
             Block block = state.getBlock();
 
-            if (state.is(ModTags.DROPS_CAKE_SLICE)) {
-                level.setBlock(pos, Blocks.CAKE.defaultBlockState().setValue(CakeBlock.BITES, 1), 3);
-                Block.dropResources(state, level, pos);
+            if (state.isIn(ModTags.DROPS_CAKE_SLICE)) {
+                level.setBlockState(pos, Blocks.CAKE.getDefaultState().with(CakeBlock.BITES, 1), 3);
+                Block.dropStacks(state, level, pos);
                 ItemUtils.spawnItemEntity(level, new ItemStack(ModItems.CAKE_SLICE.get()),
                         pos.getX(), pos.getY() + 0.2, pos.getZ() + 0.5,
                         -0.05, 0, 0);
-                level.playSound(null, pos, SoundEvents.WOOL_BREAK, SoundSource.PLAYERS, 0.8F, 0.8F);
+                level.playSound(null, pos, SoundEvents.BLOCK_WOOL_BREAK, SoundCategory.PLAYERS, 0.8F, 0.8F);
 
-                return InteractionResult.SUCCESS;
+                return ActionResult.SUCCESS;
             }
 
             if (block == Blocks.CAKE) {
-                int bites = state.getValue(CakeBlock.BITES);
+                int bites = state.get(CakeBlock.BITES);
                 if (bites < 6) {
-                    level.setBlock(pos, state.setValue(CakeBlock.BITES, bites + 1), 3);
+                    level.setBlockState(pos, state.with(CakeBlock.BITES, bites + 1), 3);
                 } else {
                     level.removeBlock(pos, false);
                 }
                 ItemUtils.spawnItemEntity(level, new ItemStack(ModItems.CAKE_SLICE.get()),
                         pos.getX() + (bites * 0.1), pos.getY() + 0.2, pos.getZ() + 0.5,
                         -0.05, 0, 0);
-                level.playSound(null, pos, SoundEvents.WOOL_BREAK, SoundSource.PLAYERS, 0.8F, 0.8F);
+                level.playSound(null, pos, SoundEvents.BLOCK_WOOL_BREAK, SoundCategory.PLAYERS, 0.8F, 0.8F);
 
-                return InteractionResult.sidedSuccess(level.isClientSide);
+                return ActionResult.sidedSuccess(level.isClient);
             }
-            return InteractionResult.PASS;
+            return ActionResult.PASS;
         }
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
-        ItemStack toolStack = context.getItemInHand();
-        BlockPos pos = context.getClickedPos();
+    public ActionResult useOn(ItemUsageContext context) {
+        World level = context.getWorld();
+        ItemStack toolStack = context.getStack();
+        BlockPos pos = context.getBlockPos();
         BlockState state = level.getBlockState(pos);
-        Direction facing = context.getClickedFace();
+        Direction facing = context.getSide();
 
-        if (state.getBlock() == Blocks.PUMPKIN && toolStack.is(ModTags.KNIVES)) {
-            Player player = context.getPlayer();
-            if (player != null && !level.isClientSide) {
-                Direction direction = facing.getAxis() == Direction.Axis.Y ? player.getDirection().getOpposite() : facing;
-                level.playSound(null, pos, SoundEvents.PUMPKIN_CARVE, SoundSource.BLOCKS, 1.0F, 1.0F);
-                level.setBlock(pos, Blocks.CARVED_PUMPKIN.defaultBlockState().setValue(CarvedPumpkinBlock.FACING, direction), 11);
-                ItemEntity itemEntity = new ItemEntity(level, (double) pos.getX() + 0.5D + (double) direction.getStepX() * 0.65D, (double) pos.getY() + 0.1D, (double) pos.getZ() + 0.5D + (double) direction.getStepZ() * 0.65D, new ItemStack(Items.PUMPKIN_SEEDS, 4));
-                itemEntity.setDeltaMovement(0.05D * (double) direction.getStepX() + level.random.nextDouble() * 0.02D, 0.05D, 0.05D * (double) direction.getStepZ() + level.random.nextDouble() * 0.02D);
-                level.addFreshEntity(itemEntity);
-                toolStack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
+        if (state.getBlock() == Blocks.PUMPKIN && toolStack.isIn(ModTags.KNIVES)) {
+            PlayerEntity player = context.getPlayer();
+            if (player != null && !level.isClient) {
+                Direction direction = facing.getAxis() == Direction.Axis.Y ? player.getHorizontalFacing().getOpposite() : facing;
+                level.playSound(null, pos, SoundEvents.BLOCK_PUMPKIN_CARVE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                level.setBlockState(pos, Blocks.CARVED_PUMPKIN.getDefaultState().with(CarvedPumpkinBlock.FACING, direction), 11);
+                ItemEntity itemEntity = new ItemEntity(level, (double) pos.getX() + 0.5D + (double) direction.getOffsetX() * 0.65D, (double) pos.getY() + 0.1D, (double) pos.getZ() + 0.5D + (double) direction.getOffsetZ() * 0.65D, new ItemStack(Items.PUMPKIN_SEEDS, 4));
+                itemEntity.setVelocity(0.05D * (double) direction.getOffsetX() + level.random.nextDouble() * 0.02D, 0.05D, 0.05D * (double) direction.getOffsetZ() + level.random.nextDouble() * 0.02D);
+                level.spawnEntity(itemEntity);
+                toolStack.damage(1, player, LivingEntity.getSlotForHand(context.getHand()));
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return ActionResult.sidedSuccess(level.isClient);
         } else {
-            return InteractionResult.PASS;
+            return ActionResult.PASS;
         }
     }
 }

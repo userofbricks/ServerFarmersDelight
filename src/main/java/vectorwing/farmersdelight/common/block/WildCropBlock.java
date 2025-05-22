@@ -1,72 +1,72 @@
 package vectorwing.farmersdelight.common.block;
 
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.FlowerBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Fertilizable;
+import net.minecraft.block.FlowerBlock;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 
-public class WildCropBlock extends FlowerBlock implements BonemealableBlock
+public class WildCropBlock extends FlowerBlock implements Fertilizable
 {
-	protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
+	protected static final VoxelShape SHAPE = Block.createCuboidShape(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
 
-	public WildCropBlock(Holder<MobEffect> suspiciousStewEffect, int effectDuration, Properties properties) {
+	public WildCropBlock(RegistryEntry<StatusEffect> suspiciousStewEffect, int effectDuration, Settings properties) {
 		super(suspiciousStewEffect, effectDuration, properties);
 		FlammableBlockRegistry.getDefaultInstance().add(this, this.getFlammability(null, null, null, null), this.getFireSpreadSpeed(null, null, null, null));
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+	public VoxelShape getOutlineShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
 		return SHAPE;
 	}
 
 	@Override
-	public boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
-		return state.is(BlockTags.DIRT) || state.is(BlockTags.SAND);
+	public boolean canPlantOnTop(BlockState state, BlockView level, BlockPos pos) {
+		return state.isIn(BlockTags.DIRT) || state.isIn(BlockTags.SAND);
 	}
 
 	@Override
-	public boolean canBeReplaced(BlockState state, BlockPlaceContext useContext) {
+	public boolean canReplace(BlockState state, ItemPlacementContext useContext) {
 		return false;
 	}
 
-	public int getFireSpreadSpeed(BlockState state, BlockGetter world, BlockPos pos, Direction face) {
+	public int getFireSpreadSpeed(BlockState state, BlockView world, BlockPos pos, Direction face) {
 		return 60;
 	}
 
-	public int getFlammability(BlockState state, BlockGetter world, BlockPos pos, Direction face) {
+	public int getFlammability(BlockState state, BlockView world, BlockPos pos, Direction face) {
 		return 100;
 	}
 
 	@Override
-	public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
+	public boolean isFertilizable(WorldView level, BlockPos pos, BlockState state) {
 		return true;
 	}
 
 	@Override
-	public boolean isBonemealSuccess(Level level, RandomSource rand, BlockPos pos, BlockState state) {
+	public boolean canGrow(World level, Random rand, BlockPos pos, BlockState state) {
 		return (double) rand.nextFloat() < 0.8F;
 	}
 
 	@Override
-	public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+	public void grow(ServerWorld level, Random random, BlockPos pos, BlockState state) {
 		int wildCropLimit = 10;
 
-		for (BlockPos nearbyPos : BlockPos.betweenClosed(pos.offset(-4, -1, -4), pos.offset(4, 1, 4))) {
-			if (level.getBlockState(nearbyPos).is(this)) {
+		for (BlockPos nearbyPos : BlockPos.iterate(pos.add(-4, -1, -4), pos.add(4, 1, 4))) {
+			if (level.getBlockState(nearbyPos).isOf(this)) {
 				--wildCropLimit;
 				if (wildCropLimit <= 0) {
 					return;
@@ -74,18 +74,18 @@ public class WildCropBlock extends FlowerBlock implements BonemealableBlock
 			}
 		}
 
-		BlockPos randomPos = pos.offset(random.nextInt(3) - 1, random.nextInt(2) - random.nextInt(2), random.nextInt(3) - 1);
+		BlockPos randomPos = pos.add(random.nextInt(3) - 1, random.nextInt(2) - random.nextInt(2), random.nextInt(3) - 1);
 
 		for (int k = 0; k < 4; ++k) {
-			if (level.isEmptyBlock(randomPos) && state.canSurvive(level, randomPos)) {
+			if (level.isAir(randomPos) && state.canPlaceAt(level, randomPos)) {
 				pos = randomPos;
 			}
 
-			randomPos = pos.offset(random.nextInt(3) - 1, random.nextInt(2) - random.nextInt(2), random.nextInt(3) - 1);
+			randomPos = pos.add(random.nextInt(3) - 1, random.nextInt(2) - random.nextInt(2), random.nextInt(3) - 1);
 		}
 
-		if (level.isEmptyBlock(randomPos) && state.canSurvive(level, randomPos)) {
-			level.setBlock(randomPos, state, 2);
+		if (level.isAir(randomPos) && state.canPlaceAt(level, randomPos)) {
+			level.setBlockState(randomPos, state, 2);
 		}
 	}
 }

@@ -2,21 +2,20 @@ package vectorwing.farmersdelight.refabricated;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.loot.condition.LootConditionType;
+import net.minecraft.loot.context.LootContext;
+import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
-
 import java.util.Set;
 import java.util.function.Supplier;
 
-public record CanItemPerformAbilityCondition(ItemAbility ability) implements LootItemCondition {
+public record CanItemPerformAbilityCondition(ItemAbility ability) implements LootCondition {
     public static final MapCodec<CanItemPerformAbilityCondition> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
             ItemAbility.CODEC.fieldOf("ability").forGetter(CanItemPerformAbilityCondition::ability)
     ).apply(inst, CanItemPerformAbilityCondition::new));
-    public static final Supplier<LootItemConditionType> TYPE = RegUtils.regLootCond("can_item_perform_ability", () -> new LootItemConditionType(CODEC));
+    public static final Supplier<LootConditionType> TYPE = RegUtils.regLootCond("can_item_perform_ability", () -> new LootConditionType(CODEC));
 
     public static void init() {
 
@@ -24,17 +23,17 @@ public record CanItemPerformAbilityCondition(ItemAbility ability) implements Loo
 
     @Override
     public boolean test(LootContext context) {
-        ItemStack stack = context.getParam(LootContextParams.TOOL);
+        ItemStack stack = context.getParam(LootContextParameters.TOOL);
         return ability.canPerformAction(stack);
     }
 
     @Override
-    public Set<LootContextParam<?>> getReferencedContextParams() {
-        return Set.of(LootContextParams.TOOL);
+    public Set<LootContextParam<?>> getAllowedParameters() {
+        return Set.of(LootContextParameters.TOOL);
     }
 
     @Override
-    public LootItemConditionType getType() {
+    public LootConditionType getType() {
         return TYPE.get();
     }
 }

@@ -4,20 +4,19 @@ import com.google.common.base.Suppliers;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.CakeBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.common.block.PieBlock;
 import vectorwing.farmersdelight.refabricated.LootModifier;
 
 import java.util.function.Supplier;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.CakeBlock;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.loot.context.LootContext;
+import net.minecraft.loot.context.LootContextParameters;
 
 public class PastrySlicingModifier extends LootModifier
 {
@@ -32,7 +31,7 @@ public class PastrySlicingModifier extends LootModifier
 	 * If the block is a PieBlock, it drops up to 4 slices.
 	 * Otherwise, this does nothing.
 	 */
-	public PastrySlicingModifier(LootItemCondition[] conditionsIn, Item pastrySliceIn) {
+	public PastrySlicingModifier(LootCondition[] conditionsIn, Item pastrySliceIn) {
 		super(conditionsIn);
 		this.pastrySlice = pastrySliceIn;
 	}
@@ -40,14 +39,14 @@ public class PastrySlicingModifier extends LootModifier
 	@NotNull
 	@Override
 	protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
-		BlockState state = context.getParamOrNull(LootContextParams.BLOCK_STATE);
+		BlockState state = context.getParamOrNull(LootContextParameters.BLOCK_STATE);
 		if (state != null) {
 			Block targetBlock = state.getBlock();
 			if (targetBlock instanceof CakeBlock) {
-				int bites = state.getValue(CakeBlock.BITES);
+				int bites = state.get(CakeBlock.BITES);
 				generatedLoot.add(new ItemStack(pastrySlice, MAX_CAKE_BITES - bites));
 			} else if (targetBlock instanceof PieBlock) {
-				int bites = state.getValue(PieBlock.BITES);
+				int bites = state.get(PieBlock.BITES);
 				generatedLoot.add(new ItemStack(pastrySlice, MAX_PIE_BITES - bites));
 			}
 		}

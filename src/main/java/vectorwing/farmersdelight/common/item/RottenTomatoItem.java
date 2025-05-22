@@ -1,50 +1,48 @@
 package vectorwing.farmersdelight.common.item;
 
-import net.minecraft.core.Direction;
-import net.minecraft.core.Position;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.stats.Stats;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ProjectileItem;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.stat.Stats;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Position;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ProjectileItem;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.World;
 import vectorwing.farmersdelight.common.entity.RottenTomatoEntity;
 import vectorwing.farmersdelight.common.registry.ModSounds;
 
-import net.minecraft.world.item.Item.Properties;
-
 public class RottenTomatoItem extends Item implements ProjectileItem
 {
-	public RottenTomatoItem(Properties properties) {
+	public RottenTomatoItem(net.minecraft.item.Item.Settings properties) {
 		super(properties);
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-		ItemStack heldStack = player.getItemInHand(hand);
-		level.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.ENTITY_ROTTEN_TOMATO_THROW.get(), SoundSource.NEUTRAL, 0.5F, 0.4F / (level.random.nextFloat() * 0.4F + 0.8F));
-		if (!level.isClientSide) {
+	public InteractionResultHolder<ItemStack> use(World level, PlayerEntity player, Hand hand) {
+		ItemStack heldStack = player.getStackInHand(hand);
+		level.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.ENTITY_ROTTEN_TOMATO_THROW.get(), SoundCategory.NEUTRAL, 0.5F, 0.4F / (level.random.nextFloat() * 0.4F + 0.8F));
+		if (!level.isClient) {
 			RottenTomatoEntity projectile = new RottenTomatoEntity(level, player);
 			projectile.setItem(heldStack);
-			projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.5F, 1.0F);
-			level.addFreshEntity(projectile);
+			projectile.setVelocity(player, player.getPitch(), player.getYaw(), 0.0F, 1.5F, 1.0F);
+			level.spawnEntity(projectile);
 		}
 
-		player.awardStat(Stats.ITEM_USED.get(this));
-		if (!player.getAbilities().instabuild) {
-			heldStack.shrink(1);
+		player.incrementStat(Stats.USED.getOrCreateStat(this));
+		if (!player.getAbilities().creativeMode) {
+			heldStack.decrement(1);
 		}
 
-		return InteractionResultHolder.sidedSuccess(heldStack, level.isClientSide());
+		return InteractionResultHolder.sidedSuccess(heldStack, level.isClient());
 	}
 
 	@Override
-	public Projectile asProjectile(Level level, Position position, ItemStack itemStack, Direction direction) {
-		RottenTomatoEntity rottenTomato = new RottenTomatoEntity(level, position.x(), position.y(), position.z());
+	public ProjectileEntity createEntity(World level, Position position, ItemStack itemStack, Direction direction) {
+		RottenTomatoEntity rottenTomato = new RottenTomatoEntity(level, position.getX(), position.getY(), position.getZ());
 		rottenTomato.setItem(itemStack);
 		return rottenTomato;
 	}

@@ -1,70 +1,70 @@
 package vectorwing.farmersdelight.client.particle;
 
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.util.Mth;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.particle.SimpleParticleType;
+import net.minecraft.util.math.MathHelper;
 
-public class StarParticle extends TextureSheetParticle
+public class StarParticle extends SpriteBillboardParticle
 {
-	protected StarParticle(ClientLevel level, double posX, double posY, double posZ) {
+	protected StarParticle(ClientWorld level, double posX, double posY, double posZ) {
 		super(level, posX, posY, posZ, 0.0D, 0.0D, 0.0D);
-		this.xd *= 0.01F;
-		this.yd *= 0.01F;
-		this.zd *= 0.01F;
-		this.yd += 0.1D;
-		this.quadSize *= 1.5F;
-		this.lifetime = 16;
-		this.hasPhysics = false;
+		this.velocityX *= 0.01F;
+		this.velocityY *= 0.01F;
+		this.velocityZ *= 0.01F;
+		this.velocityY += 0.1D;
+		this.scale *= 1.5F;
+		this.maxAge = 16;
+		this.collidesWithWorld = false;
 	}
 
 	@Override
-	public ParticleRenderType getRenderType() {
-		return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+	public ParticleTextureSheet getType() {
+		return ParticleTextureSheet.PARTICLE_SHEET_OPAQUE;
 	}
 
 	@Override
-	public float getQuadSize(float scaleFactor) {
-		return this.quadSize * Mth.clamp(((float) this.age + scaleFactor) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
+	public float getSize(float scaleFactor) {
+		return this.scale * MathHelper.clamp(((float) this.age + scaleFactor) / (float) this.maxAge * 32.0F, 0.0F, 1.0F);
 	}
 
 	@Override
 	public void tick() {
-		this.xo = this.x;
-		this.yo = this.y;
-		this.zo = this.z;
-		if (this.age++ >= this.lifetime) {
-			this.remove();
+		this.lastX = this.x;
+		this.lastY = this.y;
+		this.lastZ = this.z;
+		if (this.age++ >= this.maxAge) {
+			this.markDead();
 		} else {
-			this.move(this.xd, this.yd, this.zd);
-			if (this.y == this.yo) {
-				this.xd *= 1.1D;
-				this.zd *= 1.1D;
+			this.move(this.velocityX, this.velocityY, this.velocityZ);
+			if (this.y == this.lastY) {
+				this.velocityX *= 1.1D;
+				this.velocityZ *= 1.1D;
 			}
 
-			this.xd *= 0.86F;
-			this.yd *= 0.86F;
-			this.zd *= 0.86F;
+			this.velocityX *= 0.86F;
+			this.velocityY *= 0.86F;
+			this.velocityZ *= 0.86F;
 			if (this.onGround) {
-				this.xd *= 0.7F;
-				this.zd *= 0.7F;
+				this.velocityX *= 0.7F;
+				this.velocityZ *= 0.7F;
 			}
 
 		}
 	}
 
-	public static class Factory implements ParticleProvider<SimpleParticleType>
+	public static class Factory implements ParticleFactory<SimpleParticleType>
 	{
-		private final SpriteSet spriteSet;
+		private final SpriteProvider spriteSet;
 
-		public Factory(SpriteSet sprite) {
+		public Factory(SpriteProvider sprite) {
 			this.spriteSet = sprite;
 		}
 
 		@Override
-		public Particle createParticle(SimpleParticleType typeIn, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+		public Particle createParticle(SimpleParticleType typeIn, ClientWorld level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
 			StarParticle particle = new StarParticle(level, x, y + 0.3D, z);
-			particle.pickSprite(this.spriteSet);
+			particle.setSprite(this.spriteSet);
 			particle.setColor(1.0F, 1.0F, 1.0F);
 			return particle;
 		}

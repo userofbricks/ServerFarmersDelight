@@ -1,51 +1,51 @@
 package vectorwing.farmersdelight.common.block.entity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.Vec3i;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
-import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.block.entity.ViewerCountManager;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.screen.GenericContainerScreenHandler;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.Text;
+import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.UnknownNullability;
 import vectorwing.farmersdelight.common.block.CabinetBlock;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 import vectorwing.farmersdelight.common.registry.ModSounds;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
-public class CabinetBlockEntity extends RandomizableContainerBlockEntity
+public class CabinetBlockEntity extends LootableContainerBlockEntity
 {
-	private NonNullList<ItemStack> contents = NonNullList.withSize(27, ItemStack.EMPTY);
-	private ContainerOpenersCounter openersCounter = new ContainerOpenersCounter()
+	private DefaultedList<ItemStack> contents = DefaultedList.ofSize(27, ItemStack.EMPTY);
+	private ViewerCountManager openersCounter = new ViewerCountManager()
 	{
-		protected void onOpen(Level level, BlockPos pos, BlockState state) {
+		protected void onContainerOpen(World level, BlockPos pos, BlockState state) {
 			CabinetBlockEntity.this.playSound(state, ModSounds.BLOCK_CABINET_OPEN.get());
 			CabinetBlockEntity.this.updateBlockState(state, true);
 		}
 
-		protected void onClose(Level level, BlockPos pos, BlockState state) {
+		protected void onContainerClose(World level, BlockPos pos, BlockState state) {
 			CabinetBlockEntity.this.playSound(state, ModSounds.BLOCK_CABINET_CLOSE.get());
 			CabinetBlockEntity.this.updateBlockState(state, false);
 		}
 
-		protected void openerCountChanged(Level level, BlockPos pos, BlockState sta, int arg1, int arg2) {
+		protected void onViewerCountUpdate(World level, BlockPos pos, BlockState sta, int arg1, int arg2) {
 		}
 
-		protected boolean isOwnContainer(Player p_155060_) {
-			if (p_155060_.containerMenu instanceof ChestMenu) {
-				Container container = ((ChestMenu) p_155060_.containerMenu).getContainer();
+		protected boolean isPlayerViewing(PlayerEntity p_155060_) {
+			if (p_155060_.currentScreenHandler instanceof GenericContainerScreenHandler) {
+				Inventory container = ((GenericContainerScreenHandler) p_155060_.currentScreenHandler).getInventory();
 				return container == CabinetBlockEntity.this;
 			} else {
 				return false;
@@ -58,78 +58,78 @@ public class CabinetBlockEntity extends RandomizableContainerBlockEntity
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
-		super.saveAdditional(compound, registries);
-		if (!trySaveLootTable(compound)) {
-			ContainerHelper.saveAllItems(compound, contents, registries);
+	public void writeNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
+		super.writeNbt(compound, registries);
+		if (!writeLootTable(compound)) {
+			Inventories.writeNbt(compound, contents, registries);
 		}
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
-		super.loadAdditional(compound, registries);
-		contents = NonNullList.withSize(getContainerSize(), ItemStack.EMPTY);
-		if (!tryLoadLootTable(compound)) {
-			ContainerHelper.loadAllItems(compound, contents, registries);
+	public void readNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
+		super.readNbt(compound, registries);
+		contents = DefaultedList.ofSize(size(), ItemStack.EMPTY);
+		if (!readLootTable(compound)) {
+			Inventories.readNbt(compound, contents, registries);
 		}
 	}
 
 	@Override
-	public int getContainerSize() {
+	public int size() {
 		return 27;
 	}
 
 	@Override
-	protected NonNullList<ItemStack> getItems() {
+	protected DefaultedList<ItemStack> getHeldStacks() {
 		return contents;
 	}
 
 	@Override
-	protected void setItems(NonNullList<ItemStack> itemsIn) {
+	protected void setHeldStacks(DefaultedList<ItemStack> itemsIn) {
 		contents = itemsIn;
 	}
 
 	@Override
-	protected Component getDefaultName() {
+	protected Text getContainerName() {
 		return TextUtils.getTranslation("container.cabinet");
 	}
 
 	@Override
-	protected AbstractContainerMenu createMenu(int id, Inventory player) {
-		return ChestMenu.threeRows(id, player, this);
+	protected ScreenHandler createScreenHandler(int id, PlayerInventory player) {
+		return GenericContainerScreenHandler.createGeneric9x3(id, player, this);
 	}
 
-	public void startOpen(Player pPlayer) {
-		if (level != null && !this.remove && !pPlayer.isSpectator()) {
-			this.openersCounter.incrementOpeners(pPlayer, level, this.getBlockPos(), this.getBlockState());
+	public void onOpen(PlayerEntity pPlayer) {
+		if (world != null && !this.removed && !pPlayer.isSpectator()) {
+			this.openersCounter.openContainer(pPlayer, world, this.getPos(), this.getCachedState());
 		}
 	}
 
-	public void stopOpen(Player pPlayer) {
-		if (level != null && !this.remove && !pPlayer.isSpectator()) {
-			this.openersCounter.decrementOpeners(pPlayer, level, this.getBlockPos(), this.getBlockState());
+	public void onClose(PlayerEntity pPlayer) {
+		if (world != null && !this.removed && !pPlayer.isSpectator()) {
+			this.openersCounter.closeContainer(pPlayer, world, this.getPos(), this.getCachedState());
 		}
 	}
 
 	public void recheckOpen() {
-		if (level != null && !this.remove) {
-			this.openersCounter.recheckOpeners(level, this.getBlockPos(), this.getBlockState());
+		if (world != null && !this.removed) {
+			this.openersCounter.updateViewerCount(world, this.getPos(), this.getCachedState());
 		}
 	}
 
 	void updateBlockState(BlockState state, boolean open) {
-		if (level != null) {
-			this.level.setBlock(this.getBlockPos(), state.setValue(CabinetBlock.OPEN, open), 3);
+		if (world != null) {
+			this.world.setBlockState(this.getPos(), state.with(CabinetBlock.OPEN, open), 3);
 		}
 	}
 
 	private void playSound(BlockState state, SoundEvent sound) {
-		if (level == null) return;
+		if (world == null) return;
 
-		Vec3i cabinetFacingVector = state.getValue(CabinetBlock.FACING).getNormal();
-		double x = (double) worldPosition.getX() + 0.5D + (double) cabinetFacingVector.getX() / 2.0D;
-		double y = (double) worldPosition.getY() + 0.5D + (double) cabinetFacingVector.getY() / 2.0D;
-		double z = (double) worldPosition.getZ() + 0.5D + (double) cabinetFacingVector.getZ() / 2.0D;
-		level.playSound(null, x, y, z, sound, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+		Vec3i cabinetFacingVector = state.get(CabinetBlock.FACING).getNormal();
+		double x = (double) pos.getX() + 0.5D + (double) cabinetFacingVector.getX() / 2.0D;
+		double y = (double) pos.getY() + 0.5D + (double) cabinetFacingVector.getY() / 2.0D;
+		double z = (double) pos.getZ() + 0.5D + (double) cabinetFacingVector.getZ() / 2.0D;
+		world.playSound(null, x, y, z, sound, SoundCategory.BLOCKS, 0.5F, world.random.nextFloat() * 0.1F + 0.9F);
 	}
 }

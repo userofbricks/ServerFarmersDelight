@@ -1,10 +1,10 @@
 package vectorwing.farmersdelight.common.loot.modifier;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.loot.context.LootContext;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.refabricated.LootModifier;
 
@@ -16,7 +16,7 @@ public class AddItemModifier extends LootModifier {
     /**
      * This loot modifier adds an item to the loot table, given the conditions specified.
      */
-    public AddItemModifier(LootItemCondition[] conditionsIn, Item addedItemIn, int count) {
+    public AddItemModifier(LootCondition[] conditionsIn, Item addedItemIn, int count) {
         super(conditionsIn);
         this.addedItem = addedItemIn;
         this.count = count;
@@ -27,14 +27,14 @@ public class AddItemModifier extends LootModifier {
     protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
         ItemStack addedStack = new ItemStack(addedItem, count);
 
-        if (addedStack.getCount() < addedStack.getMaxStackSize()) {
+        if (addedStack.getCount() < addedStack.getMaxCount()) {
             generatedLoot.add(addedStack);
         } else {
             int i = addedStack.getCount();
 
             while (i > 0) {
                 ItemStack subStack = addedStack.copy();
-                subStack.setCount(Math.min(addedStack.getMaxStackSize(), i));
+                subStack.setCount(Math.min(addedStack.getMaxCount(), i));
                 i -= subStack.getCount();
                 generatedLoot.add(subStack);
             }

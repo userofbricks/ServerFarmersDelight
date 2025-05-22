@@ -2,56 +2,66 @@ package vectorwing.farmersdelight.common.block;
 
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.block.Waterloggable;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ShearsItem;
+import net.minecraft.item.TridentItem;
+import net.minecraft.particle.ItemStackParticleEffect;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.CuttingBoardBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 @SuppressWarnings("deprecation")
-public class CuttingBoardBlock extends BaseEntityBlock implements SimpleWaterloggedBlock
+public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 {
-	public static final MapCodec<CuttingBoardBlock> CODEC = simpleCodec(CuttingBoardBlock::new);
+	public static final MapCodec<CuttingBoardBlock> CODEC = createCodec(CuttingBoardBlock::new);
 
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+	public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
-	protected static final VoxelShape SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
+	protected static final VoxelShape SHAPE = Block.createCuboidShape(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
 
-	public CuttingBoardBlock(Properties properties) {
+	public CuttingBoardBlock(Settings properties) {
 		super(properties);
-		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
+		this.setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
 	}
 
 	public static void init() {
@@ -59,40 +69,40 @@ public class CuttingBoardBlock extends BaseEntityBlock implements SimpleWaterlog
 	}
 
 	@Override
-	protected MapCodec<? extends BaseEntityBlock> codec() {
+	protected MapCodec<? extends BlockWithEntity> getCodec() {
 		return null;
 	}
 
 	@Override
-	public RenderShape getRenderShape(BlockState pState) {
-		return RenderShape.MODEL;
+	public BlockRenderType getRenderType(BlockState pState) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+	public VoxelShape getOutlineShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
 		return SHAPE;
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		BlockEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof CuttingBoardBlockEntity cuttingBoardEntity) {
-			ItemStack heldStack = player.getItemInHand(hand);
-			ItemStack offhandStack = player.getOffhandItem();
+			ItemStack heldStack = player.getStackInHand(hand);
+			ItemStack offhandStack = player.getOffHandStack();
 
 			if (cuttingBoardEntity.isEmpty()) {
 				if (!offhandStack.isEmpty()) {
-					if (hand.equals(InteractionHand.MAIN_HAND) && !offhandStack.is(ModTags.OFFHAND_EQUIPMENT) && !(heldStack.getItem() instanceof BlockItem)) {
+					if (hand.equals(Hand.MAIN_HAND) && !offhandStack.isIn(ModTags.OFFHAND_EQUIPMENT) && !(heldStack.getItem() instanceof BlockItem)) {
 						return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION; // Pass to off-hand if that item is placeable
 					}
-					if (hand.equals(InteractionHand.OFF_HAND) && offhandStack.is(ModTags.OFFHAND_EQUIPMENT)) {
+					if (hand.equals(Hand.OFF_HAND) && offhandStack.isIn(ModTags.OFFHAND_EQUIPMENT)) {
 						return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION; // Items in this tag should not be placed from the off-hand
 					}
 				}
 				if (heldStack.isEmpty()) {
 					return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-				} else if (cuttingBoardEntity.addItem(player.getAbilities().instabuild ? heldStack.copy() : heldStack)) {
-					level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.0F, 0.8F);
+				} else if (cuttingBoardEntity.addItem(player.getAbilities().creativeMode ? heldStack.copy() : heldStack)) {
+					level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.BLOCKS, 1.0F, 0.8F);
 					return ItemInteractionResult.SUCCESS;
 				}
 
@@ -104,15 +114,15 @@ public class CuttingBoardBlock extends BaseEntityBlock implements SimpleWaterlog
 				}
 				return ItemInteractionResult.CONSUME;
 
-			} else if (hand.equals(InteractionHand.MAIN_HAND)) {
+			} else if (hand.equals(Hand.MAIN_HAND)) {
 				if (!player.isCreative()) {
-					if (!player.getInventory().add(cuttingBoardEntity.removeItem())) {
-						Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), cuttingBoardEntity.removeItem());
+					if (!player.getInventory().insertStack(cuttingBoardEntity.removeItem())) {
+						ItemScatterer.spawn(level, pos.getX(), pos.getY(), pos.getZ(), cuttingBoardEntity.removeItem());
 					}
 				} else {
 					cuttingBoardEntity.removeItem();
 				}
-				level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 0.25F, 0.5F);
+				level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_WOOD_HIT, SoundCategory.BLOCKS, 0.25F, 0.5F);
 				return ItemInteractionResult.SUCCESS;
 			}
 		}
@@ -120,66 +130,66 @@ public class CuttingBoardBlock extends BaseEntityBlock implements SimpleWaterlog
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+	public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (state.getBlock() == newState.getBlock()) {
 			return;
 		}
 
 		BlockEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof CuttingBoardBlockEntity cuttingBoard) {
-			Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), cuttingBoard.getStoredItem());
-			level.updateNeighbourForOutputSignal(pos, this);
+			ItemScatterer.spawn(level, pos.getX(), pos.getY(), pos.getZ(), cuttingBoard.getStoredItem());
+			level.updateComparators(pos, this);
 		}
 
 		super.onRemove(state, level, pos, newState, isMoving);
 	}
 
 	@Override
-	public boolean isPossibleToRespawnInThis(BlockState state) {
+	public boolean canMobSpawnInside(BlockState state) {
 		return true;
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		FluidState fluid = context.getLevel().getFluidState(context.getClickedPos());
-		return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite())
-				.setValue(WATERLOGGED, fluid.getType() == Fluids.WATER);
+	public BlockState getPlacementState(ItemPlacementContext context) {
+		FluidState fluid = context.getWorld().getFluidState(context.getBlockPos());
+		return this.getDefaultState().with(FACING, context.getHorizontalPlayerFacing().getOpposite())
+				.setValue(WATERLOGGED, fluid.getFluid() == Fluids.WATER);
 	}
 
 	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor level, BlockPos currentPos, BlockPos facingPos) {
-		if (stateIn.getValue(WATERLOGGED)) {
-			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+		if (stateIn.get(WATERLOGGED)) {
+			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
 		}
-		return facing == Direction.DOWN && !stateIn.canSurvive(level, currentPos)
-				? Blocks.AIR.defaultBlockState()
-				: super.updateShape(stateIn, facing, facingState, level, currentPos, facingPos);
+		return facing == Direction.DOWN && !stateIn.canPlaceAt(level, currentPos)
+				? Blocks.AIR.getDefaultState()
+				: super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
 	}
 
 	@Override
-	public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-		BlockPos floorPos = pos.below();
-		return canSupportRigidBlock(level, floorPos) || canSupportCenter(level, floorPos, Direction.UP);
+	public boolean canPlaceAt(BlockState state, WorldView level, BlockPos pos) {
+		BlockPos floorPos = pos.down();
+		return hasTopRim(level, floorPos) || sideCoversSmallSquare(level, floorPos, Direction.UP);
 	}
 
 	@Override
-	protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
-		super.createBlockStateDefinition(builder);
+	protected void appendProperties(final StateManager.Builder<Block, BlockState> builder) {
+		super.appendProperties(builder);
 		builder.add(FACING, WATERLOGGED);
 	}
 
 	@Override
 	public FluidState getFluidState(BlockState state) {
-		return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+		return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
 	}
 
 	@Override
-	public boolean hasAnalogOutputSignal(BlockState state) {
+	public boolean hasComparatorOutput(BlockState state) {
 		return true;
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+	public int getComparatorOutput(BlockState state, World level, BlockPos pos) {
 		BlockEntity blockEntity = level.getBlockEntity(pos);
 		if (blockEntity instanceof CuttingBoardBlockEntity) {
 			return !((CuttingBoardBlockEntity) blockEntity).isEmpty() ? 15 : 0;
@@ -189,53 +199,53 @@ public class CuttingBoardBlock extends BaseEntityBlock implements SimpleWaterlog
 
 	@Nullable
 	@Override
-	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return ModBlockEntityTypes.CUTTING_BOARD.get().create(pos, state);
+	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+		return ModBlockEntityTypes.CUTTING_BOARD.get().instantiate(pos, state);
 	}
 
 	@Override
-	public BlockState rotate(BlockState pState, Rotation pRot) {
-		return pState.setValue(FACING, pRot.rotate(pState.getValue(FACING)));
+	public BlockState rotate(BlockState pState, BlockRotation pRot) {
+		return pState.with(FACING, pRot.rotate(pState.get(FACING)));
 	}
 
 	@Override
-	public BlockState mirror(BlockState pState, Mirror pMirror) {
-		return pState.rotate(pMirror.getRotation(pState.getValue(FACING)));
+	public BlockState mirror(BlockState pState, BlockMirror pMirror) {
+		return pState.rotate(pMirror.getRotation(pState.get(FACING)));
 	}
 
-	public static void spawnCuttingParticles(Level level, BlockPos pos, ItemStack stack, int count) {
+	public static void spawnCuttingParticles(World level, BlockPos pos, ItemStack stack, int count) {
 		for (int i = 0; i < count; ++i) {
-			Vec3 vec3d = new Vec3(((double) level.random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, ((double) level.random.nextFloat() - 0.5D) * 0.1D);
-			if (level instanceof ServerLevel) {
-				((ServerLevel) level).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, stack), pos.getX() + 0.5F, pos.getY() + 0.1F, pos.getZ() + 0.5F, 1, vec3d.x, vec3d.y + 0.05D, vec3d.z, 0.0D);
+			Vec3d vec3d = new Vec3d(((double) level.random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, ((double) level.random.nextFloat() - 0.5D) * 0.1D);
+			if (level instanceof ServerWorld) {
+				((ServerWorld) level).spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), pos.getX() + 0.5F, pos.getY() + 0.1F, pos.getZ() + 0.5F, 1, vec3d.x, vec3d.y + 0.05D, vec3d.z, 0.0D);
 			} else {
-				level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, stack), pos.getX() + 0.5F, pos.getY() + 0.1F, pos.getZ() + 0.5F, vec3d.x, vec3d.y + 0.05D, vec3d.z);
+				level.addParticleClient(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), pos.getX() + 0.5F, pos.getY() + 0.1F, pos.getZ() + 0.5F, vec3d.x, vec3d.y + 0.05D, vec3d.z);
 			}
 		}
 	}
 
 	public static class ToolCarvingEvent
 	{
-		public static InteractionResult onSneakPlaceTool(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
+		public static ActionResult onSneakPlaceTool(PlayerEntity player, World level, Hand hand, BlockHitResult hit) {
 			if (player.isSpectator())
-				return InteractionResult.PASS;
+				return ActionResult.PASS;
 
 			BlockPos pos = hit.getBlockPos();
-			ItemStack heldStack = player.getMainHandItem();
+			ItemStack heldStack = player.getMainHandStack();
 			BlockEntity tileEntity = level.getBlockEntity(pos);
 
-			if (player.isSecondaryUseActive() && !heldStack.isEmpty() && tileEntity instanceof CuttingBoardBlockEntity) {
+			if (player.shouldCancelInteraction() && !heldStack.isEmpty() && tileEntity instanceof CuttingBoardBlockEntity) {
 				if (heldStack.getItem() instanceof TieredItem ||
 						heldStack.getItem() instanceof TridentItem ||
 						heldStack.getItem() instanceof ShearsItem) {
-					boolean success = ((CuttingBoardBlockEntity) tileEntity).carveToolOnBoard(player.getAbilities().instabuild ? heldStack.copy() : heldStack);
+					boolean success = ((CuttingBoardBlockEntity) tileEntity).carveToolOnBoard(player.getAbilities().creativeMode ? heldStack.copy() : heldStack);
 					if (success) {
-						level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.0F, 0.8F);
-						return InteractionResult.SUCCESS;
+						level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.BLOCKS, 1.0F, 0.8F);
+						return ActionResult.SUCCESS;
 					}
 				}
 			}
-			return InteractionResult.PASS;
+			return ActionResult.PASS;
 		}
 	}
 }

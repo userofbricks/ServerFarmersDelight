@@ -1,12 +1,10 @@
 package vectorwing.farmersdelight.common.tag;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.util.Identifier;
 
 /**
  * References to tags belonging to other mods, which Farmer's Delight innately supports.
@@ -31,10 +29,10 @@ public class CompatibilityTags
 	public static final TagKey<Item> SERENE_SEASONS_WINTER_CROPS = externalItemTag(SERENE_SEASONS, "winter_crops");
 
 	private static TagKey<Item> externalItemTag(String modId, String path) {
-		return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(modId, path));
+		return TagKey.of(RegistryKeys.ITEM, Identifier.of(modId, path));
 	}
 
 	private static TagKey<Block> externalBlockTag(String modId, String path) {
-		return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(modId, path));
+		return TagKey.of(RegistryKeys.BLOCK, Identifier.of(modId, path));
 	}
 }

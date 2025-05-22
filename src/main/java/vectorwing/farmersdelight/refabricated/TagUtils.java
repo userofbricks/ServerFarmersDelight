@@ -5,19 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.tags.TagFile;
-import net.minecraft.tags.TagKey;
-import net.minecraft.tags.TagLoader;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.block.Block;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 import java.io.Reader;
@@ -25,20 +12,31 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.block.Block;
+import net.minecraft.entity.EntityType;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.TagFile;
+import net.minecraft.registry.tag.TagGroupLoader;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceFinder;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.Identifier;
 
 public class TagUtils {
     private static ResourceManager resourceManager;
     // Vanilla loads tags after Loot Tables are loaded, so we need to do something about that.
-    private static Collection<Holder<Block>> earlyDropsCakeTag;
-    private static Collection<Holder<EntityType<?>>> earlyDropsLeatherTag;
+    private static Collection<RegistryEntry<Block>> earlyDropsCakeTag;
+    private static Collection<RegistryEntry<EntityType<?>>> earlyDropsLeatherTag;
 
     // This exists so we don't modify literally every loot table in the game just to add loot to a few
-    public static boolean isCandleDropsCakeSliceTag(Holder<Block> block, HolderLookup<Block> lookup) {
+    public static boolean isCandleDropsCakeSliceTag(RegistryEntry<Block> block, RegistryWrapper<Block> lookup) {
         if (earlyDropsCakeTag == null) {
-            TagLoader<Holder<Block>> loader = new TagLoader<>(rl -> lookup.get(ResourceKey.create(Registries.BLOCK, rl)), "tags/block");
+            TagGroupLoader<RegistryEntry<Block>> loader = new TagGroupLoader<>(rl -> lookup.get(ResourceKey.create(Registries.BLOCK, rl)), "tags/block");
             var dropsLeatherMap = loadTag(ModTags.DROPS_CAKE_SLICE);
-            Map<ResourceLocation, Collection<Holder<Block>>> loaded = loader.build(dropsLeatherMap);
-            earlyDropsCakeTag = loaded.get(ModTags.DROPS_CAKE_SLICE.location());
+            Map<Identifier, Collection<RegistryEntry<Block>>> loaded = loader.buildGroup(dropsLeatherMap);
+            earlyDropsCakeTag = loaded.get(ModTags.DROPS_CAKE_SLICE.id());
             if (earlyDropsCakeTag == null)
                 earlyDropsCakeTag = List.of();
         }
@@ -47,12 +45,12 @@ public class TagUtils {
     }
 
     // This exists so we don't modify literally every loot table in the game just to add loot to a few
-    public static boolean isDropsLeatherTag(Holder<EntityType<?>> entityType, HolderLookup<EntityType<?>> lookup) {
+    public static boolean isDropsLeatherTag(RegistryEntry<EntityType<?>> entityType, RegistryWrapper<EntityType<?>> lookup) {
         if (earlyDropsLeatherTag == null) {
-            TagLoader<Holder<EntityType<?>>> loader = new TagLoader<>(rl -> lookup.get(ResourceKey.create(Registries.ENTITY_TYPE, rl)), "tags/entity_type");
+            TagGroupLoader<RegistryEntry<EntityType<?>>> loader = new TagGroupLoader<>(rl -> lookup.get(ResourceKey.create(Registries.ENTITY_TYPE, rl)), "tags/entity_type");
             var dropsLeatherMap = loadTag(ModTags.DROPS_LEATHER);
-            Map<ResourceLocation, Collection<Holder<EntityType<?>>>> loaded = loader.build(dropsLeatherMap);
-            earlyDropsLeatherTag = loaded.get(ModTags.DROPS_LEATHER.location());
+            Map<Identifier, Collection<RegistryEntry<EntityType<?>>>> loaded = loader.buildGroup(dropsLeatherMap);
+            earlyDropsLeatherTag = loaded.get(ModTags.DROPS_LEATHER.id());
             if (earlyDropsLeatherTag == null)
                 earlyDropsLeatherTag = List.of();
         }
@@ -60,25 +58,25 @@ public class TagUtils {
         return earlyDropsLeatherTag.contains(entityType);
     }
 
-    public static <T> Map<ResourceLocation, List<TagLoader.EntryWithSource>> loadTag(TagKey<T> tagKey) {
-        Map<ResourceLocation, List<TagLoader.EntryWithSource>> map = Maps.newHashMap();
-        String tagRegistryLocation = (tagKey.registry().location().getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE) ? "" : tagKey.registry().location().getNamespace() + "/")  + tagKey.registry().location().getPath();
-        ResourceLocation jsonPath = ResourceLocation.fromNamespaceAndPath(tagKey.location().getNamespace(), "tags/" +
-                tagRegistryLocation + "/" + tagKey.location().getPath() + ".json");
+    public static <T> Map<Identifier, List<TagGroupLoader.TrackedEntry>> loadTag(TagKey<T> tagKey) {
+        Map<Identifier, List<TagGroupLoader.TrackedEntry>> map = Maps.newHashMap();
+        String tagRegistryLocation = (tagKey.registryRef().getValue().getNamespace().equals(Identifier.DEFAULT_NAMESPACE) ? "" : tagKey.registryRef().getValue().getNamespace() + "/")  + tagKey.registryRef().getValue().getPath();
+        Identifier jsonPath = Identifier.of(tagKey.id().getNamespace(), "tags/" +
+                tagRegistryLocation + "/" + tagKey.id().getPath() + ".json");
 
-        for (Resource entry : resourceManager.getResourceStack(jsonPath)) {
+        for (Resource entry : resourceManager.getAllResources(jsonPath)) {
             loadIndividualTag(tagRegistryLocation, jsonPath, entry, map);
         }
 
         return map;
     }
 
-    private static void loadIndividualTag(String tagRegistryLocation, ResourceLocation fileLocation, Resource resource, Map<ResourceLocation, List<TagLoader.EntryWithSource>> map) {
-        FileToIdConverter converter = FileToIdConverter.json("tags/" + tagRegistryLocation);
-        ResourceLocation fileToId = converter.fileToId(fileLocation);
-        try (Reader reader = resource.openAsReader()) {
+    private static void loadIndividualTag(String tagRegistryLocation, Identifier fileLocation, Resource resource, Map<Identifier, List<TagGroupLoader.TrackedEntry>> map) {
+        ResourceFinder converter = ResourceFinder.json("tags/" + tagRegistryLocation);
+        Identifier fileToId = converter.toResourceId(fileLocation);
+        try (Reader reader = resource.getReader()) {
             JsonElement jsonElement = JsonParser.parseReader(reader);
-            List<TagLoader.EntryWithSource> list = map.getOrDefault(fileToId, new ArrayList<>());
+            List<TagGroupLoader.TrackedEntry> list = map.getOrDefault(fileToId, new ArrayList<>());
             TagFile tagFile = TagFile.CODEC.parse(new Dynamic<>(JsonOps.INSTANCE, jsonElement)).getOrThrow();
             if (tagFile.replace()) {
                 list.clear();
@@ -86,14 +84,14 @@ public class TagUtils {
 
             tagFile.entries().forEach((tagEntry) -> {
                 // Return value is unused, this was the easiest way to determine whether this was a tag or not.
-                tagEntry.verifyIfPresent(resourceLocation -> {
-                    list.add(new TagLoader.EntryWithSource(tagEntry, resource.sourcePackId()));
+                tagEntry.canAdd(resourceLocation -> {
+                    list.add(new TagGroupLoader.TrackedEntry(tagEntry, resource.getPackId()));
                     return false;
                 }, resourceLocation -> {
-                    for (Resource innerEntry : resourceManager.getResourceStack(converter.idToFile(resourceLocation))) {
+                    for (Resource innerEntry : resourceManager.getAllResources(converter.toResourcePath(resourceLocation))) {
                         loadIndividualTag(tagRegistryLocation, resourceLocation, innerEntry, map);
                     }
-                    list.add(new TagLoader.EntryWithSource(tagEntry, resource.sourcePackId()));
+                    list.add(new TagGroupLoader.TrackedEntry(tagEntry, resource.getPackId()));
                     return false;
                 });
             });

@@ -2,13 +2,13 @@ package vectorwing.farmersdelight.integration.emi.handler;
 
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.handler.StandardRecipeHandler;
-import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.container.CookingPotMenu;
 import vectorwing.farmersdelight.integration.emi.FDRecipeCategories;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.screen.slot.Slot;
 
 public class CookingPotEmiRecipeHandler implements StandardRecipeHandler<CookingPotMenu> {
     @Override

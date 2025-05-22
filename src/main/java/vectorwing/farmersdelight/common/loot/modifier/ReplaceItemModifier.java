@@ -2,10 +2,10 @@ package vectorwing.farmersdelight.common.loot.modifier;
 
 import com.mojang.serialization.MapCodec;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.loot.context.LootContext;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.refabricated.LootModifier;
 
@@ -19,7 +19,7 @@ public class ReplaceItemModifier extends LootModifier
 	/**
 	 * This loot modifier removes all instances of the specified item, replacing it by another specified addition.
 	 */
-	public ReplaceItemModifier(LootItemCondition[] conditions, Item removedItem, Item addedItem, int addedCount) {
+	public ReplaceItemModifier(LootCondition[] conditions, Item removedItem, Item addedItem, int addedCount) {
 		super(conditions);
 		this.removedItem = removedItem;
 		this.addedItem = addedItem;
@@ -31,19 +31,19 @@ public class ReplaceItemModifier extends LootModifier
 		ItemStack addedStack = new ItemStack(addedItem, addedCount);
 
 		generatedLoot.forEach((item) -> {
-			if (item.is(removedItem)) {
+			if (item.isOf(removedItem)) {
 				generatedLoot.remove(item);
 			}
 		});
 
-		if (addedStack.getCount() < addedStack.getMaxStackSize()) {
+		if (addedStack.getCount() < addedStack.getMaxCount()) {
 			generatedLoot.add(addedStack);
 		} else {
 			int i = addedStack.getCount();
 
 			while (i > 0) {
 				ItemStack subStack = addedStack.copy();
-				subStack.setCount(Math.min(addedStack.getMaxStackSize(), i));
+				subStack.setCount(Math.min(addedStack.getMaxCount(), i));
 				i -= subStack.getCount();
 				generatedLoot.add(subStack);
 			}

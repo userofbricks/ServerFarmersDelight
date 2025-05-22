@@ -1,12 +1,10 @@
 package vectorwing.farmersdelight.common.tag;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.util.Identifier;
 
 /**
  * References to tags under the Forge namespace.
@@ -76,11 +74,11 @@ public class CommonTags
 	public static final TagKey<Item> STORAGE_BLOCKS_ITEM_STRAW = commonItemTag("storage_blocks/straw");
 
 	private static TagKey<Block> commonBlockTag(String path) {
-		return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", path));
+		return TagKey.of(RegistryKeys.BLOCK, Identifier.of("c", path));
 	}
 
 	private static TagKey<Item> commonItemTag(String path) {
-		return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+		return TagKey.of(RegistryKeys.ITEM, Identifier.of("c", path));
 	}
 
 }

@@ -2,18 +2,18 @@ package vectorwing.farmersdelight.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.FoodData;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.LayeredDrawer;
+import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.HungerManager;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.Configuration;
@@ -31,7 +31,7 @@ public class HUDOverlays
 {
 	public static int healthIconsOffset = 39;
 	public static int foodIconsOffset = 39;
-	private static final ResourceLocation MOD_ICONS_TEXTURE = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "textures/gui/fd_icons.png");
+	private static final Identifier MOD_ICONS_TEXTURE = Identifier.of(FarmersDelight.MODID, "textures/gui/fd_icons.png");
 
 	/**
 	 * Moved to GuiMixin.
@@ -42,51 +42,51 @@ public class HUDOverlays
 //		HudRenderCallback.EVENT.register(NourishmentOverlay.INSTANCE::render);
 	}
 
-	public static abstract class BaseOverlay implements LayeredDraw.Layer
+	public static abstract class BaseOverlay implements LayeredDrawer.Layer
 	{
-		public abstract void render(Minecraft mc, Player player, GuiGraphics guiGraphics, int left, int right, int top, int guiTicks);
+		public abstract void render(MinecraftClient mc, PlayerEntity player, DrawContext guiGraphics, int left, int right, int top, int guiTicks);
 
 		@Override
-		public final void render(@NotNull GuiGraphics guiGraphics, @NotNull DeltaTracker deltaTracker) {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft.player == null || !shouldRenderOverlay(minecraft, minecraft.player, guiGraphics, minecraft.gui.getGuiTicks()))
+		public final void render(@NotNull DrawContext guiGraphics, @NotNull RenderTickCounter deltaTracker) {
+			MinecraftClient minecraft = MinecraftClient.getInstance();
+			if (minecraft.player == null || !shouldRenderOverlay(minecraft, minecraft.player, guiGraphics, minecraft.inGameHud.getTicks()))
 				return;
 
-			int top = guiGraphics.guiHeight();
-			int left = guiGraphics.guiWidth() / 2 - 91; // left of health bar
-			int right = guiGraphics.guiWidth() / 2 + 91; // right of food bar
+			int top = guiGraphics.getScaledWindowHeight();
+			int left = guiGraphics.getScaledWindowWidth() / 2 - 91; // left of health bar
+			int right = guiGraphics.getScaledWindowWidth() / 2 + 91; // right of food bar
 
-			render(minecraft, minecraft.player, guiGraphics, left, right, top, minecraft.gui.getGuiTicks());
+			render(minecraft, minecraft.player, guiGraphics, left, right, top, minecraft.inGameHud.getTicks());
 		}
 
-		public boolean shouldRenderOverlay(Minecraft minecraft, Player player, GuiGraphics guiGraphics, int guiTicks) {
-			return !minecraft.options.hideGui && minecraft.gameMode != null && minecraft.gameMode.canHurtPlayer();
+		public boolean shouldRenderOverlay(MinecraftClient minecraft, PlayerEntity player, DrawContext guiGraphics, int guiTicks) {
+			return !minecraft.options.hudHidden && minecraft.interactionManager != null && minecraft.interactionManager.hasStatusBars();
 		}
 	}
 
 	public static class NourishmentOverlay extends BaseOverlay
 	{
-		public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "nourishment");
+		public static final Identifier ID = Identifier.of(FarmersDelight.MODID, "nourishment");
 
 		// Refabricated
 		public static final NourishmentOverlay INSTANCE = new NourishmentOverlay();
 
 		@Override
-		public void render(Minecraft minecraft, Player player, GuiGraphics guiGraphics, int left, int right, int top, int guiTicks) {
-			FoodData stats = player.getFoodData();
+		public void render(MinecraftClient minecraft, PlayerEntity player, DrawContext guiGraphics, int left, int right, int top, int guiTicks) {
+			HungerManager stats = player.getHungerManager();
 
 			boolean isPlayerHealingWithSaturation =
-					player.level().getGameRules().getBoolean(GameRules.RULE_NATURAL_REGENERATION)
-							&& player.isHurt()
+					player.getWorld().getGameRules().getBoolean(GameRules.NATURAL_REGENERATION)
+							&& player.canFoodHeal()
 							&& stats.getFoodLevel() >= 18;
 
-			if (player.getEffect(ModEffects.NOURISHMENT) != null) {
+			if (player.getStatusEffect(ModEffects.NOURISHMENT) != null) {
 				drawNourishmentOverlay(stats, minecraft, guiGraphics, right, top - foodIconsOffset, isPlayerHealingWithSaturation);
 			}
 		}
 
 		@Override
-		public boolean shouldRenderOverlay(Minecraft mc, Player player, GuiGraphics guiGraphics, int guiTicks) {
+		public boolean shouldRenderOverlay(MinecraftClient mc, PlayerEntity player, DrawContext guiGraphics, int guiTicks) {
 			if (!super.shouldRenderOverlay(mc, player, guiGraphics, guiTicks))
 				return false;
 
@@ -96,26 +96,26 @@ public class HUDOverlays
 
 	public static class ComfortOverlay extends BaseOverlay
 	{
-		public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "comfort");
+		public static final Identifier ID = Identifier.of(FarmersDelight.MODID, "comfort");
 
 		// Refabricated
 		public static final ComfortOverlay INSTANCE = new ComfortOverlay();
 
 		@Override
-		public void render(Minecraft minecraft, Player player, GuiGraphics guiGraphics, int left, int right, int top, int guiTicks) {
-			FoodData stats = player.getFoodData();
+		public void render(MinecraftClient minecraft, PlayerEntity player, DrawContext guiGraphics, int left, int right, int top, int guiTicks) {
+			HungerManager stats = player.getHungerManager();
 
 			boolean isPlayerEligibleForComfort = stats.getSaturationLevel() == 0.0F
-					&& player.isHurt()
-					&& !player.hasEffect(MobEffects.REGENERATION);
+					&& player.canFoodHeal()
+					&& !player.hasStatusEffect(StatusEffects.REGENERATION);
 
-			if (player.getEffect(ModEffects.COMFORT) != null && isPlayerEligibleForComfort) {
+			if (player.getStatusEffect(ModEffects.COMFORT) != null && isPlayerEligibleForComfort) {
 				drawComfortOverlay(player, minecraft, guiGraphics, left, top - healthIconsOffset);
 			}
 		}
 
 		@Override
-		public boolean shouldRenderOverlay(Minecraft mc, Player player, GuiGraphics guiGraphics, int guiTicks) {
+		public boolean shouldRenderOverlay(MinecraftClient mc, PlayerEntity player, DrawContext guiGraphics, int guiTicks) {
 			if (!super.shouldRenderOverlay(mc, player, guiGraphics, guiTicks))
 				return false;
 
@@ -123,10 +123,10 @@ public class HUDOverlays
 		}
 	}
 
-	public static void drawNourishmentOverlay(FoodData foodData, Minecraft minecraft, GuiGraphics graphics, int right, int top, boolean naturalHealing) {
+	public static void drawNourishmentOverlay(HungerManager foodData, MinecraftClient minecraft, DrawContext graphics, int right, int top, boolean naturalHealing) {
 		float saturation = foodData.getSaturationLevel();
 		int foodLevel = foodData.getFoodLevel();
-		int ticks = minecraft.gui.getGuiTicks();
+		int ticks = minecraft.inGameHud.getTicks();
 		Random rand = new Random();
 		rand.setSeed(ticks * 312871);
 
@@ -141,35 +141,35 @@ public class HUDOverlays
 			}
 
 			// Background texture
-			graphics.blit(MOD_ICONS_TEXTURE, x, y, 0, 0, 9, 9);
+			graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 0, 0, 9, 9);
 
 			float effectiveHungerOfBar = (foodData.getFoodLevel()) / 2.0F - j;
 			int naturalHealingOffset = naturalHealing ? 18 : 0;
 
 			// Gilded hunger icons
 			if (effectiveHungerOfBar >= 1)
-				graphics.blit(MOD_ICONS_TEXTURE, x, y, 18 + naturalHealingOffset, 0, 9, 9);
+				graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 18 + naturalHealingOffset, 0, 9, 9);
 			else if (effectiveHungerOfBar >= .5)
-				graphics.blit(MOD_ICONS_TEXTURE, x, y, 9 + naturalHealingOffset, 0, 9, 9);
+				graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 9 + naturalHealingOffset, 0, 9, 9);
 		}
 
 		RenderSystem.disableBlend();
 	}
 
-	public static void drawComfortOverlay(Player player, Minecraft minecraft, GuiGraphics graphics, int left, int top) {
-		int ticks = minecraft.gui.getGuiTicks();
+	public static void drawComfortOverlay(PlayerEntity player, MinecraftClient minecraft, DrawContext graphics, int left, int top) {
+		int ticks = minecraft.inGameHud.getTicks();
 		Random rand = new Random();
 		rand.setSeed((long) (ticks * 312871));
 
-		int health = Mth.ceil(player.getHealth());
-		float absorb = Mth.ceil(player.getAbsorptionAmount());
-		AttributeInstance attrMaxHealth = player.getAttribute(Attributes.MAX_HEALTH);
+		int health = MathHelper.ceil(player.getHealth());
+		float absorb = MathHelper.ceil(player.getAbsorptionAmount());
+		EntityAttributeInstance attrMaxHealth = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
 		float healthMax = (float) attrMaxHealth.getValue();
 
 		int regen = -1;
-		if (player.hasEffect(MobEffects.REGENERATION)) regen = ticks % 25;
+		if (player.hasStatusEffect(StatusEffects.REGENERATION)) regen = ticks % 25;
 
-		int healthRows = Mth.ceil((healthMax + absorb) / 2.0F / 10.0F);
+		int healthRows = MathHelper.ceil((healthMax + absorb) / 2.0F / 10.0F);
 		int rowHeight = Math.max(10 - (healthRows - 2), 3);
 
 		int comfortSheen = ticks % 50;
@@ -178,7 +178,7 @@ public class HUDOverlays
 
 		RenderSystem.enableBlend();
 
-		int healthMaxSingleRow = Mth.ceil(Math.min(healthMax, 20) / 2.0F);
+		int healthMaxSingleRow = MathHelper.ceil(Math.min(healthMax, 20) / 2.0F);
 		int leftHeightOffset = ((healthRows - 1) * rowHeight); // This keeps the overlay on the bottommost row of hearts
 
 		for (int i = 0; i < healthMaxSingleRow; ++i) {
@@ -190,10 +190,10 @@ public class HUDOverlays
 			if (i == regen) y -= 2;
 
 			if (column == comfortSheen / 2) {
-				graphics.blit(MOD_ICONS_TEXTURE, x, y, 0, 9, textureWidth[comfortHeartFrame], 9);
+				graphics.drawTexture(MOD_ICONS_TEXTURE, x, y, 0, 9, textureWidth[comfortHeartFrame], 9);
 			}
 			if (column == (comfortSheen / 2) - 1 && comfortHeartFrame == 0) {
-				graphics.blit(MOD_ICONS_TEXTURE, x + 5, y, 5, 9, 4, 9);
+				graphics.drawTexture(MOD_ICONS_TEXTURE, x + 5, y, 5, 9, 4, 9);
 			}
 		}
 

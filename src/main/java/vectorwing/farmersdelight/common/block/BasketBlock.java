@@ -3,194 +3,197 @@ package vectorwing.farmersdelight.common.block;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.block.Waterloggable;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.ai.pathing.NavigationType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.function.BooleanBiFunction;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.BooleanOp;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.BasketBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 
 @SuppressWarnings("deprecation")
-public class BasketBlock extends BaseEntityBlock implements SimpleWaterloggedBlock
+public class BasketBlock extends BlockWithEntity implements Waterloggable
 {
-	public static final MapCodec<BasketBlock> CODEC = simpleCodec(BasketBlock::new);
+	public static final MapCodec<BasketBlock> CODEC = createCodec(BasketBlock::new);
 
-	public static final DirectionProperty FACING = BlockStateProperties.FACING;
-	public static final BooleanProperty ENABLED = BlockStateProperties.ENABLED;
-	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+	public static final DirectionProperty FACING = Properties.FACING;
+	public static final BooleanProperty ENABLED = Properties.ENABLED;
+	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
-	public static final VoxelShape OUT_SHAPE = Shapes.block();
-	public static final VoxelShape RENDER_SHAPE = Block.box(1.0D, 1.0D, 1.0D, 15.0D, 15.0D, 15.0D);
+	public static final VoxelShape OUT_SHAPE = VoxelShapes.fullCube();
+	public static final VoxelShape RENDER_SHAPE = Block.createCuboidShape(1.0D, 1.0D, 1.0D, 15.0D, 15.0D, 15.0D);
 	@SuppressWarnings("UnstableApiUsage")
 	public static final ImmutableMap<Direction, VoxelShape> COLLISION_SHAPE_FACING =
 			Maps.immutableEnumMap(ImmutableMap.<Direction, VoxelShape>builder()
-					.put(Direction.DOWN, makeHollowCubeShape(Block.box(2.0D, 0.0D, 2.0D, 14.0D, 14.0D, 14.0D)))
-					.put(Direction.UP, makeHollowCubeShape(Block.box(2.0D, 2.0D, 2.0D, 14.0D, 16.0D, 14.0D)))
-					.put(Direction.NORTH, makeHollowCubeShape(Block.box(2.0D, 2.0D, 0.0D, 14.0D, 14.0D, 14.0D)))
-					.put(Direction.SOUTH, makeHollowCubeShape(Block.box(2.0D, 2.0D, 2.0D, 14.0D, 14.0D, 16.0D)))
-					.put(Direction.WEST, makeHollowCubeShape(Block.box(0.0D, 2.0D, 2.0D, 14.0D, 14.0D, 14.0D)))
-					.put(Direction.EAST, makeHollowCubeShape(Block.box(2.0D, 2.0D, 2.0D, 16.0D, 14.0D, 14.0D)))
+					.put(Direction.DOWN, makeHollowCubeShape(Block.createCuboidShape(2.0D, 0.0D, 2.0D, 14.0D, 14.0D, 14.0D)))
+					.put(Direction.UP, makeHollowCubeShape(Block.createCuboidShape(2.0D, 2.0D, 2.0D, 14.0D, 16.0D, 14.0D)))
+					.put(Direction.NORTH, makeHollowCubeShape(Block.createCuboidShape(2.0D, 2.0D, 0.0D, 14.0D, 14.0D, 14.0D)))
+					.put(Direction.SOUTH, makeHollowCubeShape(Block.createCuboidShape(2.0D, 2.0D, 2.0D, 14.0D, 14.0D, 16.0D)))
+					.put(Direction.WEST, makeHollowCubeShape(Block.createCuboidShape(0.0D, 2.0D, 2.0D, 14.0D, 14.0D, 14.0D)))
+					.put(Direction.EAST, makeHollowCubeShape(Block.createCuboidShape(2.0D, 2.0D, 2.0D, 16.0D, 14.0D, 14.0D)))
 					.build());
 
 	private static VoxelShape makeHollowCubeShape(VoxelShape cutout) {
-		return Shapes.joinUnoptimized(OUT_SHAPE, cutout, BooleanOp.ONLY_FIRST).optimize();
+		return VoxelShapes.combine(OUT_SHAPE, cutout, BooleanBiFunction.ONLY_FIRST).simplify();
 	}
 
-	public BasketBlock(Properties properties) {
+	public BasketBlock(Settings properties) {
 		super(properties);
-		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.UP).setValue(WATERLOGGED, false));
+		this.setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.UP).setValue(WATERLOGGED, false));
 	}
 
 	@Override
-	protected MapCodec<? extends BaseEntityBlock> codec() {
+	protected MapCodec<? extends BlockWithEntity> getCodec() {
 		return CODEC;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return COLLISION_SHAPE_FACING.get(state.getValue(FACING));
+	public VoxelShape getOutlineShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
+		return COLLISION_SHAPE_FACING.get(state.get(FACING));
 	}
 
 	@Override
-	public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+	public VoxelShape getOcclusionShape(BlockState state, BlockView level, BlockPos pos) {
 		return RENDER_SHAPE;
 	}
 
 	@Override
-	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.MODEL;
+	public BlockRenderType getRenderType(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(FACING, ENABLED, WATERLOGGED);
 	}
 
 	@Override
-	public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!level.isClientSide) {
+	public ActionResult onUse(BlockState state, World level, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+		if (!level.isClient) {
 			BlockEntity tileEntity = level.getBlockEntity(pos);
 			if (tileEntity instanceof BasketBlockEntity) {
-				player.openMenu((BasketBlockEntity) tileEntity);
+				player.openHandledScreen((BasketBlockEntity) tileEntity);
 			}
 		}
-		return InteractionResult.SUCCESS;
+		return ActionResult.SUCCESS;
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+	public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (state.getBlock() != newState.getBlock()) {
 			BlockEntity tileEntity = level.getBlockEntity(pos);
-			if (tileEntity instanceof Container) {
-				Containers.dropContents(level, pos, (Container) tileEntity);
-				level.updateNeighbourForOutputSignal(pos, this);
+			if (tileEntity instanceof Inventory) {
+				ItemScatterer.spawn(level, pos, (Inventory) tileEntity);
+				level.updateComparators(pos, this);
 			}
 
 			super.onRemove(state, level, pos, newState, isMoving);
 		}
 	}
 
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor level, BlockPos currentPos, BlockPos facingPos) {
-		if (state.getValue(WATERLOGGED)) {
-			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+		if (state.get(WATERLOGGED)) {
+			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
 		}
 
-		return super.updateShape(state, facing, facingState, level, currentPos, facingPos);
+		return super.getStateForNeighborUpdate(state, facing, facingState, level, currentPos, facingPos);
 	}
 
 	@Override
 	public FluidState getFluidState(BlockState state) {
-		return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+		return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
 	}
 
 	// --- HOPPER STUFF ---
 
 	@Override
-	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-		boolean isPowered = !level.hasNeighborSignal(pos);
-		if (isPowered != state.getValue(ENABLED)) {
-			level.setBlock(pos, state.setValue(ENABLED, isPowered), 4);
+	public void neighborChanged(BlockState state, World level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+		boolean isPowered = !level.isReceivingRedstonePower(pos);
+		if (isPowered != state.get(ENABLED)) {
+			level.setBlockState(pos, state.with(ENABLED, isPowered), 4);
 		}
 	}
 
 	// --- BARREL STUFF ---
 
 	@Override
-	public boolean hasAnalogOutputSignal(BlockState state) {
+	public boolean hasComparatorOutput(BlockState state) {
 		return true;
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
-		return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(level.getBlockEntity(pos));
+	public int getComparatorOutput(BlockState state, World level, BlockPos pos) {
+		return ScreenHandler.calculateComparatorOutput(level.getBlockEntity(pos));
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		FluidState fluid = context.getLevel().getFluidState(context.getClickedPos());
-		return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite()).setValue(WATERLOGGED, fluid.getType() == Fluids.WATER);
+	public BlockState getPlacementState(ItemPlacementContext context) {
+		FluidState fluid = context.getWorld().getFluidState(context.getBlockPos());
+		return this.getDefaultState().with(FACING, context.getPlayerLookDirection().getOpposite()).setValue(WATERLOGGED, fluid.getFluid() == Fluids.WATER);
 	}
 
 	@Override
-	public BlockState rotate(BlockState state, Rotation rotation) {
-		return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+	public BlockState rotate(BlockState state, BlockRotation rotation) {
+		return state.with(FACING, rotation.rotate(state.get(FACING)));
 	}
 
 	@Override
-	public BlockState mirror(BlockState state, Mirror mirror) {
-		return state.rotate(mirror.getRotation(state.getValue(FACING)));
+	public BlockState mirror(BlockState state, BlockMirror mirror) {
+		return state.rotate(mirror.getRotation(state.get(FACING)));
 	}
 
-	public boolean useShapeForLightOcclusion(BlockState state) {
+	public boolean hasSidedTransparency(BlockState state) {
 		return true;
 	}
 
 	@Override
-	public VoxelShape getInteractionShape(BlockState state, BlockGetter level, BlockPos pos) {
+	public VoxelShape getRaycastShape(BlockState state, BlockView level, BlockPos pos) {
 		return OUT_SHAPE;
 	}
 
 	@Override
-	protected boolean isPathfindable(BlockState state, PathComputationType type) {
+	protected boolean canPathfindThrough(BlockState state, NavigationType type) {
 		return false;
 	}
 
 	@Nullable
 	@Override
-	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
 		return new BasketBlockEntity(pos, state);
 	}
 
 	@Nullable
-	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-		return level.isClientSide ? null : BaseEntityBlock.createTickerHelper(blockEntityType, ModBlockEntityTypes.BASKET.get(), BasketBlockEntity::pushItemsTick);
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World level, BlockState state, BlockEntityType<T> blockEntityType) {
+		return level.isClient ? null : BlockWithEntity.validateTicker(blockEntityType, ModBlockEntityTypes.BASKET.get(), BasketBlockEntity::pushItemsTick);
 	}
 }

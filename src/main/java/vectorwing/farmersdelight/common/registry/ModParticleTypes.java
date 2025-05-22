@@ -1,8 +1,7 @@
 package vectorwing.farmersdelight.common.registry;
 
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
-import net.minecraft.core.particles.SimpleParticleType;
-
+import net.minecraft.particle.SimpleParticleType;
 import java.util.function.Supplier;
 
 import static vectorwing.farmersdelight.refabricated.RegUtils.regParticle;

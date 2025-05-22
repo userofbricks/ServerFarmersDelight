@@ -1,12 +1,12 @@
 package vectorwing.farmersdelight.refabricated.inventory;
 
-import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.slot.Slot;
 
 public class ItemHandlerSlot extends Slot {
-    private static final Container EMPTY_INVENTORY = new SimpleContainer(0);
+    private static final Inventory EMPTY_INVENTORY = new SimpleInventory(0);
     private final ItemHandler itemHandler;
 
     public ItemHandlerSlot(ItemHandler inventoryIn, int index, int xPosition, int yPosition) {
@@ -15,31 +15,31 @@ public class ItemHandlerSlot extends Slot {
     }
 
     @Override
-    public boolean mayPlace(ItemStack stack) {
-        return !stack.isEmpty() && itemHandler.isItemValid(getContainerSlot(), stack);
+    public boolean canInsert(ItemStack stack) {
+        return !stack.isEmpty() && itemHandler.isItemValid(getIndex(), stack);
     }
 
     @Override
-    public ItemStack getItem() {
-        return itemHandler.getStackInSlot(getContainerSlot());
+    public ItemStack getStack() {
+        return itemHandler.getStackInSlot(getIndex());
     }
 
     @Override
-    public void set(ItemStack stack) {
-        itemHandler.setStackInSlot(getContainerSlot(), stack);
-        setChanged();
+    public void setStackNoCallbacks(ItemStack stack) {
+        itemHandler.setStackInSlot(getIndex(), stack);
+        markDirty();
     }
 
     @Override
-    public ItemStack remove(int amount) {
-        ItemStack stack = itemHandler.removeItem(getContainerSlot(), amount);
-        setChanged();
+    public ItemStack takeStack(int amount) {
+        ItemStack stack = itemHandler.removeItem(getIndex(), amount);
+        markDirty();
         return stack;
     }
 
     @Override
-    public int getMaxStackSize() {
-        return itemHandler.getSlotLimit(getContainerSlot());
+    public int getMaxItemCount() {
+        return itemHandler.getSlotLimit(getIndex());
     }
 
     public ItemHandler getItemHandler() {
@@ -47,7 +47,7 @@ public class ItemHandlerSlot extends Slot {
     }
 
     @Override
-    public void setChanged() {
+    public void markDirty() {
         itemHandler.commitModifiedStacks();
     }
 }

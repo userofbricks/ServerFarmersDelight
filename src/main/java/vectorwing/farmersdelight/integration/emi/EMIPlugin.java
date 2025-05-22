@@ -5,8 +5,8 @@ import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.recipe.RecipeEntry;
 import vectorwing.farmersdelight.common.crafting.CookingPotRecipe;
 import vectorwing.farmersdelight.common.crafting.CuttingBoardRecipe;
 import vectorwing.farmersdelight.common.registry.ModMenuTypes;
@@ -29,12 +29,12 @@ public class EMIPlugin implements EmiPlugin {
         registry.addWorkstation(FDRecipeCategories.CUTTING, FDRecipeWorkstations.CUTTING_BOARD);
         registry.addRecipeHandler(ModMenuTypes.COOKING_POT.get(), new CookingPotEmiRecipeHandler());
 
-        for (RecipeHolder<CookingPotRecipe> recipe : registry.getRecipeManager().getAllRecipesFor(ModRecipeTypes.COOKING.get())) {
+        for (RecipeEntry<CookingPotRecipe> recipe : registry.getRecipeManager().getAllRecipesFor(ModRecipeTypes.COOKING.get())) {
             registry.addRecipe(new CookingPotEmiRecipe(recipe.id(), recipe.value().getIngredients().stream().map(EmiIngredient::of).toList(),
-                    EmiStack.of(recipe.value().getResultItem(Minecraft.getInstance().level.registryAccess())), EmiStack.of(recipe.value().getOutputContainer()), recipe.value().getCookTime(), recipe.value().getExperience()));
+                    EmiStack.of(recipe.value().getResultItem(MinecraftClient.getInstance().world.getRegistryManager())), EmiStack.of(recipe.value().getOutputContainer()), recipe.value().getCookTime(), recipe.value().getExperience()));
         }
 
-        for (RecipeHolder<CuttingBoardRecipe> recipe : registry.getRecipeManager().getAllRecipesFor(ModRecipeTypes.CUTTING.get())) {
+        for (RecipeEntry<CuttingBoardRecipe> recipe : registry.getRecipeManager().getAllRecipesFor(ModRecipeTypes.CUTTING.get())) {
             registry.addRecipe(new CuttingEmiRecipe(recipe.id(), EmiIngredient.of(recipe.value().getTool()), EmiIngredient.of(recipe.value().getIngredients().get(0)),
                     recipe.value().getRollableResults().stream().map(chanceResult -> EmiStack.of(chanceResult.stack()).setChance(chanceResult.chance())).toList()));
         }

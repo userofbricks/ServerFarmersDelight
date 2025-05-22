@@ -4,13 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredient;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.refabricated.ItemAbility;
@@ -24,7 +24,7 @@ import java.util.List;
 public class ItemAbilityIngredient implements CustomIngredient
 {
 	public static final Serializer SERIALIZER = new Serializer();
-	public static final ResourceLocation SERIALIZER_ID = FarmersDelight.res("item_ability");
+	public static final Identifier SERIALIZER_ID = FarmersDelight.res("item_ability");
 
 	protected final ItemAbility itemAbility;
 	protected List<ItemStack> itemStacks;
@@ -39,7 +39,7 @@ public class ItemAbilityIngredient implements CustomIngredient
 
     protected void dissolve() {
 		if (this.itemStacks == null) {
-			itemStacks = BuiltInRegistries.ITEM.stream()
+			itemStacks = Registries.ITEM.stream()
 					.map(ItemStack::new)
 					.filter(itemAbility::canPerformAction)
 					.toList();
@@ -75,10 +75,10 @@ public class ItemAbilityIngredient implements CustomIngredient
 		public static final MapCodec<ItemAbilityIngredient> CODEC = RecordCodecBuilder.mapCodec(inst ->
 				inst.group(ItemAbility.CODEC.fieldOf("action").forGetter(ItemAbilityIngredient::getItemAbility)
 				).apply(inst, ItemAbilityIngredient::new));
-		public static final StreamCodec<RegistryFriendlyByteBuf, ItemAbilityIngredient> STREAM_CODEC = ByteBufCodecs.fromCodec(ItemAbility.CODEC).map(ItemAbilityIngredient::new, ItemAbilityIngredient::getItemAbility).cast();
+		public static final PacketCodec<RegistryByteBuf, ItemAbilityIngredient> STREAM_CODEC = PacketCodecs.codec(ItemAbility.CODEC).xmap(ItemAbilityIngredient::new, ItemAbilityIngredient::getItemAbility).cast();
 
 		@Override
-		public ResourceLocation getIdentifier() {
+		public Identifier getIdentifier() {
 			return SERIALIZER_ID;
 		}
 
@@ -88,7 +88,7 @@ public class ItemAbilityIngredient implements CustomIngredient
 		}
 
 		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, ItemAbilityIngredient> getPacketCodec() {
+		public PacketCodec<RegistryByteBuf, ItemAbilityIngredient> getPacketCodec() {
 			return STREAM_CODEC;
 		}
 	}

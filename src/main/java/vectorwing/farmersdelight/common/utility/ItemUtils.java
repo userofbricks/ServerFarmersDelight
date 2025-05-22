@@ -1,10 +1,10 @@
 package vectorwing.farmersdelight.common.utility;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.Containers;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import vectorwing.farmersdelight.refabricated.inventory.ItemHandler;
 import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
@@ -13,9 +13,9 @@ import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
  */
 public class ItemUtils
 {
-	public static void dropItems(Level level, BlockPos pos, ItemStackHandler inventory) {
+	public static void dropItems(World level, BlockPos pos, ItemStackHandler inventory) {
 		for (int slot = 0; slot < inventory.getSlotCount(); slot++)
-			Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(),
+			ItemScatterer.spawn(level, pos.getX(), pos.getY(), pos.getZ(),
 					inventory.removeItem(slot));
 	}
 
@@ -27,9 +27,9 @@ public class ItemUtils
 		return true;
 	}
 
-	public static void spawnItemEntity(Level level, ItemStack stack, double x, double y, double z, double xMotion, double yMotion, double zMotion) {
+	public static void spawnItemEntity(World level, ItemStack stack, double x, double y, double z, double xMotion, double yMotion, double zMotion) {
 		ItemEntity entity = new ItemEntity(level, x, y, z, stack);
-		entity.setDeltaMovement(xMotion, yMotion, zMotion);
-		level.addFreshEntity(entity);
+		entity.setVelocity(xMotion, yMotion, zMotion);
+		level.spawnEntity(entity);
 	}
 }

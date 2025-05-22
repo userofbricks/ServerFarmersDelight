@@ -2,40 +2,40 @@ package vectorwing.farmersdelight.common.loot.function;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.block.entity.SkilletBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModLootFunctions;
 
 import java.util.List;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.loot.context.LootContext;
+import net.minecraft.loot.context.LootContextParameters;
+import net.minecraft.loot.function.ConditionalLootFunction;
+import net.minecraft.loot.function.LootFunctionType;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
-public class CopySkilletFunction extends LootItemConditionalFunction
+public class CopySkilletFunction extends ConditionalLootFunction
 {
-	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "copy_skillet");
+	public static final Identifier ID = Identifier.of(FarmersDelight.MODID, "copy_skillet");
 	public static final MapCodec<CopySkilletFunction> CODEC = RecordCodecBuilder.mapCodec(
-			p_298131_ -> commonFields(p_298131_).apply(p_298131_, CopySkilletFunction::new)
+			p_298131_ -> addConditionsField(p_298131_).apply(p_298131_, CopySkilletFunction::new)
 	);
 
-	private CopySkilletFunction(List<LootItemCondition> conditions) {
+	private CopySkilletFunction(List<LootCondition> conditions) {
 		super(conditions);
 	}
 
-	public static Builder<?> builder() {
-		return simpleBuilder(CopySkilletFunction::new);
+	public static net.minecraft.loot.function.ConditionalLootFunction.Builder<?> builder() {
+		return builder(CopySkilletFunction::new);
 	}
 
 	@Override
-	protected ItemStack run(ItemStack stack, LootContext context) {
-		BlockEntity tile = context.getParamOrNull(LootContextParams.BLOCK_ENTITY);
+	protected ItemStack process(ItemStack stack, LootContext context) {
+		BlockEntity tile = context.getParamOrNull(LootContextParameters.BLOCK_ENTITY);
 		if (tile instanceof SkilletBlockEntity blockEntity) {
 			stack = blockEntity.getSkilletAsItem();
 		}
@@ -43,7 +43,7 @@ public class CopySkilletFunction extends LootItemConditionalFunction
 	}
 
 	@Override
-	public LootItemFunctionType<CopySkilletFunction> getType() {
+	public LootFunctionType<CopySkilletFunction> getType() {
 		return ModLootFunctions.COPY_SKILLET.get();
 	}
 }

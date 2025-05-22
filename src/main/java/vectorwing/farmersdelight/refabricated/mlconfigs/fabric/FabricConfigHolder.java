@@ -7,9 +7,9 @@ import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.util.Identifier;
 import vectorwing.farmersdelight.refabricated.mlconfigs.ConfigBuilder;
 import vectorwing.farmersdelight.refabricated.mlconfigs.ConfigType;
 import vectorwing.farmersdelight.refabricated.mlconfigs.ModConfigHolder;
@@ -25,7 +25,7 @@ public final class FabricConfigHolder extends ModConfigHolder {
     private final File file;
     private boolean initialized = false;
 
-    public FabricConfigHolder(ResourceLocation name, ConfigSubCategory mainEntry, ConfigType type, Runnable changeCallback) {
+    public FabricConfigHolder(Identifier name, ConfigSubCategory mainEntry, ConfigType type, Runnable changeCallback) {
         super(name, "json", FabricLoader.getInstance().getConfigDir(), type, changeCallback);
         this.file = this.getFullPath().toFile();
         this.mainEntry = mainEntry;
@@ -88,7 +88,7 @@ public final class FabricConfigHolder extends ModConfigHolder {
         this.onRefresh();
     }
 
-    private void onPlayerLoggedIn(ServerGamePacketListenerImpl listener, PacketSender sender, MinecraftServer minecraftServer) {
+    private void onPlayerLoggedIn(ServerPlayNetworkHandler listener, PacketSender sender, MinecraftServer minecraftServer) {
         //send this configuration to connected clients
         syncConfigsToPlayer(listener.player);
     }

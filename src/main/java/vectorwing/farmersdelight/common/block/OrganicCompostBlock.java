@@ -1,38 +1,38 @@
 package vectorwing.farmersdelight.common.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.IntProperty;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.LightType;
+import net.minecraft.world.World;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 @SuppressWarnings("deprecation")
 public class OrganicCompostBlock extends Block
 {
-	public static IntegerProperty COMPOSTING = IntegerProperty.create("composting", 0, 7);
+	public static IntProperty COMPOSTING = IntProperty.of("composting", 0, 7);
 
-	public OrganicCompostBlock(Properties properties) {
+	public OrganicCompostBlock(Settings properties) {
 		super(properties);
-		this.registerDefaultState(super.defaultBlockState().setValue(COMPOSTING, 0));
+		this.setDefaultState(super.getDefaultState().with(COMPOSTING, 0));
 	}
 
 	@Override
-	public boolean isRandomlyTicking(BlockState state) {
+	public boolean hasRandomTicks(BlockState state) {
 		return true;
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(COMPOSTING);
-		super.createBlockStateDefinition(builder);
+		super.appendProperties(builder);
 	}
 
 	public int getMaxCompostingStage() {
@@ -41,22 +41,22 @@ public class OrganicCompostBlock extends Block
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-		if (level.isClientSide) return;
+	public void randomTick(BlockState state, ServerWorld level, BlockPos pos, Random random) {
+		if (level.isClient) return;
 
 		float chance = 0F;
 		boolean hasWater = false;
 		int maxLight = 0;
 
-		for (BlockPos neighborPos : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
+		for (BlockPos neighborPos : BlockPos.iterate(pos.add(-1, -1, -1), pos.add(1, 1, 1))) {
 			BlockState neighborState = level.getBlockState(neighborPos);
-			if (neighborState.is(ModTags.COMPOST_ACTIVATORS)) {
+			if (neighborState.isIn(ModTags.COMPOST_ACTIVATORS)) {
 				chance += 0.02F;
 			}
-			if (neighborState.getFluidState().is(FluidTags.WATER)) {
+			if (neighborState.getFluidState().isIn(FluidTags.WATER)) {
 				hasWater = true;
 			}
-			int light = level.getBrightness(LightLayer.SKY, neighborPos.above());
+			int light = level.getLightLevel(LightType.SKY, neighborPos.up());
 			if (light > maxLight) {
 				maxLight = light;
 			}
@@ -66,28 +66,28 @@ public class OrganicCompostBlock extends Block
 		chance += hasWater ? 0.1F : 0.0F;
 
 		if (level.getRandom().nextFloat() <= chance) {
-			if (state.getValue(COMPOSTING) == this.getMaxCompostingStage())
-				level.setBlock(pos, ModBlocks.RICH_SOIL.get().defaultBlockState(), 3); // finished
+			if (state.get(COMPOSTING) == this.getMaxCompostingStage())
+				level.setBlockState(pos, ModBlocks.RICH_SOIL.get().getDefaultState(), 3); // finished
 			else
-				level.setBlock(pos, state.setValue(COMPOSTING, state.getValue(COMPOSTING) + 1), 3); // next stage
+				level.setBlockState(pos, state.with(COMPOSTING, state.get(COMPOSTING) + 1), 3); // next stage
 		}
 	}
 
 	@Override
-	public boolean hasAnalogOutputSignal(BlockState state) {
+	public boolean hasComparatorOutput(BlockState state) {
 		return true;
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
-		return (getMaxCompostingStage() + 1 - blockState.getValue(COMPOSTING));
+	public int getComparatorOutput(BlockState blockState, World level, BlockPos pos) {
+		return (getMaxCompostingStage() + 1 - blockState.get(COMPOSTING));
 	}
 
 	@Override
-	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-		super.animateTick(state, level, pos, random);
+	public void randomDisplayTick(BlockState state, World level, BlockPos pos, Random random) {
+		super.randomDisplayTick(state, level, pos, random);
 		if (random.nextInt(10) == 0) {
-			level.addParticle(ParticleTypes.MYCELIUM, (double) pos.getX() + (double) random.nextFloat(), (double) pos.getY() + 1.1D, (double) pos.getZ() + (double) random.nextFloat(), 0.0D, 0.0D, 0.0D);
+			level.addParticleClient(ParticleTypes.MYCELIUM, (double) pos.getX() + (double) random.nextFloat(), (double) pos.getY() + 1.1D, (double) pos.getZ() + (double) random.nextFloat(), 0.0D, 0.0D, 0.0D);
 		}
 	}
 }

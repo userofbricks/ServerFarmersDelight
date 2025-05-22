@@ -10,9 +10,9 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 import vectorwing.farmersdelight.common.utility.TextUtils;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CuttingCategory implements DisplayCategory<CuttingDisplay> {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "textures/gui/jei/cutting_board.png");
+    private static final Identifier BACKGROUND = Identifier.of(FarmersDelight.MODID, "textures/gui/jei/cutting_board.png");
     public static final int OUTPUT_GRID_X = 76;
     public static final int OUTPUT_GRID_Y = 10;
 
@@ -33,8 +33,8 @@ public class CuttingCategory implements DisplayCategory<CuttingDisplay> {
     }
 
     @Override
-    public Component getTitle() {
-        return Component.translatable("farmersdelight.jei.cutting");
+    public Text getTitle() {
+        return Text.translatable("farmersdelight.jei.cutting");
     }
 
     @Override
@@ -79,7 +79,7 @@ public class CuttingCategory implements DisplayCategory<CuttingDisplay> {
                 float chance = output.second();
                 if (chance < 1.0F) {
                     ingredient = ingredient.map(stack -> stack.copy().tooltip(TextUtils.getTranslation("jei.chance", chance < 0.01 ? "<1" : (int) (chance * 100))
-                            .withStyle(ChatFormatting.GOLD)));
+                            .formatted(Formatting.GOLD)));
                 }
             }
 

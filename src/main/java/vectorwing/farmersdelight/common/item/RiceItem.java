@@ -1,15 +1,15 @@
 package vectorwing.farmersdelight.common.item;
 
-import net.minecraft.core.Direction;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.FarmlandBlock;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemUsageContext;
+import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.item.ItemNameBlockItem;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.FarmBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
 public class RiceItem extends ItemNameBlockItem
@@ -19,15 +19,15 @@ public class RiceItem extends ItemNameBlockItem
 	}
 
 	@Override
-	public InteractionResult useOn(UseOnContext context) {
-		InteractionResult result = this.place(new BlockPlaceContext(context));
-		if (result.equals(InteractionResult.FAIL)) {
-			Player player = context.getPlayer();
-			BlockState targetState = context.getLevel().getBlockState(context.getClickedPos());
-			if (player != null && context.getClickedFace().equals(Direction.UP) && (targetState.is(BlockTags.DIRT) || targetState.getBlock() instanceof FarmBlock)) {
-				player.displayClientMessage(TextUtils.getTranslation("block.rice.invalid_placement"), true);
+	public ActionResult useOn(ItemUsageContext context) {
+		ActionResult result = this.place(new ItemPlacementContext(context));
+		if (result.equals(ActionResult.FAIL)) {
+			PlayerEntity player = context.getPlayer();
+			BlockState targetState = context.getWorld().getBlockState(context.getBlockPos());
+			if (player != null && context.getSide().equals(Direction.UP) && (targetState.isIn(BlockTags.DIRT) || targetState.getBlock() instanceof FarmlandBlock)) {
+				player.sendMessage(TextUtils.getTranslation("block.rice.invalid_placement"), true);
 			}
 		}
-		return !result.consumesAction() ? this.use(context.getLevel(), context.getPlayer(), context.getHand()).getResult() : result;
+		return !result.isAccepted() ? this.use(context.getWorld(), context.getPlayer(), context.getHand()).getResult() : result;
 	}
 }

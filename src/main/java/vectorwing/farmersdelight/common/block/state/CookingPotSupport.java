@@ -1,8 +1,8 @@
 package vectorwing.farmersdelight.common.block.state;
 
-import net.minecraft.util.StringRepresentable;
+import net.minecraft.util.StringIdentifiable;
 
-public enum CookingPotSupport implements StringRepresentable
+public enum CookingPotSupport implements StringIdentifiable
 {
 	NONE("none"),
 	TRAY("tray"),
@@ -16,11 +16,11 @@ public enum CookingPotSupport implements StringRepresentable
 
 	@Override
 	public String toString() {
-		return this.getSerializedName();
+		return this.asString();
 	}
 
 	@Override
-	public String getSerializedName() {
+	public String asString() {
 		return this.supportName;
 	}
 }

@@ -1,26 +1,26 @@
 package vectorwing.farmersdelight.common.block;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.monster.Ravager;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BushBlock;
-import net.minecraft.world.level.block.FarmBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.BushBlock;
+import net.minecraft.block.FarmlandBlock;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.mob.RavagerEntity;
+import net.minecraft.item.ItemConvertible;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.IntProperty;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
 /**
@@ -30,37 +30,37 @@ import vectorwing.farmersdelight.common.registry.ModItems;
 @SuppressWarnings("deprecation")
 public class BuddingBushBlock extends BushBlock
 {
-	public static final MapCodec<BuddingBushBlock> CODEC = simpleCodec(BuddingBushBlock::new);
+	public static final MapCodec<BuddingBushBlock> CODEC = createCodec(BuddingBushBlock::new);
 
 	public static final int MAX_AGE = 3;
-	public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 4);
+	public static final IntProperty AGE = IntProperty.of("age", 0, 4);
 	private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[]{
-			Block.box(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D),
-			Block.box(0.0D, 0.0D, 0.0D, 16.0D, 6.0D, 16.0D),
-			Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D),
-			Block.box(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
-			Block.box(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D)};
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D),
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 6.0D, 16.0D),
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D),
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D)};
 
-	public BuddingBushBlock(Properties properties) {
+	public BuddingBushBlock(Settings properties) {
 		super(properties);
 	}
 
 	@Override
-	protected MapCodec<? extends BushBlock> codec() {
+	protected MapCodec<? extends BushBlock> getCodec() {
 		return CODEC;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return SHAPE_BY_AGE[state.getValue(getAgeProperty())];
+	public VoxelShape getOutlineShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
+		return SHAPE_BY_AGE[state.get(getAgeProperty())];
 	}
 
 	@Override
-	public boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
-		return state.is(Blocks.FARMLAND);
+	public boolean canPlantOnTop(BlockState state, BlockView level, BlockPos pos) {
+		return state.isOf(Blocks.FARMLAND);
 	}
 
-	public IntegerProperty getAgeProperty() {
+	public IntProperty getAgeProperty() {
 		return AGE;
 	}
 
@@ -69,26 +69,26 @@ public class BuddingBushBlock extends BushBlock
 	}
 
 	protected int getAge(BlockState state) {
-		return state.getValue(getAgeProperty());
+		return state.get(getAgeProperty());
 	}
 
 	public BlockState getStateForAge(int age) {
-		return defaultBlockState().setValue(getAgeProperty(), age);
+		return getDefaultState().with(getAgeProperty(), age);
 	}
 
 	public boolean isMaxAge(BlockState state) {
-		return state.getValue(getAgeProperty()) >= getMaxAge();
+		return state.get(getAgeProperty()) >= getMaxAge();
 	}
 
 	@Override
-	public boolean isRandomlyTicking(BlockState state) {
+	public boolean hasRandomTicks(BlockState state) {
 		return canGrowPastMaxAge() || !isMaxAge(state);
 	}
 
 	@Override
-	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-		if (!level.hasChunksAt(pos.offset(-1, -1 , -1), pos.offset(1, 1, 1))) return;
-		if (level.getRawBrightness(pos, 0) >= 9) {
+	public void randomTick(BlockState state, ServerWorld level, BlockPos pos, Random random) {
+		if (!level.isRegionLoaded(pos.add(-1, -1 , -1), pos.add(1, 1, 1))) return;
+		if (level.getBaseLightLevel(pos, 0) >= 9) {
 			int age = getAge(state);
 			if (age <= getMaxAge()) {
 				float growthSpeed = getGrowthSpeed(state, level, pos);
@@ -96,7 +96,7 @@ public class BuddingBushBlock extends BushBlock
 					if (isMaxAge(state)) {
 						growPastMaxAge(state, level, pos, random);
 					} else {
-						level.setBlockAndUpdate(pos, getStateForAge(age + 1));
+						level.setBlockState(pos, getStateForAge(age + 1));
 					}
 				}
 			}
@@ -110,18 +110,18 @@ public class BuddingBushBlock extends BushBlock
 		return false;
 	}
 
-	public void growPastMaxAge(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+	public void growPastMaxAge(BlockState state, ServerWorld level, BlockPos pos, Random random) {
 	}
 
-	protected static float getGrowthSpeed(BlockState state, BlockGetter level, BlockPos pos) {
+	protected static float getGrowthSpeed(BlockState state, BlockView level, BlockPos pos) {
 		float speed = 1.0F;
-		BlockPos posBelow = pos.below();
+		BlockPos posBelow = pos.down();
 
 		for (int posX = -1; posX <= 1; ++posX) {
 			for (int posZ = -1; posZ <= 1; ++posZ) {
 				float speedBonus = 1.0F;
-				BlockState stateBelow = level.getBlockState(posBelow.offset(posX, 0, posZ));
-				if (stateBelow.hasProperty(FarmBlock.MOISTURE) && stateBelow.getValue(FarmBlock.MOISTURE) > 0) {
+				BlockState stateBelow = level.getBlockState(posBelow.add(posX, 0, posZ));
+				if (stateBelow.contains(FarmlandBlock.MOISTURE) && stateBelow.get(FarmlandBlock.MOISTURE) > 0) {
 					speedBonus = 3.0F;
 				}
 
@@ -138,12 +138,12 @@ public class BuddingBushBlock extends BushBlock
 		BlockPos posWest = pos.west();
 		BlockPos posEast = pos.east();
 		Block block = state.getBlock();
-		boolean matchesEastWestRow = level.getBlockState(posWest).is(block) || level.getBlockState(posEast).is(block);
-		boolean matchesNorthSouthRow = level.getBlockState(posNorth).is(block) || level.getBlockState(posSouth).is(block);
+		boolean matchesEastWestRow = level.getBlockState(posWest).isOf(block) || level.getBlockState(posEast).isOf(block);
+		boolean matchesNorthSouthRow = level.getBlockState(posNorth).isOf(block) || level.getBlockState(posSouth).isOf(block);
 		if (matchesEastWestRow && matchesNorthSouthRow) {
 			speed /= 2.0F;
 		} else {
-			boolean matchesDiagonalRows = level.getBlockState(posWest.north()).is(block) || level.getBlockState(posEast.north()).is(block) || level.getBlockState(posEast.south()).is(block) || level.getBlockState(posWest.south()).is(block);
+			boolean matchesDiagonalRows = level.getBlockState(posWest.north()).isOf(block) || level.getBlockState(posEast.north()).isOf(block) || level.getBlockState(posEast.south()).isOf(block) || level.getBlockState(posWest.south()).isOf(block);
 			if (matchesDiagonalRows) {
 				speed /= 2.0F;
 			}
@@ -153,31 +153,31 @@ public class BuddingBushBlock extends BushBlock
 	}
 
 	@Override
-	public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-		return (level.getRawBrightness(pos, 0) >= 8 || level.canSeeSky(pos)) && super.canSurvive(state, level, pos);
+	public boolean canPlaceAt(BlockState state, WorldView level, BlockPos pos) {
+		return (level.getBaseLightLevel(pos, 0) >= 8 || level.isSkyVisible(pos)) && super.canPlaceAt(state, level, pos);
 	}
 
 
 	@Override
-	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-		if (entity instanceof Ravager && level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
-			level.destroyBlock(pos, true, entity);
+	public void entityInside(BlockState state, World level, BlockPos pos, Entity entity) {
+		if (entity instanceof RavagerEntity && level.getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+			level.breakBlock(pos, true, entity);
 		}
 
-		super.entityInside(state, level, pos, entity);
+		super.onEntityCollision(state, level, pos, entity);
 	}
 
-	protected ItemLike getBaseSeedId() {
+	protected ItemConvertible getBaseSeedId() {
 		return ModItems.TOMATO_SEEDS.get();
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+	public ItemStack getCloneItemStack(WorldView level, BlockPos pos, BlockState state) {
 		return new ItemStack(getBaseSeedId());
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(AGE);
 	}
 }

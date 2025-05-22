@@ -1,17 +1,17 @@
 package vectorwing.farmersdelight.common.item;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 public class PopsicleItem extends ConsumableItem
 {
-	public PopsicleItem(Properties properties) {
+	public PopsicleItem(net.minecraft.item.Item.Settings properties) {
 		super(properties);
 	}
 
 	@Override
-	public void affectConsumer(ItemStack stack, Level level, LivingEntity consumer) {
-		consumer.clearFire();
+	public void affectConsumer(ItemStack stack, World level, LivingEntity consumer) {
+		consumer.extinguish();
 	}
 }

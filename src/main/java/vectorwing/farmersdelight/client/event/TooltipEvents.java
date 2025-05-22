@@ -1,39 +1,39 @@
 package vectorwing.farmersdelight.client.event;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffectUtil;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.FoodValues;
 
 import java.util.List;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.component.type.FoodComponent;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffectUtil;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 
 public class TooltipEvents
 {
-	public static void addTooltipToVanillaSoups(ItemStack stack, Item.TooltipContext tooltipContext, TooltipFlag tooltipType, List<Component> lines) {
+	public static void addTooltipToVanillaSoups(ItemStack stack, Item.TooltipContext tooltipContext, TooltipType tooltipType, List<Text> lines) {
 		if (!Configuration.VANILLA_SOUP_EXTRA_EFFECTS.get()) {
 			return;
 		}
 
 		Item food = stack.getItem();
-		FoodProperties soupEffects = FoodValues.VANILLA_SOUP_EFFECTS.get(food);
+		FoodComponent soupEffects = FoodValues.VANILLA_SOUP_EFFECTS.get(food);
 
 		if (soupEffects != null) {
-			for (FoodProperties.PossibleEffect effect : soupEffects.effects()) {
-				MobEffectInstance effectInstance = effect.effect();
-				MutableComponent effectText = Component.translatable(effectInstance.getDescriptionId());
-				Player player = Minecraft.getInstance().player;
+			for (FoodComponent.PossibleEffect effect : soupEffects.effects()) {
+				StatusEffectInstance effectInstance = effect.effect();
+				MutableText effectText = Text.translatable(effectInstance.getTranslationKey());
+				PlayerEntity player = MinecraftClient.getInstance().player;
 				if (effectInstance.getDuration() > 20) {
-					effectText = Component.translatable("potion.withDuration", effectText, MobEffectUtil.formatDuration(effectInstance, 1, player == null ? 20 : player.level().tickRateManager().tickrate()));
+					effectText = Text.translatable("potion.withDuration", effectText, StatusEffectUtil.getDurationText(effectInstance, 1, player == null ? 20 : player.getWorld().getTickManager().getTickRate()));
 				}
-				lines.add(effectText.withStyle(effectInstance.getEffect().value().getCategory().getTooltipFormatting()));
+				lines.add(effectText.formatted(effectInstance.getEffectType().value().getCategory().getFormatting()));
 			}
 		}
 	}

@@ -1,43 +1,40 @@
 package vectorwing.farmersdelight.common.item;
 
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.block.Block;
 import vectorwing.farmersdelight.client.gui.CookingPotTooltip;
 import vectorwing.farmersdelight.common.block.entity.CookingPotBlockEntity;
 
 import java.util.Optional;
+import net.minecraft.block.Block;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipData;
+import net.minecraft.util.math.MathHelper;
 
 public class CookingPotItem extends BlockItem
 {
-	private static final int BAR_COLOR = Mth.color(0.4F, 0.4F, 1.0F);
+	private static final int BAR_COLOR = MathHelper.color(0.4F, 0.4F, 1.0F);
 
-	public CookingPotItem(Block block, Properties properties) {
+	public CookingPotItem(Block block, net.minecraft.item.Item.Settings properties) {
 		super(block, properties);
 	}
 
 	@Override
-	public boolean isBarVisible(ItemStack stack) {
+	public boolean isItemBarVisible(ItemStack stack) {
 		return getServingCount(stack) > 0;
 	}
 
 	@Override
-	public int getBarWidth(ItemStack stack) {
+	public int getItemBarStep(ItemStack stack) {
 		return Math.min(1 + 12 * getServingCount(stack) / 64, 13);
 	}
 
 	@Override
-	public int getBarColor(ItemStack stack) {
+	public int getItemBarColor(ItemStack stack) {
 		return BAR_COLOR;
 	}
 
 	@Override
-	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+	public Optional<TooltipData> getTooltipData(ItemStack stack) {
 		ItemStack mealStack = CookingPotBlockEntity.getMealFromItem(stack);
 		return Optional.of(new CookingPotTooltip.CookingPotTooltipComponent(mealStack));
 	}

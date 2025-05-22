@@ -1,6 +1,6 @@
 package vectorwing.farmersdelight.common.registry;
 
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import vectorwing.farmersdelight.common.crafting.CookingPotRecipe;
 import vectorwing.farmersdelight.common.crafting.CuttingBoardRecipe;

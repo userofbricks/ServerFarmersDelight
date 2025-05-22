@@ -10,9 +10,9 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 import vectorwing.farmersdelight.integration.rei.REICategoryIdentifiers;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CookingPotCategory implements DisplayCategory<CookingPotDisplay> {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "textures/gui/cooking_pot.png");
+    private static final Identifier BACKGROUND = Identifier.of(FarmersDelight.MODID, "textures/gui/cooking_pot.png");
 
     @Override
     public CategoryIdentifier<? extends CookingPotDisplay> getCategoryIdentifier() {
@@ -30,8 +30,8 @@ public class CookingPotCategory implements DisplayCategory<CookingPotDisplay> {
     }
 
     @Override
-    public Component getTitle() {
-        return Component.translatable("farmersdelight.jei.cooking");
+    public Text getTitle() {
+        return Text.translatable("farmersdelight.jei.cooking");
     }
 
     @Override
@@ -83,11 +83,11 @@ public class CookingPotCategory implements DisplayCategory<CookingPotDisplay> {
         widgets.add(Widgets.createSlot(new Point(startPoint.x + 95, startPoint.y + 39)).entries(resultStack.get(0)));
 
         // Arrow
-        int startTime = Minecraft.getInstance().player.tickCount;
+        int startTime = MinecraftClient.getInstance().player.age;
         widgets.add(Widgets.createDrawableWidget((graphics, mouseX, mouseY, delta) -> {
-            int ticksPassed = (Minecraft.getInstance().player.tickCount - startTime) % 200;
+            int ticksPassed = (MinecraftClient.getInstance().player.age - startTime) % 200;
             int arrowAnimationWidth = Math.floorDiv(ticksPassed * (24 + 1), 200);
-            graphics.blit(BACKGROUND, startPoint.x + 60, startPoint.y + 9,176, 15, arrowAnimationWidth, 17);
+            graphics.drawTexture(BACKGROUND, startPoint.x + 60, startPoint.y + 9,176, 15, arrowAnimationWidth, 17);
         }));
         // Heat Indicator
         widgets.add(Widgets.createTexturedWidget(BACKGROUND, startPoint.x + 18, startPoint.y + 39,176, 0, 17, 15));
@@ -99,17 +99,17 @@ public class CookingPotCategory implements DisplayCategory<CookingPotDisplay> {
         return widgets;
     }
 
-    public List<Component> getTooltipStrings(CookingPotDisplay display) {
-        List<Component> tooltipStrings = new ArrayList<>();
+    public List<Text> getTooltipStrings(CookingPotDisplay display) {
+        List<Text> tooltipStrings = new ArrayList<>();
 
         int cookTime = display.getCookTime();
         if (cookTime > 0) {
             int cookTimeSeconds = cookTime / 20;
-            tooltipStrings.add(Component.translatable("category.rei.campfire.time", cookTimeSeconds));
+            tooltipStrings.add(Text.translatable("category.rei.campfire.time", cookTimeSeconds));
         }
         float experience = display.getExperience();
         if (experience > 0) {
-            tooltipStrings.add(Component.translatable("category.rei.cooking.xp", experience));
+            tooltipStrings.add(Text.translatable("category.rei.cooking.xp", experience));
         }
 
         return tooltipStrings;

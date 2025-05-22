@@ -1,9 +1,9 @@
 package vectorwing.farmersdelight.common.block.entity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.block.BlockState;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 /**
@@ -16,20 +16,20 @@ public interface HeatableBlockEntity
 	/**
 	 * Checks for heat sources below the block. If it can, it also checks for conducted heat.
 	 */
-	default boolean isHeated(Level level, BlockPos pos) {
-		BlockState stateBelow = level.getBlockState(pos.below());
+	default boolean isHeated(World level, BlockPos pos) {
+		BlockState stateBelow = level.getBlockState(pos.down());
 
-		if (stateBelow.is(ModTags.HEAT_SOURCES)) {
-			if (stateBelow.hasProperty(BlockStateProperties.LIT))
-				return stateBelow.getValue(BlockStateProperties.LIT);
+		if (stateBelow.isIn(ModTags.HEAT_SOURCES)) {
+			if (stateBelow.contains(Properties.LIT))
+				return stateBelow.get(Properties.LIT);
 			return true;
 		}
 
-		if (!this.requiresDirectHeat() && stateBelow.is(ModTags.HEAT_CONDUCTORS)) {
-			BlockState stateFurtherBelow = level.getBlockState(pos.below(2));
-			if (stateFurtherBelow.is(ModTags.HEAT_SOURCES)) {
-				if (stateFurtherBelow.hasProperty(BlockStateProperties.LIT))
-					return stateFurtherBelow.getValue(BlockStateProperties.LIT);
+		if (!this.requiresDirectHeat() && stateBelow.isIn(ModTags.HEAT_CONDUCTORS)) {
+			BlockState stateFurtherBelow = level.getBlockState(pos.down(2));
+			if (stateFurtherBelow.isIn(ModTags.HEAT_SOURCES)) {
+				if (stateFurtherBelow.contains(Properties.LIT))
+					return stateFurtherBelow.get(Properties.LIT);
 				return true;
 			}
 		}

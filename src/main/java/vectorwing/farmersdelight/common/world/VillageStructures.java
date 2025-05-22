@@ -2,16 +2,22 @@ package vectorwing.farmersdelight.common.world;
 
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.block.Blocks;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
-import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
-import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.structure.pool.SinglePoolElement;
+import net.minecraft.structure.pool.StructurePool;
+import net.minecraft.structure.pool.StructurePoolElement;
+import net.minecraft.structure.processor.RuleStructureProcessor;
+import net.minecraft.structure.processor.StructureProcessor;
+import net.minecraft.structure.processor.StructureProcessorList;
+import net.minecraft.structure.processor.StructureProcessorRule;
+import net.minecraft.structure.rule.AlwaysTrueRuleTest;
+import net.minecraft.structure.rule.RandomBlockMatchRuleTest;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.level.levelgen.structure.templatesystem.*;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.Configuration;
@@ -29,67 +35,67 @@ public class VillageStructures
 
 	public static void addNewVillageBuilding(MinecraftServer server) {
 		if (Configuration.GENERATE_VILLAGE_COMPOST_HEAPS.get()) {
-			Registry<StructureTemplatePool> templatePools = server.registryAccess().registry(Registries.TEMPLATE_POOL).get();
-			Registry<StructureProcessorList> processorLists = server.registryAccess().registry(Registries.PROCESSOR_LIST).get();
+			Registry<StructurePool> templatePools = server.getRegistryManager().registry(RegistryKeys.TEMPLATE_POOL).get();
+			Registry<StructureProcessorList> processorLists = server.getRegistryManager().registry(RegistryKeys.PROCESSOR_LIST).get();
 
-			VillageStructures.addBuildingToPool(templatePools, processorLists, ResourceLocation.parse("minecraft:village/plains/houses"), FarmersDelight.MODID + ":village/houses/plains_compost_pile", 5);
-			VillageStructures.addBuildingToPool(templatePools, processorLists, ResourceLocation.parse("minecraft:village/snowy/houses"), FarmersDelight.MODID + ":village/houses/snowy_compost_pile", 3);
-			VillageStructures.addBuildingToPool(templatePools, processorLists, ResourceLocation.parse("minecraft:village/savanna/houses"), FarmersDelight.MODID + ":village/houses/savanna_compost_pile", 4);
-			VillageStructures.addBuildingToPool(templatePools, processorLists, ResourceLocation.parse("minecraft:village/desert/houses"), FarmersDelight.MODID + ":village/houses/desert_compost_pile", 3);
-			VillageStructures.addBuildingToPool(templatePools, processorLists, ResourceLocation.parse("minecraft:village/taiga/houses"), FarmersDelight.MODID + ":village/houses/taiga_compost_pile", 4);
+			VillageStructures.addBuildingToPool(templatePools, processorLists, Identifier.of("minecraft:village/plains/houses"), FarmersDelight.MODID + ":village/houses/plains_compost_pile", 5);
+			VillageStructures.addBuildingToPool(templatePools, processorLists, Identifier.of("minecraft:village/snowy/houses"), FarmersDelight.MODID + ":village/houses/snowy_compost_pile", 3);
+			VillageStructures.addBuildingToPool(templatePools, processorLists, Identifier.of("minecraft:village/savanna/houses"), FarmersDelight.MODID + ":village/houses/savanna_compost_pile", 4);
+			VillageStructures.addBuildingToPool(templatePools, processorLists, Identifier.of("minecraft:village/desert/houses"), FarmersDelight.MODID + ":village/houses/desert_compost_pile", 3);
+			VillageStructures.addBuildingToPool(templatePools, processorLists, Identifier.of("minecraft:village/taiga/houses"), FarmersDelight.MODID + ":village/houses/taiga_compost_pile", 4);
 		}
 
 		if (Configuration.GENERATE_VILLAGE_FARM_FD_CROPS.get()) {
-			Registry<StructureProcessorList> processorLists = server.registryAccess().registry(Registries.PROCESSOR_LIST).orElseThrow();
+			Registry<StructureProcessorList> processorLists = server.getRegistryManager().registry(RegistryKeys.PROCESSOR_LIST).orElseThrow();
 
-			StructureProcessor temperateCropProcessor = new RuleProcessor(List.of(
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.WHEAT, 0.3F), AlwaysTrueTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().defaultBlockState()),
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.WHEAT, 0.3F), AlwaysTrueTest.INSTANCE, ModBlocks.TOMATO_CROP.get().defaultBlockState()),
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.WHEAT, 0.3F), AlwaysTrueTest.INSTANCE, ModBlocks.ONION_CROP.get().defaultBlockState())
+			StructureProcessor temperateCropProcessor = new RuleStructureProcessor(List.of(
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().getDefaultState()),
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.TOMATO_CROP.get().getDefaultState()),
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.ONION_CROP.get().getDefaultState())
 			));
 
-			StructureProcessor coldCropProcessor = new RuleProcessor(List.of(
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.WHEAT, 0.3F), AlwaysTrueTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().defaultBlockState()),
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.WHEAT, 0.3F), AlwaysTrueTest.INSTANCE, ModBlocks.ONION_CROP.get().defaultBlockState()),
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.POTATOES, 0.2F), AlwaysTrueTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().defaultBlockState()),
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.POTATOES, 0.2F), AlwaysTrueTest.INSTANCE, ModBlocks.ONION_CROP.get().defaultBlockState())
+			StructureProcessor coldCropProcessor = new RuleStructureProcessor(List.of(
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().getDefaultState()),
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.ONION_CROP.get().getDefaultState()),
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.POTATOES, 0.2F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().getDefaultState()),
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.POTATOES, 0.2F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.ONION_CROP.get().getDefaultState())
 			));
 
-			StructureProcessor aridCropProcessor = new RuleProcessor(List.of(
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.WHEAT, 0.3F), AlwaysTrueTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().defaultBlockState()),
-					new ProcessorRule(new RandomBlockMatchTest(Blocks.WHEAT, 0.3F), AlwaysTrueTest.INSTANCE, ModBlocks.TOMATO_CROP.get().defaultBlockState())
+			StructureProcessor aridCropProcessor = new RuleStructureProcessor(List.of(
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().getDefaultState()),
+					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.TOMATO_CROP.get().getDefaultState())
 			));
 
-			addNewRuleToProcessorList(ResourceLocation.parse("minecraft:farm_plains"), temperateCropProcessor, processorLists);
-			addNewRuleToProcessorList(ResourceLocation.parse("minecraft:farm_savanna"), aridCropProcessor, processorLists);
-			addNewRuleToProcessorList(ResourceLocation.parse("minecraft:farm_snowy"), coldCropProcessor, processorLists);
-			addNewRuleToProcessorList(ResourceLocation.parse("minecraft:farm_taiga"), temperateCropProcessor, processorLists);
-			addNewRuleToProcessorList(ResourceLocation.parse("minecraft:farm_desert"), aridCropProcessor, processorLists);
+			addNewRuleToProcessorList(Identifier.of("minecraft:farm_plains"), temperateCropProcessor, processorLists);
+			addNewRuleToProcessorList(Identifier.of("minecraft:farm_savanna"), aridCropProcessor, processorLists);
+			addNewRuleToProcessorList(Identifier.of("minecraft:farm_snowy"), coldCropProcessor, processorLists);
+			addNewRuleToProcessorList(Identifier.of("minecraft:farm_taiga"), temperateCropProcessor, processorLists);
+			addNewRuleToProcessorList(Identifier.of("minecraft:farm_desert"), aridCropProcessor, processorLists);
 		}
 	}
 
-	public static void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, ResourceLocation poolRL, String nbtPieceRL, int weight) {
-		StructureTemplatePool pool = templatePoolRegistry.get(poolRL);
+	public static void addBuildingToPool(Registry<StructurePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, Identifier poolRL, String nbtPieceRL, int weight) {
+		StructurePool pool = templatePoolRegistry.getEntry(poolRL);
 		if (pool == null) return;
 
-		ResourceLocation emptyProcessor = ResourceLocation.withDefaultNamespace("empty");
-		Holder<StructureProcessorList> processorHolder = processorListRegistry.getHolderOrThrow(ResourceKey.create(Registries.PROCESSOR_LIST, emptyProcessor));
+		Identifier emptyProcessor = Identifier.ofVanilla("empty");
+		RegistryEntry<StructureProcessorList> processorHolder = processorListRegistry.getHolderOrThrow(RegistryKey.of(RegistryKeys.PROCESSOR_LIST, emptyProcessor));
 
-		SinglePoolElement piece = SinglePoolElement.single(nbtPieceRL, processorHolder).apply(StructureTemplatePool.Projection.RIGID);
+		SinglePoolElement piece = SinglePoolElement.ofProcessedSingle(nbtPieceRL, processorHolder).apply(StructurePool.Projection.RIGID);
 
 		for (int i = 0; i < weight; i++) {
-			pool.templates.add(piece);
+			pool.elements.add(piece);
 		}
 
-		List<Pair<StructurePoolElement, Integer>> listOfPieceEntries = new ArrayList<>(pool.rawTemplates);
+		List<Pair<StructurePoolElement, Integer>> listOfPieceEntries = new ArrayList<>(pool.elementWeights);
 		listOfPieceEntries.add(new Pair<>(piece, weight));
-		pool.rawTemplates = listOfPieceEntries;
+		pool.elementWeights = listOfPieceEntries;
 	}
 
-	private static void addNewRuleToProcessorList(ResourceLocation targetProcessorList, StructureProcessor processorToAdd, Registry<StructureProcessorList> processorListRegistry) {
-		processorListRegistry.getOptional(targetProcessorList)
+	private static void addNewRuleToProcessorList(Identifier targetProcessorList, StructureProcessor processorToAdd, Registry<StructureProcessorList> processorListRegistry) {
+		processorListRegistry.getOptionalValue(targetProcessorList)
 				.ifPresent(processorList -> {
-					List<StructureProcessor> newSafeList = new ArrayList<>(processorList.list());
+					List<StructureProcessor> newSafeList = new ArrayList<>(processorList.getList());
 					newSafeList.add(processorToAdd);
 					processorList.list = newSafeList;
 				});

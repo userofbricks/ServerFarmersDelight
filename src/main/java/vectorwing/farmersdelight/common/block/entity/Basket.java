@@ -1,18 +1,18 @@
 package vectorwing.farmersdelight.common.block.entity;
 
-import net.minecraft.world.Container;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.Block;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.util.shape.VoxelShape;
 
-public interface Basket extends Container
+public interface Basket extends Inventory
 {
 	VoxelShape[] COLLECTION_AREA_SHAPES = {
-			Block.box(0.0D, -16.0D, 0.0D, 16.0D, 16.0D, 16.0D),    // down
-			Block.box(0.0D, 0.0D, 0.0D, 16.0D, 32.0D, 16.0D),        // up
-			Block.box(0.0D, 0.0D, -16.0D, 16.0D, 16.0D, 16.0D),    // north
-			Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 32.0D),        // south
-			Block.box(-16.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),    // west
-			Block.box(0.0D, 0.0D, 0.0D, 32.0D, 16.0D, 16.0D)        // east
+			Block.createCuboidShape(0.0D, -16.0D, 0.0D, 16.0D, 16.0D, 16.0D),    // down
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 32.0D, 16.0D),        // up
+			Block.createCuboidShape(0.0D, 0.0D, -16.0D, 16.0D, 16.0D, 16.0D),    // north
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 32.0D),        // south
+			Block.createCuboidShape(-16.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),    // west
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 32.0D, 16.0D, 16.0D)        // east
 	};
 
 	default VoxelShape getFacingCollectionArea(int facingIndex) {

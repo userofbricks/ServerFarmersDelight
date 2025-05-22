@@ -2,11 +2,11 @@ package vectorwing.farmersdelight.refabricated.inventory;
 
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.base.SingleItemStorage;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.registry.RegistryOps;
+import net.minecraft.registry.RegistryWrapper;
 
 public class ItemStackStorage extends SingleItemStorage {
     public final int index;
@@ -23,13 +23,13 @@ public class ItemStackStorage extends SingleItemStorage {
     }
 
     @Override
-    public void writeNbt(CompoundTag nbt, HolderLookup.Provider provider) {
-        nbt.merge((CompoundTag) ItemStack.CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, provider), variant.toStack((int)amount)).getOrThrow());
+    public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup provider) {
+        nbt.copyFrom((NbtCompound) ItemStack.CODEC.encodeStart(RegistryOps.of(NbtOps.INSTANCE, provider), variant.toStack((int)amount)).getOrThrow());
     }
 
     @Override
-    public void readNbt(CompoundTag nbt, HolderLookup.Provider provider) {
-        ItemStack stack = ItemStack.CODEC.decode(RegistryOps.create(NbtOps.INSTANCE, provider), nbt).getOrThrow().getFirst();
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup provider) {
+        ItemStack stack = ItemStack.CODEC.decode(RegistryOps.of(NbtOps.INSTANCE, provider), nbt).getOrThrow().getFirst();
         variant = ItemVariant.of(stack);
         amount = stack.getCount();
     }

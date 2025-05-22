@@ -1,14 +1,14 @@
 package vectorwing.farmersdelight.common.mixin;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.dispenser.BlockSource;
-import net.minecraft.core.dispenser.DispenseItemBehavior;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.DispenserBlock;
-import net.minecraft.world.level.block.entity.DispenserBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.DispenserBlock;
+import net.minecraft.block.dispenser.DispenserBehavior;
+import net.minecraft.block.entity.DispenserBlockEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPointer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,7 +23,7 @@ import vectorwing.farmersdelight.common.registry.ModBlocks;
 public abstract class CuttingBoardDispenserMixin
 {
 	@Shadow
-	protected abstract DispenseItemBehavior getDispenseMethod(Level level, ItemStack stack);
+	protected abstract DispenserBehavior getDispenseMethod(World level, ItemStack stack);
 
 	@Inject(
 			method = "dispenseFrom",
@@ -34,10 +34,10 @@ public abstract class CuttingBoardDispenserMixin
 			locals = LocalCapture.CAPTURE_FAILHARD,
 			cancellable = true
 	)
-	public void onCuttingBoardDispenseFromInject(ServerLevel level, BlockState state, BlockPos pos, CallbackInfo ci, DispenserBlockEntity dispenser, BlockSource source, int slot, ItemStack stack) {
-		BlockState facingState = level.getBlockState(pos.relative(state.getValue(DispenserBlock.FACING)));
-		if (Configuration.DISPENSER_TOOLS_CUTTING_BOARD.get() && facingState.is(ModBlocks.CUTTING_BOARD.get())) {
-			dispenser.setItem(slot, CuttingBoardDispenseBehavior.INSTANCE.dispense(source, stack));
+	public void onCuttingBoardDispenseFromInject(ServerWorld level, BlockState state, BlockPos pos, CallbackInfo ci, DispenserBlockEntity dispenser, BlockPointer source, int slot, ItemStack stack) {
+		BlockState facingState = level.getBlockState(pos.offset(state.get(DispenserBlock.FACING)));
+		if (Configuration.DISPENSER_TOOLS_CUTTING_BOARD.get() && facingState.isOf(ModBlocks.CUTTING_BOARD.get())) {
+			dispenser.setStack(slot, CuttingBoardDispenseBehavior.INSTANCE.dispense(source, stack));
 			ci.cancel();
 		}
 	}

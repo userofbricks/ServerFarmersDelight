@@ -1,11 +1,11 @@
 package vectorwing.farmersdelight.common.registry;
 
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Items;
+import net.minecraft.block.Block;
+import net.minecraft.item.Items;
+import net.minecraft.recipe.Ingredient;
+import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 public class ModMaterials
@@ -39,7 +39,7 @@ public class ModMaterials
 
 		@Override
 		public @NotNull Ingredient getRepairIngredient() {
-			return Ingredient.of(Items.FLINT);
+			return Ingredient.ofItem(Items.FLINT);
 		}
 	};
 }

@@ -1,37 +1,35 @@
 package vectorwing.farmersdelight.common.entity;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.projectile.thrown.ThrownItemEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.particle.ItemStackParticleEffect;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.UnknownNullability;
 import vectorwing.farmersdelight.common.registry.ModEntityTypes;
 import vectorwing.farmersdelight.common.registry.ModItems;
 import vectorwing.farmersdelight.common.registry.ModSounds;
 
 @MethodsReturnNonnullByDefault
-public class RottenTomatoEntity extends ThrowableItemProjectile
+public class RottenTomatoEntity extends ThrownItemEntity
 {
-	public RottenTomatoEntity(EntityType<? extends RottenTomatoEntity> entityType, Level level) {
+	public RottenTomatoEntity(EntityType<? extends RottenTomatoEntity> entityType, World level) {
 		super(entityType, level);
 	}
 
-	public RottenTomatoEntity(Level level, LivingEntity entity) {
+	public RottenTomatoEntity(World level, LivingEntity entity) {
 		super(ModEntityTypes.ROTTEN_TOMATO.get(), entity, level);
 	}
 
-	public RottenTomatoEntity(Level level, double x, double y, double z) {
+	public RottenTomatoEntity(World level, double x, double y, double z) {
 		super(ModEntityTypes.ROTTEN_TOMATO.get(), x, y, z, level);
 	}
 
@@ -41,13 +39,13 @@ public class RottenTomatoEntity extends ThrowableItemProjectile
 	}
 
 	@Override
-	public void handleEntityEvent(byte id) {
+	public void handleStatus(byte id) {
 		ItemStack entityStack = new ItemStack(this.getDefaultItem());
 		if (id == 3) {
-			ParticleOptions iparticledata = new ItemParticleOption(ParticleTypes.ITEM, entityStack);
+			ParticleEffect iparticledata = new ItemStackParticleEffect(ParticleTypes.ITEM, entityStack);
 
 			for (int i = 0; i < 12; ++i) {
-				this.level().addParticle(iparticledata, this.getX(), this.getY(), this.getZ(),
+				this.getWorld().addParticleClient(iparticledata, this.getX(), this.getY(), this.getZ(),
 						((double) this.random.nextFloat() * 2.0D - 1.0D) * 0.1F,
 						((double) this.random.nextFloat() * 2.0D - 1.0D) * 0.1F + 0.1F,
 						((double) this.random.nextFloat() * 2.0D - 1.0D) * 0.1F);
@@ -56,18 +54,18 @@ public class RottenTomatoEntity extends ThrowableItemProjectile
 	}
 
 	@Override
-	protected void onHitEntity(EntityHitResult result) {
-		super.onHitEntity(result);
+	protected void onEntityHit(EntityHitResult result) {
+		super.onEntityHit(result);
 		Entity entity = result.getEntity();
-		entity.hurt(this.damageSources().thrown(this, this.getOwner()), 0);
+		entity.serverDamage(this.getDamageSources().thrown(this, this.getOwner()), 0);
 		this.playSound(ModSounds.ENTITY_ROTTEN_TOMATO_HIT.get(), 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 	}
 
 	@Override
-	protected void onHit(HitResult result) {
-		super.onHit(result);
-		if (!this.level().isClientSide) {
-			this.level().broadcastEntityEvent(this, (byte) 3);
+	protected void onCollision(HitResult result) {
+		super.onCollision(result);
+		if (!this.getWorld().isClient) {
+			this.getWorld().sendEntityStatus(this, (byte) 3);
 			this.playSound(ModSounds.ENTITY_ROTTEN_TOMATO_HIT.get(), 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
 			this.discard();
 		}

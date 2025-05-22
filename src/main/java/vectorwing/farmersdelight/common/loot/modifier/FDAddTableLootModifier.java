@@ -1,11 +1,11 @@
 package vectorwing.farmersdelight.common.loot.modifier;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.item.ItemStack;
+import net.minecraft.loot.LootTable;
+import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.loot.context.LootContext;
+import net.minecraft.registry.RegistryKey;
 import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.refabricated.LootModifier;
@@ -15,9 +15,9 @@ import vectorwing.farmersdelight.refabricated.LootModifier;
  */
 public class FDAddTableLootModifier extends LootModifier {
 
-    private final ResourceKey<LootTable> lootTable;
+    private final RegistryKey<LootTable> lootTable;
 
-    public FDAddTableLootModifier(LootItemCondition[] conditionsIn, ResourceKey<LootTable> lootTable) {
+    public FDAddTableLootModifier(LootCondition[] conditionsIn, RegistryKey<LootTable> lootTable) {
         super(conditionsIn);
         this.lootTable = lootTable;
     }

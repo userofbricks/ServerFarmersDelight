@@ -1,27 +1,5 @@
 package vectorwing.farmersdelight.common.block.entity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.WorldlyContainer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.shapes.BooleanOp;
-import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import vectorwing.farmersdelight.common.block.BasketBlock;
@@ -31,12 +9,34 @@ import vectorwing.farmersdelight.common.utility.TextUtils;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SidedInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.predicate.entity.EntityPredicates;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.screen.GenericContainerScreenHandler;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
+import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.function.BooleanBiFunction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.World;
 
 ;
 
-public class BasketBlockEntity extends RandomizableContainerBlockEntity implements Basket
+public class BasketBlockEntity extends LootableContainerBlockEntity implements Basket
 {
-	private NonNullList<ItemStack> items = NonNullList.withSize(27, ItemStack.EMPTY);
+	private DefaultedList<ItemStack> items = DefaultedList.ofSize(27, ItemStack.EMPTY);
 	private int transferCooldown = -1;
 
 	public BasketBlockEntity(BlockPos pos, BlockState state) {
@@ -44,51 +44,51 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
-		super.loadAdditional(compound, registries);
-		this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-		if (!this.tryLoadLootTable(compound)) {
-			ContainerHelper.loadAllItems(compound, this.items, registries);
+	protected void readNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
+		super.readNbt(compound, registries);
+		this.items = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
+		if (!this.readLootTable(compound)) {
+			Inventories.readNbt(compound, this.items, registries);
 		}
 		this.transferCooldown = compound.getInt("TransferCooldown");
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
-		super.saveAdditional(compound, registries);
-		if (!this.trySaveLootTable(compound)) {
-			ContainerHelper.saveAllItems(compound, this.items, registries);
+	public void writeNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
+		super.writeNbt(compound, registries);
+		if (!this.writeLootTable(compound)) {
+			Inventories.writeNbt(compound, this.items, registries);
 		}
 
 		compound.putInt("TransferCooldown", this.transferCooldown);
 	}
 
 	@Override
-	public int getContainerSize() {
+	public int size() {
 		return this.items.size();
 	}
 
 	@Override
-	public ItemStack removeItem(int index, int count) {
-		this.unpackLootTable(null);
-		return ContainerHelper.removeItem(this.getItems(), index, count);
+	public ItemStack removeStack(int index, int count) {
+		this.generateLoot(null);
+		return Inventories.splitStack(this.getHeldStacks(), index, count);
 	}
 
 	@Override
-	public void setItem(int index, ItemStack stack) {
-		this.unpackLootTable(null);
-		this.getItems().set(index, stack);
-		if (stack.getCount() > this.getMaxStackSize()) {
-			stack.setCount(this.getMaxStackSize());
+	public void setStack(int index, ItemStack stack) {
+		this.generateLoot(null);
+		this.getHeldStacks().set(index, stack);
+		if (stack.getCount() > this.getMaxCountPerStack()) {
+			stack.setCount(this.getMaxCountPerStack());
 		}
 	}
 
 	@Override
-	protected Component getDefaultName() {
+	protected Text getContainerName() {
 		return TextUtils.getTranslation("container.basket");
 	}
 
-	public static boolean pullItems(Level level, Basket basket, int facingIndex) {
+	public static boolean pullItems(World level, Basket basket, int facingIndex) {
 		for (ItemEntity itementity : getCaptureItems(level, basket, facingIndex)) {
 			if (captureItem(basket, itementity)) {
 				return true;
@@ -97,8 +97,8 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 		return false;
 	}
 
-	public static ItemStack putStackInInventoryAllSlots(Container destination, ItemStack stack) {
-		int i = destination.getContainerSize();
+	public static ItemStack putStackInInventoryAllSlots(Inventory destination, ItemStack stack) {
+		int i = destination.size();
 
 		for (int j = 0; j < i && !stack.isEmpty(); ++j) {
 			stack = insertStack(destination, stack, j);
@@ -107,29 +107,29 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 		return stack;
 	}
 
-	private static boolean canInsertItemInSlot(Container inventoryIn, ItemStack stack, int index, @Nullable Direction side) {
-		if (!inventoryIn.canPlaceItem(index, stack)) return false;
-		return !(inventoryIn instanceof WorldlyContainer) || ((WorldlyContainer) inventoryIn).canPlaceItemThroughFace(index, stack, side);
+	private static boolean canInsertItemInSlot(Inventory inventoryIn, ItemStack stack, int index, @Nullable Direction side) {
+		if (!inventoryIn.isValid(index, stack)) return false;
+		return !(inventoryIn instanceof SidedInventory) || ((SidedInventory) inventoryIn).canInsert(index, stack, side);
 	}
 
 	private static boolean canCombine(ItemStack stack1, ItemStack stack2) {
-		return stack1.getCount() <= stack1.getMaxStackSize() && ItemStack.isSameItemSameComponents(stack1, stack2);
+		return stack1.getCount() <= stack1.getMaxCount() && ItemStack.areItemsAndComponentsEqual(stack1, stack2);
 	}
 
-	private static ItemStack insertStack(Container destination, ItemStack stack, int index) {
-		ItemStack itemstack = destination.getItem(index);
+	private static ItemStack insertStack(Inventory destination, ItemStack stack, int index) {
+		ItemStack itemstack = destination.getStack(index);
 		if (canInsertItemInSlot(destination, stack, index, null)) {
 			boolean flag = false;
 			boolean isDestinationEmpty = destination.isEmpty();
 			if (itemstack.isEmpty()) {
-				destination.setItem(index, stack);
+				destination.setStack(index, stack);
 				stack = ItemStack.EMPTY;
 				flag = true;
 			} else if (canCombine(itemstack, stack)) {
-				int i = stack.getMaxStackSize() - itemstack.getCount();
+				int i = stack.getMaxCount() - itemstack.getCount();
 				int j = Math.min(stack.getCount(), i);
-				stack.shrink(j);
-				itemstack.grow(j);
+				stack.decrement(j);
+				itemstack.increment(j);
 				flag = j > 0;
 			}
 
@@ -141,45 +141,45 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 					}
 				}
 
-				destination.setChanged();
+				destination.markDirty();
 			}
 		}
 
 		return stack;
 	}
 
-	public static boolean captureItem(Container inventory, ItemEntity itemEntity) {
+	public static boolean captureItem(Inventory inventory, ItemEntity itemEntity) {
 		boolean flag = false;
-		ItemStack entityItemStack = itemEntity.getItem().copy();
+		ItemStack entityItemStack = itemEntity.getStack().copy();
 		ItemStack remainderStack = putStackInInventoryAllSlots(inventory, entityItemStack);
 		if (remainderStack.isEmpty()) {
 			flag = true;
 			itemEntity.discard();
 		} else {
-			itemEntity.setItem(remainderStack);
+			itemEntity.setStack(remainderStack);
 		}
 
 		return flag;
 	}
 
-	public static List<ItemEntity> getCaptureItems(Level level, Basket basket, int facingIndex) {
-		return basket.getFacingCollectionArea(facingIndex).toAabbs().stream().flatMap((aabb) -> level.getEntitiesOfClass(ItemEntity.class, aabb.move(basket.getLevelX() - 0.5D, basket.getLevelY() - 0.5D, basket.getLevelZ() - 0.5D), EntitySelector.ENTITY_STILL_ALIVE).stream()).collect(Collectors.toList());
+	public static List<ItemEntity> getCaptureItems(World level, Basket basket, int facingIndex) {
+		return basket.getFacingCollectionArea(facingIndex).getBoundingBoxes().stream().flatMap((aabb) -> level.getEntitiesByClass(ItemEntity.class, aabb.offset(basket.getLevelX() - 0.5D, basket.getLevelY() - 0.5D, basket.getLevelZ() - 0.5D), EntityPredicates.VALID_ENTITY).stream()).collect(Collectors.toList());
 	}
 
 	// -- STANDARD INVENTORY STUFF --
 	@Override
-	protected NonNullList<ItemStack> getItems() {
+	protected DefaultedList<ItemStack> getHeldStacks() {
 		return this.items;
 	}
 
 	@Override
-	protected void setItems(NonNullList<ItemStack> itemsIn) {
+	protected void setHeldStacks(DefaultedList<ItemStack> itemsIn) {
 		this.items = itemsIn;
 	}
 
 	@Override
-	protected AbstractContainerMenu createMenu(int id, Inventory player) {
-		return ChestMenu.threeRows(id, player, this);
+	protected ScreenHandler createScreenHandler(int id, PlayerInventory player) {
+		return GenericContainerScreenHandler.createGeneric9x3(id, player, this);
 	}
 
 	public void setTransferCooldown(int ticks) {
@@ -195,8 +195,8 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 	}
 
 	private void updateHopper(Supplier<Boolean> supplier) {
-		if (this.level != null && !this.level.isClientSide) {
-			if (!this.isOnTransferCooldown() && this.getBlockState().getValue(BlockStateProperties.ENABLED)) {
+		if (this.world != null && !this.world.isClient) {
+			if (!this.isOnTransferCooldown() && this.getCachedState().get(Properties.ENABLED)) {
 				boolean flag = false;
 				if (!this.isFull()) {
 					flag = supplier.get();
@@ -204,7 +204,7 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 
 				if (flag) {
 					this.setTransferCooldown(8);
-					this.setChanged();
+					this.markDirty();
 				}
 			}
 		}
@@ -212,7 +212,7 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 
 	private boolean isFull() {
 		for (ItemStack itemstack : this.items) {
-			if (itemstack.isEmpty() || itemstack.getCount() != itemstack.getMaxStackSize()) {
+			if (itemstack.isEmpty() || itemstack.getCount() != itemstack.getMaxCount()) {
 				return false;
 			}
 		}
@@ -222,9 +222,9 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 
 	public void onEntityCollision(Entity entity) {
 		if (entity instanceof ItemEntity) {
-			BlockPos blockpos = this.getBlockPos();
-			int facing = this.getBlockState().getValue(BasketBlock.FACING).get3DDataValue();
-			if (Shapes.joinIsNotEmpty(Shapes.create(entity.getBoundingBox().move(-blockpos.getX(), -blockpos.getY(), -blockpos.getZ())), this.getFacingCollectionArea(facing), BooleanOp.AND)) {
+			BlockPos blockpos = this.getPos();
+			int facing = this.getCachedState().get(BasketBlock.FACING).get3DDataValue();
+			if (VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-blockpos.getX(), -blockpos.getY(), -blockpos.getZ())), this.getFacingCollectionArea(facing), BooleanBiFunction.AND)) {
 				this.updateHopper(() -> captureItem(this, (ItemEntity) entity));
 			}
 		}
@@ -232,24 +232,24 @@ public class BasketBlockEntity extends RandomizableContainerBlockEntity implemen
 
 	@Override
 	public double getLevelX() {
-		return (double) this.worldPosition.getX() + 0.5D;
+		return (double) this.pos.getX() + 0.5D;
 	}
 
 	@Override
 	public double getLevelY() {
-		return (double) this.worldPosition.getY() + 0.5D;
+		return (double) this.pos.getY() + 0.5D;
 	}
 
 	@Override
 	public double getLevelZ() {
-		return (double) this.worldPosition.getZ() + 0.5D;
+		return (double) this.pos.getZ() + 0.5D;
 	}
 
-	public static void pushItemsTick(Level level, BlockPos pos, BlockState state, BasketBlockEntity blockEntity) {
+	public static void pushItemsTick(World level, BlockPos pos, BlockState state, BasketBlockEntity blockEntity) {
 		--blockEntity.transferCooldown;
 		if (!blockEntity.isOnTransferCooldown()) {
 			blockEntity.setTransferCooldown(0);
-			int facing = state.getValue(BasketBlock.FACING).get3DDataValue();
+			int facing = state.get(BasketBlock.FACING).get3DDataValue();
 			blockEntity.updateHopper(() -> pullItems(level, blockEntity, facing));
 		}
 	}

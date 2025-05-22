@@ -1,10 +1,10 @@
 package vectorwing.farmersdelight.common.utility;
 
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
 import java.util.Random;
+import net.minecraft.item.ItemStack;
 
 /**
  * Util for providing and calculating math-related objects across the mod.
@@ -30,13 +30,13 @@ public class MathUtils
 			for (int j = 0; j < handler.getSlotCount(); ++j) {
 				ItemStack itemstack = handler.getStackInSlot(j);
 				if (!itemstack.isEmpty()) {
-					f += (float) itemstack.getCount() / (float) Math.min(handler.getSlotLimit(j), itemstack.getMaxStackSize());
+					f += (float) itemstack.getCount() / (float) Math.min(handler.getSlotLimit(j), itemstack.getMaxCount());
 					++i;
 				}
 			}
 
 			f = f / (float) handler.getSlotCount();
-			return net.minecraft.util.Mth.floor(f * 14.0F) + (i > 0 ? 1 : 0);
+			return net.minecraft.util.math.MathHelper.floor(f * 14.0F) + (i > 0 ? 1 : 0);
 		}
 	}
 }

@@ -2,10 +2,10 @@ package vectorwing.farmersdelight.common.event;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.object.builder.v1.trade.TradeOfferHelper;
-import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerTrades;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
+import net.minecraft.item.ItemConvertible;
+import net.minecraft.item.ItemStack;
+import net.minecraft.village.TradeOffers;
+import net.minecraft.village.VillagerProfession;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
@@ -44,11 +44,11 @@ public class VillagerEvents
 		}
 	}
 
-	public static VillagerTrades.ItemListing emeraldForItemsTrade(ItemLike item, int count, int maxTrades, int xp) {
-		return new VillagerTrades.EmeraldForItems(item, count, maxTrades, xp);
+	public static TradeOffers.Factory emeraldForItemsTrade(ItemConvertible item, int count, int maxTrades, int xp) {
+		return new TradeOffers.BuyItemFactory(item, count, maxTrades, xp);
 	}
 
-	public static VillagerTrades.ItemListing itemForEmeraldTrade(ItemLike item, int maxTrades, int xp) {
-		return new VillagerTrades.ItemsForEmeralds(new ItemStack(item), 1, 1, maxTrades, xp, 0.05F);
+	public static TradeOffers.Factory itemForEmeraldTrade(ItemConvertible item, int maxTrades, int xp) {
+		return new TradeOffers.SellItemFactory(new ItemStack(item), 1, 1, maxTrades, xp, 0.05F);
 	}
 }

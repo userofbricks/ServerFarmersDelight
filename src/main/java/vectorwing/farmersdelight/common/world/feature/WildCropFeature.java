@@ -1,13 +1,13 @@
 package vectorwing.farmersdelight.common.world.feature;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.gen.feature.Feature;
+import net.minecraft.world.gen.feature.PlacedFeature;
+import net.minecraft.world.gen.feature.util.FeatureContext;
 import vectorwing.farmersdelight.common.world.configuration.WildCropConfiguration;
 
 public class WildCropFeature extends Feature<WildCropConfiguration>
@@ -17,24 +17,24 @@ public class WildCropFeature extends Feature<WildCropConfiguration>
 	}
 
 	@Override
-	public boolean place(FeaturePlaceContext<WildCropConfiguration> context) {
-		WildCropConfiguration config = context.config();
-		BlockPos origin = context.origin();
-		WorldGenLevel level = context.level();
-		RandomSource random = context.random();
+	public boolean generate(FeatureContext<WildCropConfiguration> context) {
+		WildCropConfiguration config = context.getConfig();
+		BlockPos origin = context.getOrigin();
+		StructureWorldAccess level = context.getWorld();
+		Random random = context.getRandom();
 
 		int i = 0;
 		int tries = config.tries();
 		int xzSpread = config.xzSpread() + 1;
 		int ySpread = config.ySpread() + 1;
 
-		BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
+		BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 
-		Holder<PlacedFeature> floorFeature = config.floorFeature();
+		RegistryEntry<PlacedFeature> floorFeature = config.floorFeature();
 		if (floorFeature != null) {
 			for (int j = 0; j < tries; ++j) {
-				mutablePos.setWithOffset(origin, random.nextInt(xzSpread) - random.nextInt(xzSpread), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(xzSpread) - random.nextInt(xzSpread));
-				if (config.floorFeature().value().place(level, context.chunkGenerator(), random, mutablePos)) {
+				mutablePos.set(origin, random.nextInt(xzSpread) - random.nextInt(xzSpread), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(xzSpread) - random.nextInt(xzSpread));
+				if (config.floorFeature().value().generateUnregistered(level, context.getGenerator(), random, mutablePos)) {
 					++i;
 				}
 			}
@@ -42,15 +42,15 @@ public class WildCropFeature extends Feature<WildCropConfiguration>
 
 		for (int k = 0; k < tries; ++k) {
 			int shorterXZ = xzSpread - 2;
-			mutablePos.setWithOffset(origin, random.nextInt(shorterXZ) - random.nextInt(shorterXZ), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(shorterXZ) - random.nextInt(shorterXZ));
-			if (config.primaryFeature().value().place(level, context.chunkGenerator(), random, mutablePos)) {
+			mutablePos.set(origin, random.nextInt(shorterXZ) - random.nextInt(shorterXZ), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(shorterXZ) - random.nextInt(shorterXZ));
+			if (config.primaryFeature().value().generateUnregistered(level, context.getGenerator(), random, mutablePos)) {
 				++i;
 			}
 		}
 
 		for (int l = 0; l < tries; ++l) {
-			mutablePos.setWithOffset(origin, random.nextInt(xzSpread) - random.nextInt(xzSpread), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(xzSpread) - random.nextInt(xzSpread));
-			if (config.secondaryFeature().value().place(level, context.chunkGenerator(), random, mutablePos)) {
+			mutablePos.set(origin, random.nextInt(xzSpread) - random.nextInt(xzSpread), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(xzSpread) - random.nextInt(xzSpread));
+			if (config.secondaryFeature().value().generateUnregistered(level, context.getGenerator(), random, mutablePos)) {
 				++i;
 			}
 		}

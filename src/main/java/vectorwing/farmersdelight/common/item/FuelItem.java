@@ -1,9 +1,9 @@
 package vectorwing.farmersdelight.common.item;
 
 import net.fabricmc.fabric.api.registry.FuelRegistry;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.RecipeType;
 import org.jetbrains.annotations.Nullable;
 
 ;
@@ -12,11 +12,11 @@ public class FuelItem extends Item
 {
 	public final int burnTime;
 
-	public FuelItem(Properties properties) {
+	public FuelItem(net.minecraft.item.Item.Settings properties) {
 		this(properties, 100);
 	}
 
-	public FuelItem(Properties properties, int burnTime) {
+	public FuelItem(net.minecraft.item.Item.Settings properties, int burnTime) {
 		super(properties);
 		this.burnTime = burnTime;
 		FuelRegistry.INSTANCE.add(this, this.burnTime);

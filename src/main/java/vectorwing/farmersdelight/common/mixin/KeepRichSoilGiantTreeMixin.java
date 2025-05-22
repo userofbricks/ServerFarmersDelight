@@ -1,8 +1,8 @@
 package vectorwing.farmersdelight.common.mixin;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.LevelSimulatedReader;
-import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.TestableWorld;
+import net.minecraft.world.gen.feature.Feature;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,8 +16,8 @@ public class KeepRichSoilGiantTreeMixin
 	 * Due to how Trees generate, this mixin is needed to prevent Rich Soil from becoming Podzol under a Giant Spruce Tree growth.
 	 */
 	@Inject(at = @At(value = "HEAD"), method = "isGrassOrDirt", cancellable = true)
-	private static void keepRichSoil(LevelSimulatedReader world, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-		if (world.isStateAtPosition(pos, state -> state.is(ModBlocks.RICH_SOIL.get()))) {
+	private static void keepRichSoil(TestableWorld world, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+		if (world.testBlockState(pos, state -> state.isOf(ModBlocks.RICH_SOIL.get()))) {
 			cir.setReturnValue(false);
 			cir.cancel();
 		}

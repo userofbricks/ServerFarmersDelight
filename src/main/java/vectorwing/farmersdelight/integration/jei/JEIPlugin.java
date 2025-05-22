@@ -6,10 +6,10 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.registration.*;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.client.gui.CookingPotScreen;
 import vectorwing.farmersdelight.common.block.entity.container.CookingPotMenu;
@@ -29,7 +29,7 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class JEIPlugin implements IModPlugin
 {
-	private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "jei_plugin");
+	private static final Identifier ID = Identifier.of(FarmersDelight.MODID, "jei_plugin");
 
 	@Override
 	public void registerCategories(IRecipeCategoryRegistration registry) {
@@ -83,7 +83,7 @@ public class JEIPlugin implements IModPlugin
 	}
 
 	@Override
-	public ResourceLocation getPluginUid() {
+	public Identifier getPluginUid() {
 		return ID;
 	}
 }

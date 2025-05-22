@@ -6,9 +6,6 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.SlotWidget;
 import dev.emi.emi.api.widget.WidgetHolder;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.FarmersDelight;
@@ -19,16 +16,19 @@ import vectorwing.farmersdelight.integration.emi.FDRecipeCategories;
 import vectorwing.farmersdelight.integration.emi.FDRecipeWorkstations;
 
 import java.util.List;
+import net.minecraft.client.gui.tooltip.TooltipComponent;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 public class DecompositionEmiRecipe implements EmiRecipe {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(FarmersDelight.MODID, "textures/gui/jei/decomposition.png");
+    private static final Identifier BACKGROUND = Identifier.of(FarmersDelight.MODID, "textures/gui/jei/decomposition.png");
 
     private static final EmiStack RICH_SOIL = EmiStack.of(ModItems.RICH_SOIL.get());
     private static final EmiIngredient ACCELERATORS = EmiIngredient.of(ModTags.COMPOST_ACTIVATORS);
 
-    private static final ClientTooltipComponent LIGHT_TOOLTIP = createTooltip(".light");
-    private static final ClientTooltipComponent FLUID_TOOLTIP = createTooltip(".fluid");
-    private static final ClientTooltipComponent ACCELERATORS_TOOLTIP = createTooltip(".accelerators");
+    private static final TooltipComponent LIGHT_TOOLTIP = createTooltip(".light");
+    private static final TooltipComponent FLUID_TOOLTIP = createTooltip(".fluid");
+    private static final TooltipComponent ACCELERATORS_TOOLTIP = createTooltip(".accelerators");
 
     @Override
     public EmiRecipeCategory getCategory() {
@@ -36,7 +36,7 @@ public class DecompositionEmiRecipe implements EmiRecipe {
     }
 
     @Override
-    public @Nullable ResourceLocation getId() {
+    public @Nullable Identifier getId() {
         return FarmersDelight.res("/decomposition/dummy");
     }
 
@@ -84,7 +84,7 @@ public class DecompositionEmiRecipe implements EmiRecipe {
         return widgets.addSlot(ingredient, x, y).backgroundTexture(BACKGROUND, 119, 0);
     }
 
-    private static ClientTooltipComponent createTooltip(@NotNull String suffix) {
-        return ClientTooltipComponent.create(Component.translatable(FarmersDelight.MODID + ".jei.decomposition" + suffix).getVisualOrderText());
+    private static TooltipComponent createTooltip(@NotNull String suffix) {
+        return TooltipComponent.of(Text.translatable(FarmersDelight.MODID + ".jei.decomposition" + suffix).asOrderedText());
     }
 }

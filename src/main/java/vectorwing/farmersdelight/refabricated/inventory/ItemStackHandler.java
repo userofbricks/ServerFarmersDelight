@@ -10,11 +10,11 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -70,7 +70,7 @@ public class ItemStackHandler implements ItemHandler {
         if (stackMap.isEmpty())
             return;
         for (Map.Entry<Integer, StackReference> stackRef : stackMap.entrySet()) {
-            if (!ItemStack.matches(stackRef.getValue().original(), stackRef.getValue().current())) {
+            if (!ItemStack.areEqual(stackRef.getValue().original(), stackRef.getValue().current())) {
                 setStackInSlotInternal(stackRef.getKey(), stackRef.getValue().current());
             }
             stackRefs.invalidate(stackRef.getKey());
@@ -130,7 +130,7 @@ public class ItemStackHandler implements ItemHandler {
     }
 
     public int getStackLimit(int slot, ItemVariant resource) {
-        return Math.min(getSlotLimit(slot), resource.getItem().getDefaultMaxStackSize());
+        return Math.min(getSlotLimit(slot), resource.getItem().getMaxCount());
     }
 
     public int getSlotCount() {
@@ -212,30 +212,30 @@ public class ItemStackHandler implements ItemHandler {
     }
 
 
-    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-        ListTag listTag = new ListTag();
+    public NbtCompound serializeNBT(RegistryWrapper.WrapperLookup provider) {
+        NbtList listTag = new NbtList();
 
         for (int i = 0; i < slots.size(); ++i) {
             if (!slots.get(i).isResourceBlank()) {
-                CompoundTag itemTag = new CompoundTag();
+                NbtCompound itemTag = new NbtCompound();
                 itemTag.putInt("Slot", i);
                 slots.get(i).writeNbt(itemTag, provider);
                 listTag.add(itemTag);
             }
         }
 
-        CompoundTag tag = new CompoundTag();
+        NbtCompound tag = new NbtCompound();
         tag.put("Items", listTag);
         return tag;
     }
 
-    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
+    public void deserializeNBT(RegistryWrapper.WrapperLookup provider, NbtCompound tag) {
         for (int i = 0; i < slots.size(); ++i) {
             setStackInSlot(i, ItemStack.EMPTY);
         }
-        ListTag listTag = tag.getList("Items", Tag.TAG_COMPOUND);
+        NbtList listTag = tag.getList("Items", NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < listTag.size(); ++i) {
-            CompoundTag compound = listTag.getCompound(i);
+            NbtCompound compound = listTag.getCompound(i);
             slots.get(compound.getInt("Slot")).readNbt(compound, provider);
         }
     }

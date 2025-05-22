@@ -2,12 +2,11 @@ package vectorwing.farmersdelight.common;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.DispenserBlock;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
 import java.util.Set;
+import net.minecraft.block.DispenserBlock;
+import net.minecraft.item.Item;
 
 public class CommonSetup
 {
