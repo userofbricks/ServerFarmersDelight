@@ -15,10 +15,10 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import vectorwing.farmersdelight.common.block.StoveBlock;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 import vectorwing.farmersdelight.common.utility.ItemUtils;
+import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
 import java.util.Optional;
 
@@ -84,7 +84,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 		} else if (isStoveLit) {
 			stove.cookAndOutputItems();
 		} else {
-			for (int i = 0; i < stove.inventory.getSlots(); ++i) {
+			for (int i = 0; i < stove.inventory.getSlotCount(); ++i) {
 				if (stove.cookingTimes[i] > 0) {
 					stove.cookingTimes[i] = Mth.clamp(stove.cookingTimes[i] - 2, 0, stove.cookingTimesTotal[i]);
 				}
@@ -93,7 +93,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 	}
 
 	public static void animationTick(Level level, BlockPos pos, BlockState state, StoveBlockEntity stove) {
-		for (int i = 0; i < stove.inventory.getSlots(); ++i) {
+		for (int i = 0; i < stove.inventory.getSlotCount(); ++i) {
 			if (!stove.inventory.getStackInSlot(i).isEmpty() && level.random.nextFloat() < 0.2F) {
 				Vec2 stoveItemVector = stove.getStoveItemOffset(i);
 				Direction direction = state.getValue(StoveBlock.FACING);
@@ -115,7 +115,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 		if (level == null) return;
 
 		boolean didInventoryChange = false;
-		for (int i = 0; i < inventory.getSlots(); ++i) {
+		for (int i = 0; i < inventory.getSlotCount(); ++i) {
 			ItemStack stoveStack = inventory.getStackInSlot(i);
 			if (!stoveStack.isEmpty()) {
 				++cookingTimes[i];
@@ -123,8 +123,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 					Optional<RecipeHolder<CampfireCookingRecipe>> recipe = getMatchingRecipe(stoveStack);
 					if (recipe.isPresent()) {
 						ItemStack resultStack = recipe.get().value().getResultItem(level.registryAccess());
-						if (!resultStack.isEmpty()) {
-							ItemUtils.spawnItemEntity(level, resultStack.copy(),
+						if (!resultStack.isEmpty()) {ItemUtils.spawnItemEntity(level, resultStack.copy(),
 									worldPosition.getX() + 0.5, worldPosition.getY() + 1.0, worldPosition.getZ() + 0.5,
 									level.random.nextGaussian() * (double) 0.01F, 0.1F, level.random.nextGaussian() * (double) 0.01F);
 						}
@@ -141,7 +140,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 	}
 
 	public int getNextEmptySlot() {
-		for (int i = 0; i < inventory.getSlots(); ++i) {
+		for (int i = 0; i < inventory.getSlotCount(); ++i) {
 			ItemStack slotStack = inventory.getStackInSlot(i);
 			if (slotStack.isEmpty()) {
 				return i;
@@ -151,7 +150,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 	}
 
 	public boolean addItem(ItemStack itemStackIn, RecipeHolder<CampfireCookingRecipe> recipe, int slot) {
-		if (0 <= slot && slot < inventory.getSlots()) {
+		if (0 <= slot && slot < inventory.getSlotCount()) {
 			ItemStack slotStack = inventory.getStackInSlot(slot);
 			if (slotStack.isEmpty()) {
 				cookingTimesTotal[slot] = recipe.value().getCookingTime();

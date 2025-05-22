@@ -11,7 +11,6 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 
@@ -19,6 +18,11 @@ public class BuddingTomatoBlock extends BuddingBushBlock implements Bonemealable
 {
 	public BuddingTomatoBlock(Properties properties) {
 		super(properties);
+	}
+
+	@Override
+	public boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+		return pState.is(ModBlocks.RICH_SOIL_FARMLAND.get()) || pState.is(Blocks.FARMLAND);
 	}
 
 	@Override

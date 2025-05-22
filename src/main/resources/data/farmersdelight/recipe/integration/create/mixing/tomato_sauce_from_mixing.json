@@ -1,8 +1,10 @@
 {
-  "neoforge:conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "create"
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "create"
+      ]
     }
   ],
   "type": "create:mixing",
@@ -19,7 +21,7 @@
   ],
   "results": [
     {
-      "id": "farmersdelight:tomato_sauce",
+      "item": "farmersdelight:tomato_sauce",
       "count": 1
     }
   ]

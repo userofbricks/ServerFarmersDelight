@@ -11,9 +11,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec2;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import vectorwing.farmersdelight.common.block.StoveBlock;
 import vectorwing.farmersdelight.common.block.entity.StoveBlockEntity;
+import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
 public class StoveRenderer implements BlockEntityRenderer<StoveBlockEntity>
 {
@@ -27,7 +27,7 @@ public class StoveRenderer implements BlockEntityRenderer<StoveBlockEntity>
 		ItemStackHandler inventory = stoveEntity.getInventory();
 		int posLong = (int) stoveEntity.getBlockPos().asLong();
 
-		for (int i = 0; i < inventory.getSlots(); ++i) {
+		for (int i = 0; i < inventory.getSlotCount(); ++i) {
 			ItemStack stoveStack = inventory.getStackInSlot(i);
 			if (!stoveStack.isEmpty()) {
 				poseStack.pushPose();

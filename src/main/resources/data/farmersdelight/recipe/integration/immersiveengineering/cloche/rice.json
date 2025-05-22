@@ -1,8 +1,10 @@
 {
-  "neoforge:conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "immersiveengineering"
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "immersiveengineering"
+      ]
     }
   ],
   "type": "immersiveengineering:cloche",
@@ -11,11 +13,11 @@
   },
   "render": {
     "type": "immersiveengineering:crop",
-    "block": "farmersdelight:rice_panicles"
+    "value": "farmersdelight:rice_panicles"
   },
   "results": [
     {
-      "count": 2,
+      "Count": 2,
       "id": "farmersdelight:rice_panicle"
     }
   ],

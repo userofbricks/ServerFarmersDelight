@@ -15,10 +15,14 @@
                 }
               }
             }
+          },
+          {
+            "condition": "minecraft:match_tool",
+            "predicate": {}
           }
         ]
       },
-      "trigger": "minecraft:default_block_use"
+      "trigger": "minecraft:item_used_on_block"
     }
   },
   "display": {

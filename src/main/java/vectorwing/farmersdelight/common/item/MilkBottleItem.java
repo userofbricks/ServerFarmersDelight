@@ -6,7 +6,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.EffectCures;
+import vectorwing.farmersdelight.common.tag.ModTags;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,14 +24,14 @@ public class MilkBottleItem extends DrinkableItem
 
 		while (itr.hasNext()) {
 			MobEffectInstance effect = itr.next();
-			if (effect.getCures().contains(EffectCures.MILK)) {
+			if (!effect.getEffect().is(ModTags.MILK_BOTTLE_IGNORED)) {
 				compatibleEffects.add(effect.getEffect());
 			}
 		}
 
 		if (!compatibleEffects.isEmpty()) {
 			MobEffectInstance selectedEffect = consumer.getEffect(compatibleEffects.get(level.random.nextInt(compatibleEffects.size())));
-			if (selectedEffect != null && !net.neoforged.neoforge.event.EventHooks.onEffectRemoved(consumer, selectedEffect, EffectCures.MILK)) {
+			if (selectedEffect != null) {
 				consumer.removeEffect(selectedEffect.getEffect());
 			}
 		}

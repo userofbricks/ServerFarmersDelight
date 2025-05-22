@@ -23,7 +23,7 @@ public class TatamiHalfMatBlock extends HorizontalDirectionalBlock
 
 	protected static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D);
 
-	public TatamiHalfMatBlock(BlockBehaviour.Properties properties) {
+	public TatamiHalfMatBlock(Properties properties) {
 		super(properties);
 	}
 
@@ -49,11 +49,11 @@ public class TatamiHalfMatBlock extends HorizontalDirectionalBlock
 
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+		return this.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection().getOpposite());
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING);
+		builder.add(HorizontalDirectionalBlock.FACING);
 	}
 }

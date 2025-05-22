@@ -15,18 +15,16 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.block.entity.container.CookingPotMenu;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@ParametersAreNonnullByDefault
 public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> implements RecipeUpdateListener
 {
 	private static final WidgetSprites RECIPE_BUTTON = new WidgetSprites(ResourceLocation.withDefaultNamespace("recipe_book/button"), ResourceLocation.withDefaultNamespace("recipe_book/button"));
@@ -98,7 +96,7 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> im
 				List<Component> tooltip = new ArrayList<>();
 
 				ItemStack mealStack = this.hoveredSlot.getItem();
-				tooltip.add(((MutableComponent) mealStack.getItem().getDescription()).withStyle(mealStack.getRarity().getStyleModifier()));
+				tooltip.add(((MutableComponent) mealStack.getItem().getDescription()).withStyle(mealStack.getRarity().color()));
 
 				ItemStack containerStack = this.menu.blockEntity.getContainer();
 				String container = !containerStack.isEmpty() ? containerStack.getItem().getDescription().getString() : "";
@@ -175,7 +173,7 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> im
 //	}
 
 	@Override
-	@Nonnull
+	@NotNull
 	public RecipeBookComponent getRecipeBookComponent() {
 		return this.recipeBookComponent;
 	}

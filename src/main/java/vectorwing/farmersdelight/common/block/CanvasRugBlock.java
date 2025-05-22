@@ -12,7 +12,7 @@ public class CanvasRugBlock extends Block
 {
 	protected static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
 
-	public CanvasRugBlock(BlockBehaviour.Properties properties) {
+	public CanvasRugBlock(Properties properties) {
 		super(properties);
 	}
 

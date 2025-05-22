@@ -55,7 +55,7 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 
 	@Override
 	public ItemStack assemble(CuttingBoardRecipeInput inv, HolderLookup.Provider provider) {
-		return this.results.getFirst().stack().copy();
+		return this.results.get(0).stack().copy();
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 
 	@Override
 	public ItemStack getResultItem(HolderLookup.Provider provider) {
-		return this.results.getFirst().stack();
+		return this.results.get(0).stack();
 	}
 
 	public List<ItemStack> getResults() {
@@ -155,11 +155,11 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 	public static class Serializer implements RecipeSerializer<CuttingBoardRecipe>
 	{
 		public static final StreamCodec<RegistryFriendlyByteBuf, CuttingBoardRecipe> STREAM_CODEC =
-				StreamCodec.of(CuttingBoardRecipe.Serializer::toNetwork, CuttingBoardRecipe.Serializer::fromNetwork);
+				StreamCodec.of(Serializer::toNetwork, Serializer::fromNetwork);
 
 		private static final MapCodec<CuttingBoardRecipe> CODEC = RecordCodecBuilder.mapCodec(
 				inst -> inst.group(Codec.STRING.optionalFieldOf("group", "").forGetter(CuttingBoardRecipe::getGroup),
-								Ingredient.LIST_CODEC_NONEMPTY.fieldOf("ingredients").flatXmap(ingredients -> {
+								Ingredient.CODEC_NONEMPTY.listOf().fieldOf("ingredients").flatXmap(ingredients -> {
 									if (ingredients.isEmpty()) {
 										return DataResult.error(() -> "No ingredients for cutting recipe");
 									}

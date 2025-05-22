@@ -6,11 +6,27 @@
     "CampfireBaleMixin",
     "CuttingBoardDispenserMixin",
     "KeepRichSoilGiantTreeMixin",
-    "KeepRichSoilTreeMixin"
+    "KeepRichSoilTreeMixin",
+    "refabricated.BushBlockMixin",
+    "refabricated.CactusBlockMixin",
+    "refabricated.CropBlockMixin",
+    "refabricated.DoublePlantBlockMixin",
+    "refabricated.ItemStackMixin",
+    "refabricated.LivingEntityMixin",
+    "refabricated.MushroomBlockMixin",
+    "refabricated.PlayerMixin",
+    "refabricated.RecipeBookSettingsMixin",
+    "refabricated.ReloadableServerRegistriesMixin",
+    "refabricated.ServerRecipeBookMixin",
+    "refabricated.StemBlockMixin",
+    "refabricated.SugarCaneBlockMixin"
   ],
   "client": [
-    "CanvasSignEditScreenMixin",
-    "HideBlockBreakProgressMixin"
+    "HideBlockBreakProgressMixin",
+    "refabricated.ClientRecipeBookMixin",
+    "refabricated.GuiMixin",
+    "refabricated.HumanoidModelMixin",
+    "refabricated.RecipeBookCategoriesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

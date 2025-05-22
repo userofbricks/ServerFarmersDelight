@@ -1,8 +1,7 @@
 package vectorwing.farmersdelight.common.block.entity.container;
 
-
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -12,15 +11,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
-import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.block.entity.CookingPotBlockEntity;
 import vectorwing.farmersdelight.common.crafting.CookingPotRecipe;
+import vectorwing.farmersdelight.refabricated.inventory.RecipeWrapper;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 import vectorwing.farmersdelight.common.registry.ModMenuTypes;
 import vectorwing.farmersdelight.common.tag.ModTags;
+import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
+import vectorwing.farmersdelight.refabricated.inventory.ItemHandlerSlot;
 
 import java.util.Objects;
 
@@ -34,7 +33,7 @@ public class CookingPotMenu extends RecipeBookMenu<RecipeWrapper, CookingPotReci
 	private final ContainerLevelAccess canInteractWithCallable;
 	protected final Level level;
 
-	public CookingPotMenu(final int windowId, final Inventory playerInventory, final FriendlyByteBuf data) {
+	public CookingPotMenu(final int windowId, final Inventory playerInventory, final BlockPos data) {
 		this(windowId, playerInventory, getTileEntity(playerInventory, data), new SimpleContainerData(4));
 	}
 
@@ -54,7 +53,7 @@ public class CookingPotMenu extends RecipeBookMenu<RecipeWrapper, CookingPotReci
 		int borderSlotSize = 18;
 		for (int row = 0; row < 2; ++row) {
 			for (int column = 0; column < 3; ++column) {
-				this.addSlot(new SlotItemHandler(inventory, (row * 3) + column,
+				this.addSlot(new ItemHandlerSlot(inventory, (row * 3) + column,
 						inputStartX + (column * borderSlotSize),
 						inputStartY + (row * borderSlotSize)));
 			}
@@ -64,7 +63,7 @@ public class CookingPotMenu extends RecipeBookMenu<RecipeWrapper, CookingPotReci
 		this.addSlot(new CookingPotMealSlot(inventory, 6, 124, 26));
 
 		// Bowl Input
-		this.addSlot(new SlotItemHandler(inventory, 7, 92, 55)
+		this.addSlot(new ItemHandlerSlot(inventory, 7, 92, 55)
 		{
 			public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
 				return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_CONTAINER_SLOT_BOWL);
@@ -91,10 +90,10 @@ public class CookingPotMenu extends RecipeBookMenu<RecipeWrapper, CookingPotReci
 		this.addDataSlots(cookingPotDataIn);
 	}
 
-	private static CookingPotBlockEntity getTileEntity(final Inventory playerInventory, final FriendlyByteBuf data) {
+	private static CookingPotBlockEntity getTileEntity(final Inventory playerInventory, final BlockPos data) {
 		Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
 		Objects.requireNonNull(data, "data cannot be null");
-		final BlockEntity tileAtPos = playerInventory.player.level().getBlockEntity(data.readBlockPos());
+		final BlockEntity tileAtPos = playerInventory.player.level().getBlockEntity(data);
 		if (tileAtPos instanceof CookingPotBlockEntity) {
 			return (CookingPotBlockEntity) tileAtPos;
 		}
@@ -162,7 +161,7 @@ public class CookingPotMenu extends RecipeBookMenu<RecipeWrapper, CookingPotReci
 
 	@Override
 	public void fillCraftSlotsStackedContents(StackedContents helper) {
-		for (int i = 0; i < inventory.getSlots(); i++) {
+		for (int i = 0; i < inventory.getSlotCount(); i++) {
 			helper.accountSimpleStack(inventory.getStackInSlot(i));
 		}
 	}
