@@ -1,7 +1,6 @@
 package vectorwing.farmersdelight.common.block.entity;
 
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnknownNullability;
 import vectorwing.farmersdelight.common.block.BasketBlock;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 import vectorwing.farmersdelight.common.utility.TextUtils;
@@ -50,7 +49,7 @@ public class BasketBlockEntity extends LootableContainerBlockEntity implements B
 		if (!this.readLootTable(compound)) {
 			Inventories.readNbt(compound, this.items, registries);
 		}
-		this.transferCooldown = compound.getInt("TransferCooldown");
+		this.transferCooldown = compound.getInt("TransferCooldown").orElse(0);
 	}
 
 	@Override
@@ -223,7 +222,7 @@ public class BasketBlockEntity extends LootableContainerBlockEntity implements B
 	public void onEntityCollision(Entity entity) {
 		if (entity instanceof ItemEntity) {
 			BlockPos blockpos = this.getPos();
-			int facing = this.getCachedState().get(BasketBlock.FACING).get3DDataValue();
+			int facing = this.getCachedState().get(BasketBlock.FACING).getIndex();
 			if (VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-blockpos.getX(), -blockpos.getY(), -blockpos.getZ())), this.getFacingCollectionArea(facing), BooleanBiFunction.AND)) {
 				this.updateHopper(() -> captureItem(this, (ItemEntity) entity));
 			}
@@ -249,7 +248,7 @@ public class BasketBlockEntity extends LootableContainerBlockEntity implements B
 		--blockEntity.transferCooldown;
 		if (!blockEntity.isOnTransferCooldown()) {
 			blockEntity.setTransferCooldown(0);
-			int facing = state.get(BasketBlock.FACING).get3DDataValue();
+			int facing = state.get(BasketBlock.FACING).getIndex();
 			blockEntity.updateHopper(() -> pullItems(level, blockEntity, facing));
 		}
 	}

@@ -20,6 +20,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -51,7 +52,7 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 
 	public static final int MINIMUM_COOKING_TIME = 60;
 
-	public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
 	public static final BooleanProperty SUPPORT = BooleanProperty.of("support");
 	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 

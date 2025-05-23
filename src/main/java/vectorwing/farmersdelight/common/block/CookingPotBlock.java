@@ -160,7 +160,7 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
             BlockEntity tileEntity = level.getBlockEntity(pos);
             if (tileEntity instanceof CookingPotBlockEntity cookingPotEntity) {
                 ItemScatterer.spawn(level, pos, cookingPotEntity.getDroppableInventory());
-                cookingPotEntity.getUsedRecipesAndPopExperience(level, Vec3d.ofCenter(pos));
+                //cookingPotEntity.getUsedRecipesAndPopExperience(level, Vec3d.ofCenter(pos));
                 level.updateComparators(pos, this);
             }
 

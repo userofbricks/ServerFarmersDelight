@@ -6,6 +6,7 @@ import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.recipe.CampfireCookingRecipe;
 import net.minecraft.recipe.RecipeEntry;
@@ -14,13 +15,13 @@ import net.minecraft.recipe.ServerRecipeManager;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
-import net.minecraft.world.item.crafting.*;
 import vectorwing.farmersdelight.common.block.SkilletBlock;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 import vectorwing.farmersdelight.common.registry.ModItems;
@@ -98,7 +99,7 @@ public class SkilletBlockEntity extends SyncedBlockEntity implements HeatableBlo
 			Optional<RecipeEntry<CampfireCookingRecipe>> recipe = getMatchingRecipe(cookingStack);
 			if (recipe.isPresent()) {
 				ItemStack resultStack = recipe.get().value().craft(new SingleStackRecipeInput(cookingStack), level.getRegistryManager());
-				Direction direction = getCachedState().get(SkilletBlock.FACING).getClockWise();
+				Direction direction = getCachedState().get(SkilletBlock.FACING).rotateYClockwise();
 				ItemUtils.spawnItemEntity(level, resultStack.copy(),
 						pos.getX() + 0.5, pos.getY() + 0.3, pos.getZ() + 0.5,
 						direction.getOffsetX() * 0.08F, 0.25F, direction.getOffsetZ() * 0.08F);
@@ -122,16 +123,16 @@ public class SkilletBlockEntity extends SyncedBlockEntity implements HeatableBlo
 
 	private Optional<RecipeEntry<CampfireCookingRecipe>> getMatchingRecipe(ItemStack stack) {
 		if (world == null) return Optional.empty();
-		return this.quickCheck.getFirstMatch(new SingleStackRecipeInput(stack), this.world);
+		return this.quickCheck.getFirstMatch(new SingleStackRecipeInput(stack), (ServerWorld) this.world);
 	}
 
 	@Override
 	public void readNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
 		super.readNbt(compound, registries);
-		inventory.deserializeNBT(registries, compound.getCompound("Inventory"));
-		cookingTime = compound.getInt("CookTime");
-		cookingTimeTotal = compound.getInt("CookTimeTotal");
-		skilletStack = ItemStack.parseOptional(registries, compound.getCompound("Skillet"));
+		inventory.deserializeNBT(registries, compound.getCompound("Inventory").orElseThrow());
+		cookingTime = compound.getInt("CookTime").orElseThrow();
+		cookingTimeTotal = compound.getInt("CookTimeTotal").orElseThrow();
+		skilletStack = compound.get("Skillet", ItemStack.OPTIONAL_CODEC, registries.getOps(NbtOps.INSTANCE)).orElse(ItemStack.EMPTY);
 		fireAspectLevel = EnchantmentHelper.getLevel(registries.getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FIRE_ASPECT), skilletStack);
 	}
 
@@ -152,7 +153,7 @@ public class SkilletBlockEntity extends SyncedBlockEntity implements HeatableBlo
 
 	public void setSkilletItem(ItemStack stack) {
 		skilletStack = stack.copy();
-		fireAspectLevel = EnchantmentHelper.getLevel(world.getRegistryManager().registryOrThrow(RegistryKeys.ENCHANTMENT).getHolderOrThrow(Enchantments.FIRE_ASPECT), stack);
+		fireAspectLevel = EnchantmentHelper.getLevel(world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FIRE_ASPECT), stack);
 		inventoryChanged();
 	}
 

@@ -48,10 +48,10 @@ public class CookingPotResultSlot extends ItemHandlerSlot
 
 	@Override
 	protected void onCrafted(ItemStack stack) {
-		stack.onCraftByPlayer(this.player.getWorld(), this.player, this.removeCount);
+		//stack.onCraftByPlayer(this.player.getWorld(), this.player, this.removeCount);
 
 		if (!this.player.getWorld().isClient) {
-			tileEntity.unlockLastRecipe(this.player, tileEntity.getDroppableInventory());
+			//tileEntity.unlockLastRecipe(this.player, tileEntity.getDroppableInventory());
 		}
 
 		this.removeCount = 0;

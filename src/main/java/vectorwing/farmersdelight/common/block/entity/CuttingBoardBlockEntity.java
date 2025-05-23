@@ -68,8 +68,8 @@ public class CuttingBoardBlockEntity extends SyncedBlockEntity
 	@Override
 	public void readNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
 		super.readNbt(compound, registries);
-		isItemCarvingBoard = compound.getBoolean("IsItemCarved");
-		inventory.deserializeNBT(registries, compound.getCompound("Inventory"));
+		isItemCarvingBoard = compound.getBoolean("IsItemCarved").orElseThrow();
+		inventory.deserializeNBT(registries, compound.getCompound("Inventory").orElseThrow());
 	}
 
 	@Override
@@ -87,9 +87,9 @@ public class CuttingBoardBlockEntity extends SyncedBlockEntity
 		Optional<RecipeEntry<CuttingBoardRecipe>> matchingRecipe = getMatchingRecipe(toolStack, player);
 
 		matchingRecipe.ifPresent(recipe -> {
-			List<ItemStack> results = recipe.value().rollResults(world.random, EnchantmentHelper.getLevel(world.getRegistryManager().registryOrThrow(RegistryKeys.ENCHANTMENT).getHolderOrThrow(Enchantments.FORTUNE), toolStack));
+			List<ItemStack> results = recipe.value().rollResults(world.random, EnchantmentHelper.getLevel(world.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), toolStack));
 			for (ItemStack resultStack : results) {
-				Direction direction = getCachedState().get(CuttingBoardBlock.FACING).getCounterClockWise();
+				Direction direction = getCachedState().get(CuttingBoardBlock.FACING).rotateYCounterclockwise();
 				ItemUtils.spawnItemEntity(world, resultStack.copy(),
 						pos.getX() + 0.5 + (direction.getOffsetX() * 0.2), pos.getY() + 0.2, pos.getZ() + 0.5 + (direction.getOffsetZ() * 0.2),
 						direction.getOffsetX() * 0.2F, 0.0F, direction.getOffsetZ() * 0.2F);
@@ -112,7 +112,7 @@ public class CuttingBoardBlockEntity extends SyncedBlockEntity
 	private Optional<RecipeEntry<CuttingBoardRecipe>> getMatchingRecipe(ItemStack toolStack, @Nullable PlayerEntity player) {
 		if (world == null) return Optional.empty();
 
-		Optional<RecipeEntry<CuttingBoardRecipe>> recipe = quickCheck.getFirstMatch(new CuttingBoardRecipeInput(getStoredItem(), toolStack), world);
+		Optional<RecipeEntry<CuttingBoardRecipe>> recipe = quickCheck.getFirstMatch(new CuttingBoardRecipeInput(getStoredItem(), toolStack), (ServerWorld) world);
 		if (recipe.isPresent()) {
 			if (recipe.get().value().getTool().test(toolStack)) {
 				return recipe;

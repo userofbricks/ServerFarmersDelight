@@ -22,9 +22,7 @@ public class CuttingBoardTrigger extends AbstractCriterion<CuttingBoardTrigger.T
 		this.trigger(player, TriggerInstance::test);
 	}
 
-	public static record TriggerInstance(
-			Optional<LootContextPredicate> player) implements SimpleInstance
-	{
+	public record TriggerInstance(Optional<LootContextPredicate> player) implements Conditions {
 		public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(
 				builder -> builder.group(
 								EntityPredicate.LOOT_CONTEXT_PREDICATE_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player))

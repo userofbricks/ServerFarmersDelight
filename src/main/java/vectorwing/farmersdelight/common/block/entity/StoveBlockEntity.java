@@ -11,6 +11,7 @@ import net.minecraft.recipe.RecipeType;
 import net.minecraft.recipe.ServerRecipeManager;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -19,7 +20,6 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
-import net.minecraft.world.item.crafting.*;
 import vectorwing.farmersdelight.common.block.StoveBlock;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 import vectorwing.farmersdelight.common.utility.ItemUtils;
@@ -50,17 +50,17 @@ public class StoveBlockEntity extends SyncedBlockEntity
 	public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registries) {
 		super.readNbt(tag, registries);
 		if (tag.contains("Inventory")) {
-			inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
+			inventory.deserializeNBT(registries, tag.getCompound("Inventory").orElseThrow());
 		} else {
 			inventory.deserializeNBT(registries, tag);
 		}
-		if (tag.contains("CookingTimes", 11)) {
-			int[] arrayCookingTimes = tag.getIntArray("CookingTimes");
+		if (tag.contains("CookingTimes")) {
+			int[] arrayCookingTimes = tag.getIntArray("CookingTimes").orElseThrow();
 			System.arraycopy(arrayCookingTimes, 0, cookingTimes, 0, Math.min(cookingTimesTotal.length, arrayCookingTimes.length));
 		}
 
-		if (tag.contains("CookingTotalTimes", 11)) {
-			int[] arrayCookingTimesTotal = tag.getIntArray("CookingTotalTimes");
+		if (tag.contains("CookingTotalTimes")) {
+			int[] arrayCookingTimesTotal = tag.getIntArray("CookingTotalTimes").orElseThrow();
 			System.arraycopy(arrayCookingTimesTotal, 0, cookingTimesTotal, 0, Math.min(cookingTimesTotal.length, arrayCookingTimesTotal.length));
 		}
 	}
@@ -127,7 +127,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 				if (cookingTimes[i] >= cookingTimesTotal[i]) {
 					Optional<RecipeEntry<CampfireCookingRecipe>> recipe = getMatchingRecipe(stoveStack);
 					if (recipe.isPresent()) {
-						ItemStack resultStack = recipe.get().value().getResultItem(world.getRegistryManager());
+						ItemStack resultStack = recipe.get().value().craft(new SingleStackRecipeInput(stoveStack), world.getRegistryManager());
 						if (!resultStack.isEmpty()) {ItemUtils.spawnItemEntity(world, resultStack.copy(),
 									pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
 									world.random.nextGaussian() * (double) 0.01F, 0.1F, world.random.nextGaussian() * (double) 0.01F);
@@ -170,7 +170,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 
 	public Optional<RecipeEntry<CampfireCookingRecipe>> getMatchingRecipe(ItemStack stack) {
 		if (world == null) return Optional.empty();
-		return this.quickCheck.getFirstMatch(new SingleStackRecipeInput(stack), this.world);
+		return this.quickCheck.getFirstMatch(new SingleStackRecipeInput(stack), (ServerWorld) this.world);
 	}
 
 	public ItemStackHandler getInventory() {

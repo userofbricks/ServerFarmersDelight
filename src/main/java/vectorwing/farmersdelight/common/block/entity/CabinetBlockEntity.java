@@ -126,7 +126,7 @@ public class CabinetBlockEntity extends LootableContainerBlockEntity
 	private void playSound(BlockState state, SoundEvent sound) {
 		if (world == null) return;
 
-		Vec3i cabinetFacingVector = state.get(CabinetBlock.FACING).getNormal();
+		Vec3i cabinetFacingVector = state.get(CabinetBlock.FACING).getVector();
 		double x = (double) pos.getX() + 0.5D + (double) cabinetFacingVector.getX() / 2.0D;
 		double y = (double) pos.getY() + 0.5D + (double) cabinetFacingVector.getY() / 2.0D;
 		double z = (double) pos.getZ() + 0.5D + (double) cabinetFacingVector.getZ() / 2.0D;

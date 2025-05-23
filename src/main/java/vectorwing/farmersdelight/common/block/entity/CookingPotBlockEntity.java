@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.ComponentMap;
+import net.minecraft.component.ComponentsAccess;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,10 +20,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeUnlocker;
 import net.minecraft.recipe.ServerRecipeManager;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -58,7 +62,7 @@ import java.util.stream.IntStream;
 
 import static java.util.Map.entry;
 
-public class CookingPotBlockEntity extends SyncedBlockEntity implements ExtendedScreenHandlerFactory<BlockPos>, HeatableBlockEntity, Nameable, RecipeUnlocker
+public class CookingPotBlockEntity extends SyncedBlockEntity implements ExtendedScreenHandlerFactory<BlockPos>, HeatableBlockEntity, Nameable
 {
 	public static final int MEAL_DISPLAY_SLOT = 6;
 	public static final int CONTAINER_SLOT = 7;
@@ -93,7 +97,6 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	private Text customName;
 
 	protected final PropertyDelegate cookingPotData;
-	private final Object2IntOpenHashMap<Identifier> usedRecipeTracker;
 
 	private final ServerRecipeManager.MatchGetter<RecipeWrapper, CookingPotRecipe> quickCheck;
 
@@ -104,28 +107,12 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 		this.outputHandler = new CookingPotItemHandler(inventory, Direction.DOWN);
 		this.mealContainerStack = ItemStack.EMPTY;
 		this.cookingPotData = createIntArray();
-		this.usedRecipeTracker = new Object2IntOpenHashMap<>();
 		this.quickCheck = ServerRecipeManager.createCachedMatchGetter(ModRecipeTypes.COOKING.get());
 	}
 
 	public static void init() {
 		ItemStorage.SIDED.registerForBlockEntity(CookingPotBlockEntity::getStorage, ModBlockEntityTypes.COOKING_POT.get());
 	}
-
-	/*
-	public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-		event.registerBlockEntity(
-				Capabilities.ItemHandler.BLOCK,
-				ModBlockEntityTypes.COOKING_POT.get(),
-				(be, context) -> {
-					if (context == Direction.UP) {
-						return be.inputHandler;
-					}
-					return be.outputHandler;
-				}
-		);
-	}
-	 */
 
 	public static ItemStack getMealFromItem(ItemStack cookingPotStack) {
 		if (!cookingPotStack.isOf(ModItems.COOKING_POT.get())) {
@@ -155,16 +142,12 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	@Override
 	public void readNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
 		super.readNbt(compound, registries);
-		inventory.deserializeNBT(registries, compound.getCompound("Inventory"));
-		cookTime = compound.getInt("CookTime");
-		cookTimeTotal = compound.getInt("CookTimeTotal");
-		mealContainerStack = ItemStack.parseOptional(registries, compound.getCompound("Container"));
-		if (compound.contains("CustomName", 8)) {
-			customName = Text.Serialization.fromJson(compound.getString("CustomName"), registries);
-		}
-		NbtCompound compoundRecipes = compound.getCompound("RecipesUsed");
-		for (String key : compoundRecipes.getAllKeys()) {
-			usedRecipeTracker.put(Identifier.of(key), compoundRecipes.getInt(key));
+		inventory.deserializeNBT(registries, compound.getCompound("Inventory").orElseThrow());
+		cookTime = compound.getInt("CookTime").orElseThrow();
+		cookTimeTotal = compound.getInt("CookTimeTotal").orElseThrow();
+		mealContainerStack = compound.get("Container", ItemStack.OPTIONAL_CODEC, registries.getOps(NbtOps.INSTANCE)).orElseThrow();
+		if (compound.contains("CustomName")) {
+			customName = Text.Serialization.fromJson(compound.getString("CustomName").orElseThrow(), registries);
 		}
 	}
 
@@ -173,19 +156,16 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 		super.writeNbt(compound, registries);
 		compound.putInt("CookTime", cookTime);
 		compound.putInt("CookTimeTotal", cookTimeTotal);
-		compound.put("Container", mealContainerStack.saveOptional(registries));
+		compound.put("Container", ItemStack.OPTIONAL_CODEC, registries.getOps(NbtOps.INSTANCE), mealContainerStack);
 		if (customName != null) {
 			compound.putString("CustomName", Text.Serialization.toJsonString(customName, registries));
 		}
 		compound.put("Inventory", inventory.serializeNBT(registries));
-		NbtCompound compoundRecipes = new NbtCompound();
-		usedRecipeTracker.forEach((recipeId, craftedAmount) -> compoundRecipes.putInt(recipeId.toString(), craftedAmount));
-		compound.put("RecipesUsed", compoundRecipes);
 	}
 
 	private NbtCompound writeItems(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
 		super.writeNbt(compound, registries);
-		compound.put("Container", mealContainerStack.saveOptional(registries));
+		compound.put("Container", ItemStack.OPTIONAL_CODEC, registries.getOps(NbtOps.INSTANCE), mealContainerStack);
 		compound.put("Inventory", inventory.serializeNBT(registries));
 		return compound;
 	}
@@ -264,8 +244,8 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	}
 
 	private Optional<RecipeEntry<CookingPotRecipe>> getMatchingRecipe(RecipeWrapper inventoryWrapper) {
-		if (world == null) return Optional.empty();
-		return hasInput() ? quickCheck.getFirstMatch(inventoryWrapper, this.world) : Optional.empty();
+		if (!(world instanceof ServerWorld)) return Optional.empty();
+		return hasInput() ? quickCheck.getFirstMatch(inventoryWrapper, (ServerWorld) this.world) : Optional.empty();
 	}
 
 	public ItemStack getContainer() {
@@ -324,7 +304,6 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 		} else if (ItemStack.areItemsEqual(storedMealStack, resultStack)) {
 			storedMealStack.increment(resultStack.getCount());
 		}
-		cookingPot.setLastRecipe(recipe);
 
 		for (int i = 0; i < MEAL_DISPLAY_SLOT; ++i) {
 			ItemStack slotStack = inventory.getStackInSlot(i);
@@ -342,56 +321,13 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	}
 
 	protected void ejectIngredientRemainder(ItemStack remainderStack) {
-		Direction direction = getCachedState().get(CookingPotBlock.FACING).getCounterClockWise();
+		Direction direction1 = getCachedState().get(CookingPotBlock.FACING);
+		Direction direction = direction1.rotateYCounterclockwise();
 		double x = pos.getX() + 0.5 + (direction.getOffsetX() * 0.25);
 		double y = pos.getY() + 0.7;
 		double z = pos.getZ() + 0.5 + (direction.getOffsetZ() * 0.25);
 		ItemUtils.spawnItemEntity(world, remainderStack, x, y, z,
 				direction.getOffsetX() * 0.08F, 0.25F, direction.getOffsetZ() * 0.08F);
-	}
-
-	@Override
-	public void setLastRecipe(@Nullable RecipeEntry<?> recipe) {
-		if (recipe != null) {
-			Identifier recipeID = recipe.id();
-			usedRecipeTracker.addTo(recipeID, 1);
-		}
-	}
-
-	@Nullable
-	@Override
-	public RecipeEntry<?> getLastRecipe() {
-		return null;
-	}
-
-	@Override
-	public void unlockLastRecipe(PlayerEntity player, List<ItemStack> items) {
-		List<RecipeEntry<?>> usedRecipes = getUsedRecipesAndPopExperience(player.getWorld(), player.getPos());
-		player.unlockRecipes(usedRecipes);
-		usedRecipeTracker.clear();
-	}
-
-	public List<RecipeEntry<?>> getUsedRecipesAndPopExperience(World level, Vec3d pos) {
-		List<RecipeEntry<?>> list = Lists.newArrayList();
-
-		for (Object2IntMap.Entry<Identifier> entry : usedRecipeTracker.object2IntEntrySet()) {
-			level.getRecipeManager().byKey(entry.getKey()).ifPresent((recipe) -> {
-				list.add(recipe);
-				splitAndSpawnExperience((ServerLevel) level, pos, entry.getIntValue(), ((CookingPotRecipe) recipe.value()).getExperience());
-			});
-		}
-
-		return list;
-	}
-
-	private static void splitAndSpawnExperience(ServerWorld level, Vec3d pos, int craftedAmount, float experience) {
-		int expTotal = MathHelper.floor((float) craftedAmount * experience);
-		float expFraction = MathHelper.fractionalPart((float) craftedAmount * experience);
-		if (expFraction != 0.0F && Math.random() < (double) expFraction) {
-			++expTotal;
-		}
-
-		ExperienceOrbEntity.spawn(level, pos, expTotal);
 	}
 
 	public boolean isHeated() {
@@ -514,7 +450,7 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	}
 
 	@Override
-	protected void applyImplicitComponents(DataComponentInput componentInput) {
+	protected void readComponents(ComponentsAccess componentInput) {
 		super.readComponents(componentInput);
 		this.customName = componentInput.get(DataComponentTypes.CUSTOM_NAME);
 		getInventory().setStackInSlot(MEAL_DISPLAY_SLOT, componentInput.getOrDefault(ModDataComponents.MEAL.get(), ItemStackWrapper.EMPTY).getStack());
