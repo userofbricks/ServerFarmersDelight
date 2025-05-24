@@ -15,15 +15,17 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 ;
 
-@SuppressWarnings("deprecation")
 public class SafetyNetBlock extends Block implements Waterloggable
 {
 	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -46,12 +48,12 @@ public class SafetyNetBlock extends Block implements Waterloggable
 	}
 
 	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		if (stateIn.get(WATERLOGGED)) {
-			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
+	public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
+		if (state.get(WATERLOGGED)) {
+			tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
 		}
 
-		return super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
+		return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
 	}
 
 	@Override
@@ -65,7 +67,7 @@ public class SafetyNetBlock extends Block implements Waterloggable
 	}
 
 	@Override
-	public void fallOn(World level, BlockState state, BlockPos pos, Entity entityIn, float fallDistance) {
+	public void onLandedUpon(World level, BlockState state, BlockPos pos, Entity entityIn, double fallDistance) {
 		if (entityIn.bypassesLandingEffects()) {
 			super.onLandedUpon(level, state, pos, entityIn, fallDistance);
 		} else {
@@ -74,9 +76,9 @@ public class SafetyNetBlock extends Block implements Waterloggable
 	}
 
 	@Override
-	public void updateEntityAfterFallOn(BlockView level, Entity entityIn) {
+	public void onEntityLand(BlockView level, Entity entityIn) {
 		if (entityIn.bypassesLandingEffects()) {
-			super.updateEntityAfterFallOn(level, entityIn);
+			super.onEntityLand(level, entityIn);
 		} else {
 			this.bounceEntity(entityIn);
 		}

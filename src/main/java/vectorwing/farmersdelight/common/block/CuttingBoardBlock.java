@@ -10,6 +10,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.Waterloggable;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -36,15 +37,13 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.CuttingBoardBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
@@ -62,7 +61,7 @@ public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 
 	public CuttingBoardBlock(Settings properties) {
 		super(properties);
-		this.setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
+		this.setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(WATERLOGGED, false));
 	}
 
 	public static void init() {
@@ -85,7 +84,7 @@ public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	public ActionResult onUseWithItem(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		BlockEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof CuttingBoardBlockEntity cuttingBoardEntity) {
 			ItemStack heldStack = player.getStackInHand(hand);
@@ -94,26 +93,26 @@ public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 			if (cuttingBoardEntity.isEmpty()) {
 				if (!offhandStack.isEmpty()) {
 					if (hand.equals(Hand.MAIN_HAND) && !offhandStack.isIn(ModTags.OFFHAND_EQUIPMENT) && !(heldStack.getItem() instanceof BlockItem)) {
-						return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION; // Pass to off-hand if that item is placeable
+						return ActionResult.PASS; // Pass to off-hand if that item is placeable
 					}
 					if (hand.equals(Hand.OFF_HAND) && offhandStack.isIn(ModTags.OFFHAND_EQUIPMENT)) {
-						return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION; // Items in this tag should not be placed from the off-hand
+						return ActionResult.PASS; // Items in this tag should not be placed from the off-hand
 					}
 				}
 				if (heldStack.isEmpty()) {
-					return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+					return ActionResult.PASS;
 				} else if (cuttingBoardEntity.addItem(player.getAbilities().creativeMode ? heldStack.copy() : heldStack)) {
 					level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.BLOCKS, 1.0F, 0.8F);
-					return ItemInteractionResult.SUCCESS;
+					return ActionResult.SUCCESS;
 				}
 
 			} else if (!heldStack.isEmpty()) {
 				ItemStack boardStack = cuttingBoardEntity.getStoredItem().copy();
 				if (cuttingBoardEntity.processStoredItemUsingTool(heldStack, player)) {
 					spawnCuttingParticles(level, pos, boardStack, 5);
-					return ItemInteractionResult.SUCCESS;
+					return ActionResult.SUCCESS;
 				}
-				return ItemInteractionResult.CONSUME;
+				return ActionResult.CONSUME;
 
 			} else if (hand.equals(Hand.MAIN_HAND)) {
 				if (!player.isCreative()) {
@@ -124,25 +123,23 @@ public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 					cuttingBoardEntity.removeItem();
 				}
 				level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_WOOD_HIT, SoundCategory.BLOCKS, 0.25F, 0.5F);
-				return ItemInteractionResult.SUCCESS;
+				return ActionResult.SUCCESS;
 			}
 		}
-		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return ActionResult.PASS;
 	}
 
 	@Override
-	public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (state.getBlock() == newState.getBlock()) {
-			return;
+	public BlockState onBreak(World level, BlockPos pos, BlockState state, PlayerEntity player) {
+		if (state.getBlock() == level.getBlockState(pos).getBlock()) {
+			return state;
 		}
-
 		BlockEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof CuttingBoardBlockEntity cuttingBoard) {
 			ItemScatterer.spawn(level, pos.getX(), pos.getY(), pos.getZ(), cuttingBoard.getStoredItem());
 			level.updateComparators(pos, this);
 		}
-
-		super.onRemove(state, level, pos, newState, isMoving);
+		return super.onBreak(level, pos, state, player);
 	}
 
 	@Override
@@ -154,17 +151,14 @@ public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 	public BlockState getPlacementState(ItemPlacementContext context) {
 		FluidState fluid = context.getWorld().getFluidState(context.getBlockPos());
 		return this.getDefaultState().with(FACING, context.getHorizontalPlayerFacing().getOpposite())
-				.setValue(WATERLOGGED, fluid.getFluid() == Fluids.WATER);
+				.with(WATERLOGGED, fluid.getFluid() == Fluids.WATER);
 	}
 
 	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		if (stateIn.get(WATERLOGGED)) {
+	public void onStateReplaced(BlockState state, ServerWorld level, BlockPos currentPos, boolean moved) {
+		if (state.get(WATERLOGGED)) {
 			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
 		}
-		return facing == Direction.DOWN && !stateIn.canPlaceAt(level, currentPos)
-				? Blocks.AIR.getDefaultState()
-				: super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
 	}
 
 	@Override
@@ -236,7 +230,7 @@ public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 			BlockEntity tileEntity = level.getBlockEntity(pos);
 
 			if (player.shouldCancelInteraction() && !heldStack.isEmpty() && tileEntity instanceof CuttingBoardBlockEntity) {
-				if (heldStack.getItem() instanceof TieredItem ||
+				if (heldStack.contains(DataComponentTypes.TOOL) ||
 						heldStack.getItem() instanceof TridentItem ||
 						heldStack.getItem() instanceof ShearsItem) {
 					boolean success = ((CuttingBoardBlockEntity) tileEntity).carveToolOnBoard(player.getAbilities().creativeMode ? heldStack.copy() : heldStack);

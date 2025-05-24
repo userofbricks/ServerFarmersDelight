@@ -8,7 +8,6 @@ import net.minecraft.block.TallPlantBlock;
 import net.minecraft.block.Waterloggable;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -25,13 +24,11 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 
-@SuppressWarnings("deprecation")
 public class WildRiceBlock extends TallPlantBlock implements Waterloggable, Fertilizable
 {
 	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -72,11 +69,11 @@ public class WildRiceBlock extends TallPlantBlock implements Waterloggable, Fert
 	}
 
 	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		BlockState currentState = super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
+	public BlockState getStateForNeighborUpdate(BlockState stateIn, WorldView level, ScheduledTickView tickView, BlockPos currentPos, Direction facing, BlockPos facingPos, BlockState facingState, Random random) {
+		BlockState currentState = super.getStateForNeighborUpdate(stateIn, level, tickView, currentPos, facing, facingPos, facingState, random);
 		DoubleBlockHalf half = stateIn.get(HALF);
 		if (!currentState.isAir()) {
-			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
+			tickView.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
 		}
 		if (facing.getAxis() != Direction.Axis.Y || half == DoubleBlockHalf.LOWER != (facing == Direction.UP) || facingState.getBlock() == this && facingState.get(HALF) != half) {
 			return half == DoubleBlockHalf.LOWER && facing == Direction.DOWN && !stateIn.canPlaceAt(level, currentPos) ? Blocks.AIR.getDefaultState() : stateIn;
@@ -90,7 +87,7 @@ public class WildRiceBlock extends TallPlantBlock implements Waterloggable, Fert
 	public BlockState getPlacementState(ItemPlacementContext context) {
 		BlockPos pos = context.getBlockPos();
 		FluidState fluid = context.getWorld().getFluidState(context.getBlockPos());
-		return pos.getY() < context.getWorld().getMaxBuildHeight() - 1
+		return pos.getY() < context.getWorld().getHeight() - 1
 				&& fluid.isIn(FluidTags.WATER)
 				&& fluid.getLevel() == 8
 				&& context.getWorld().getBlockState(pos.up()).isAir()
@@ -98,7 +95,7 @@ public class WildRiceBlock extends TallPlantBlock implements Waterloggable, Fert
 	}
 
 	@Override
-	public boolean canPlaceLiquid(@Nullable PlayerEntity player, BlockView level, BlockPos pos, BlockState state, Fluid fluidIn) {
+	public boolean canFillWithFluid(@Nullable LivingEntity filler, BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
 		return state.get(HALF) == DoubleBlockHalf.LOWER;
 	}
 

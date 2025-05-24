@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
@@ -13,12 +14,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
-@SuppressWarnings("deprecation")
 public class RiceBaleBlock extends Block
 {
-	public static final DirectionProperty FACING = Properties.FACING;
+	public static final EnumProperty<Direction> FACING = Properties.FACING;
 
 	public RiceBaleBlock(Settings properties) {
 		super(properties);
@@ -27,7 +26,7 @@ public class RiceBaleBlock extends Block
 	}
 
 	@Override
-	public void fallOn(World level, BlockState state, BlockPos pos, Entity entityIn, float fallDistance) {
+	public void onLandedUpon(World level, BlockState state, BlockPos pos, Entity entityIn, double fallDistance) {
 		entityIn.handleFallDamage(fallDistance, 0.2F, level.getDamageSources().fall());
 	}
 

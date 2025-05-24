@@ -8,6 +8,7 @@ import net.minecraft.block.BushBlock;
 import net.minecraft.block.FarmlandBlock;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCollisionHandler;
 import net.minecraft.entity.mob.RavagerEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
@@ -28,7 +29,7 @@ import vectorwing.farmersdelight.common.registry.ModItems;
  * Once mature, a budding bush can "grow past" it, and turn into something different.
  */
 @SuppressWarnings("deprecation")
-public class BuddingBushBlock extends BushBlock
+public class BuddingBushBlock extends FDBushBlock
 {
 	public static final MapCodec<BuddingBushBlock> CODEC = createCodec(BuddingBushBlock::new);
 
@@ -46,7 +47,7 @@ public class BuddingBushBlock extends BushBlock
 	}
 
 	@Override
-	protected MapCodec<? extends BushBlock> getCodec() {
+	public MapCodec<BuddingBushBlock> getCodec() {
 		return CODEC;
 	}
 
@@ -157,22 +158,12 @@ public class BuddingBushBlock extends BushBlock
 		return (level.getBaseLightLevel(pos, 0) >= 8 || level.isSkyVisible(pos)) && super.canPlaceAt(state, level, pos);
 	}
 
-
-	@Override
-	public void entityInside(BlockState state, World level, BlockPos pos, Entity entity) {
-		if (entity instanceof RavagerEntity && level.getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
-			level.breakBlock(pos, true, entity);
-		}
-
-		super.onEntityCollision(state, level, pos, entity);
-	}
-
 	protected ItemConvertible getBaseSeedId() {
 		return ModItems.TOMATO_SEEDS.get();
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(WorldView level, BlockPos pos, BlockState state) {
+	public ItemStack getPickStack(WorldView level, BlockPos pos, BlockState state, boolean includeData) {
 		return new ItemStack(getBaseSeedId());
 	}
 

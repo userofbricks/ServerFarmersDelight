@@ -12,6 +12,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
+import net.minecraft.world.tick.ScheduledTickView;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 
 public class BuddingTomatoBlock extends BuddingBushBlock implements Fertilizable
@@ -26,11 +27,11 @@ public class BuddingTomatoBlock extends BuddingBushBlock implements Fertilizable
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+	public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
 		if (state.get(BuddingBushBlock.AGE) == 4) {
-			level.setBlockState(currentPos, ModBlocks.TOMATO_CROP.get().getDefaultState(), 3);
+			world.getChunk(pos).setBlockState(pos, ModBlocks.TOMATO_CROP.get().getDefaultState(), 3);
 		}
-		return super.getStateForNeighborUpdate(state, facing, facingState, level, currentPos, facingPos);
+		return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
 	}
 
 	@Override

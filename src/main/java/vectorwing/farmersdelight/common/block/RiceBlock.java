@@ -3,10 +3,10 @@ package vectorwing.farmersdelight.common.block;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.BushBlock;
 import net.minecraft.block.Fertilizable;
 import net.minecraft.block.FluidFillable;
 import net.minecraft.block.ShapeContext;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
@@ -34,7 +34,7 @@ import vectorwing.farmersdelight.common.registry.ModBlocks;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
 @SuppressWarnings("deprecation")
-public class RiceBlock extends BushBlock implements Fertilizable, FluidFillable
+public class RiceBlock extends FDBushBlock implements Fertilizable, FluidFillable
 {
 	public static final MapCodec<RiceBlock> CODEC = createCodec(RiceBlock::new);
 
@@ -52,7 +52,7 @@ public class RiceBlock extends BushBlock implements Fertilizable, FluidFillable
 	}
 
 	@Override
-	protected MapCodec<? extends BushBlock> getCodec() {
+	public MapCodec<RiceBlock> getCodec() {
 		return CODEC;
 	}
 
@@ -107,7 +107,7 @@ public class RiceBlock extends BushBlock implements Fertilizable, FluidFillable
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(WorldView level, BlockPos pos, BlockState state) {
+	public ItemStack getPickStack(WorldView level, BlockPos pos, BlockState state, boolean includeData) {
 		return new ItemStack(ModItems.RICE.get());
 	}
 
@@ -122,23 +122,6 @@ public class RiceBlock extends BushBlock implements Fertilizable, FluidFillable
 	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(AGE, SUPPORTING);
-	}
-
-	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		BlockState state = super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
-		if (!state.isAir()) {
-			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
-			if (facing == Direction.UP) {
-				return state.with(SUPPORTING, isSupportingRiceUpper(facingState));
-			}
-		}
-
-		return state;
-	}
-
-	public boolean isSupportingRiceUpper(BlockState topState) {
-		return topState.getBlock() == ModBlocks.RICE_CROP_PANICLES.get();
 	}
 
 	@Override
@@ -195,7 +178,7 @@ public class RiceBlock extends BushBlock implements Fertilizable, FluidFillable
 	}
 
 	@Override
-	public boolean canPlaceLiquid(@Nullable PlayerEntity player, BlockView level, BlockPos pos, BlockState state, Fluid fluidIn) {
+	public boolean canFillWithFluid(@Nullable LivingEntity filler, BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
 		return false;
 	}
 

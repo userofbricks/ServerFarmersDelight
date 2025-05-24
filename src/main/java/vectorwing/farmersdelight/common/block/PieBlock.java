@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
@@ -23,11 +24,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import vectorwing.farmersdelight.common.tag.ModTags;
 import vectorwing.farmersdelight.common.utility.ItemUtils;
 
@@ -36,7 +35,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("deprecation")
 public class PieBlock extends Block
 {
-	public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
 	public static final IntProperty BITES = IntProperty.of("bites", 0, 3);
 
 	protected static final VoxelShape SHAPE = Block.createCuboidShape(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
@@ -46,7 +45,7 @@ public class PieBlock extends Block
 	public PieBlock(Settings properties, Supplier<Item> pieSlice) {
 		super(properties);
 		this.pieSlice = pieSlice;
-		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).setValue(BITES, 0));
+		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).with(BITES, 0));
 	}
 
 	public ItemStack getPieSliceItem() {
@@ -68,12 +67,12 @@ public class PieBlock extends Block
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	public ActionResult onUseWithItem(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		if (heldStack.isIn(ModTags.KNIVES)) {
 			return cutSlice(level, pos, state, player);
 		}
 
-		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
 	}
 
 	protected ActionResult onUse(BlockState state, World level, BlockPos pos, PlayerEntity player, BlockHitResult hitResult) {
@@ -102,11 +101,11 @@ public class PieBlock extends Block
 
 			if (sliceFood != null) {
 				playerIn.getHungerManager().eat(sliceFood);
-				for (FoodComponent.PossibleEffect effect : sliceFood.effects()) {
+				/*for (FoodComponent.PossibleEffect effect : sliceFood.onConsume();) {
 					if (!level.isClient && effect != null && level.random.nextFloat() < effect.probability()) {
 						playerIn.addStatusEffect(effect.effect());
 					}
-				}
+				}*/
 			}
 
 			int bites = state.get(BITES);
@@ -115,7 +114,7 @@ public class PieBlock extends Block
 			} else {
 				level.removeBlock(pos, false);
 			}
-			level.playSound(null, pos, SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.PLAYERS, 0.8F, 0.8F);
+			level.playSound(null, pos, SoundEvents.ENTITY_GENERIC_EAT.value(), SoundCategory.PLAYERS, 0.8F, 0.8F);
 			return ActionResult.SUCCESS;
 		}
 	}
@@ -123,7 +122,7 @@ public class PieBlock extends Block
 	/**
 	 * Cuts off a bite and drops a slice item, without feeding the player.
 	 */
-	protected ItemInteractionResult cutSlice(World level, BlockPos pos, BlockState state, PlayerEntity player) {
+	protected ActionResult cutSlice(World level, BlockPos pos, BlockState state, PlayerEntity player) {
 		int bites = state.get(BITES);
 		if (bites < getMaxBites() - 1) {
 			level.setBlockState(pos, state.with(BITES, bites + 1), 3);
@@ -135,12 +134,7 @@ public class PieBlock extends Block
 		ItemUtils.spawnItemEntity(level, this.getPieSliceItem(), pos.getX() + 0.5, pos.getY() + 0.3, pos.getZ() + 0.5,
 				direction.getOffsetX() * 0.15, 0.05, direction.getOffsetZ() * 0.15);
 		level.playSound(null, pos, SoundEvents.BLOCK_WOOL_BREAK, SoundCategory.PLAYERS, 0.8F, 0.8F);
-		return ItemInteractionResult.SUCCESS;
-	}
-
-	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		return facing == Direction.DOWN && !stateIn.canPlaceAt(level, currentPos) ? Blocks.AIR.getDefaultState() : super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
+		return ActionResult.SUCCESS;
 	}
 
 	@Override

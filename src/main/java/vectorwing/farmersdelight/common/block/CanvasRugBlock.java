@@ -19,9 +19,4 @@ public class CanvasRugBlock extends Block
 	public VoxelShape getOutlineShape(BlockState state, BlockView level, BlockPos pos, ShapeContext context) {
 		return SHAPE;
 	}
-
-	@Override
-	public boolean propagatesSkylightDown(BlockState state, BlockView reader, BlockPos pos) {
-		return true;
-	}
 }

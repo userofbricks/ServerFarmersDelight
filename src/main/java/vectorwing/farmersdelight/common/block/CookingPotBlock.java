@@ -15,6 +15,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -22,21 +23,19 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.CookingPotBlockEntity;
 import vectorwing.farmersdelight.common.block.state.CookingPotSupport;
@@ -48,11 +47,10 @@ import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
 import java.util.Optional;
 
-@SuppressWarnings("deprecation")
 public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
     public static final MapCodec<CookingPotBlock> CODEC = createCodec(CookingPotBlock::new);
 
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
     public static final EnumProperty<CookingPotSupport> SUPPORT = EnumProperty.of("support", CookingPotSupport.class);
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
@@ -61,7 +59,7 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
 
     public CookingPotBlock(Settings properties) {
         super(properties);
-        this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).setValue(SUPPORT, CookingPotSupport.NONE).setValue(WATERLOGGED, false));
+        this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).with(SUPPORT, CookingPotSupport.NONE).with(WATERLOGGED, false));
     }
 
     @Override
@@ -70,7 +68,7 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
     }
 
     @Override
-    public ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult result) {
+    public ActionResult onUseWithItem(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult result) {
         if (heldStack.isEmpty() && player.isSneaking()) {
             level.setBlockState(pos, state.with(SUPPORT, state.get(SUPPORT).equals(CookingPotSupport.HANDLE)
                     ? getTrayState(level, pos) : CookingPotSupport.HANDLE));
@@ -88,9 +86,9 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
                     player.openHandledScreen(cookingPotEntity);
                 }
             }
-            return ItemInteractionResult.SUCCESS;
+            return ActionResult.SUCCESS;
         }
-        return ItemInteractionResult.SUCCESS;
+        return ActionResult.SUCCESS;
     }
 
     @Override
@@ -116,7 +114,7 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
 
         BlockState state = this.getDefaultState()
                 .with(FACING, context.getHorizontalPlayerFacing().getOpposite())
-                .setValue(WATERLOGGED, fluid.getFluid() == Fluids.WATER);
+                .with(WATERLOGGED, fluid.getFluid() == Fluids.WATER);
 
         if (context.getSide().equals(Direction.DOWN)) {
             return state.with(SUPPORT, CookingPotSupport.HANDLE);
@@ -125,14 +123,10 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+    public void onStateReplaced(BlockState state, ServerWorld level, BlockPos currentPos, boolean moved) {
         if (state.get(WATERLOGGED)) {
             level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
         }
-        if (facing.getAxis().equals(Direction.Axis.Y) && !state.get(SUPPORT).equals(CookingPotSupport.HANDLE)) {
-            return state.with(SUPPORT, getTrayState(level, currentPos));
-        }
-        return state;
     }
 
     private CookingPotSupport getTrayState(WorldAccess level, BlockPos pos) {
@@ -143,8 +137,8 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
     }
 
     @Override
-    public ItemStack getCloneItemStack(WorldView level, BlockPos pos, BlockState state) {
-        ItemStack stack = super.getPickStack(level, pos, state);
+    public ItemStack getPickStack(WorldView level, BlockPos pos, BlockState state, boolean includeData) {
+        ItemStack stack = super.getPickStack(level, pos, state, includeData);
 
         Optional<CookingPotBlockEntity> cookingPot = level.getBlockEntity(pos, ModBlockEntityTypes.COOKING_POT.get());
         if (cookingPot.isPresent()) {
@@ -155,8 +149,8 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
     }
 
     @Override
-    public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (state.getBlock() != newState.getBlock()) {
+    public BlockState onBreak(World level, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (state.getBlock() != level.getBlockState(pos).getBlock()) {
             BlockEntity tileEntity = level.getBlockEntity(pos);
             if (tileEntity instanceof CookingPotBlockEntity cookingPotEntity) {
                 ItemScatterer.spawn(level, pos, cookingPotEntity.getDroppableInventory());
@@ -164,9 +158,11 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
                 level.updateComparators(pos, this);
             }
 
-            super.onRemove(state, level, pos, newState, isMoving);
+            return super.onBreak(level, pos, state, player);
         }
+        return super.onBreak(level, pos, state, player);
     }
+
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {

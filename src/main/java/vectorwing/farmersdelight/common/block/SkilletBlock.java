@@ -22,6 +22,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
@@ -32,11 +33,10 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.SkilletBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
@@ -45,7 +45,6 @@ import vectorwing.farmersdelight.common.tag.ModTags;
 
 import java.util.Optional;
 
-@SuppressWarnings("deprecation")
 public class SkilletBlock extends BlockWithEntity implements Waterloggable
 {
 	public static final MapCodec<SkilletBlock> CODEC = createCodec(SkilletBlock::new);
@@ -61,7 +60,7 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 
 	public SkilletBlock(Settings properties) {
 		super(properties);
-		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).setValue(SUPPORT, false).setValue(WATERLOGGED, false));
+		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).with(SUPPORT, false).with(WATERLOGGED, false));
 	}
 
 	@Override
@@ -70,7 +69,7 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	public ActionResult onUseWithItem(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		BlockEntity tileEntity = level.getBlockEntity(pos);
 		if (tileEntity instanceof SkilletBlockEntity skilletEntity) {
 			if (!level.isClient) {
@@ -81,7 +80,7 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 					if (!player.isCreative()) {
 						player.equipStack(heldSlot, extractedStack);
 					}
-					return ItemInteractionResult.SUCCESS;
+					return ActionResult.SUCCESS;
 				} else {
 					ItemStack remainderStack = skilletEntity.addItemToCook(heldStack, player);
 					if (remainderStack.getCount() != heldStack.getCount()) {
@@ -89,13 +88,13 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 							player.equipStack(heldSlot, remainderStack);
 						}
 						level.playSound(null, pos, SoundEvents.BLOCK_LANTERN_PLACE, SoundCategory.BLOCKS, 0.7F, 1.0F);
-						return ItemInteractionResult.SUCCESS;
+						return ActionResult.SUCCESS;
 					}
 				}
 			}
-			return ItemInteractionResult.CONSUME;
+			return ActionResult.CONSUME;
 		}
-		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
 	}
 
 	@Override
@@ -104,15 +103,16 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 	}
 
 	@Override
-	public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
-			BlockEntity tileEntity = level.getBlockEntity(pos);
+	public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+		if (state.getBlock() != world.getBlockState(pos).getBlock()) {
+			BlockEntity tileEntity = world.getBlockEntity(pos);
 			if (tileEntity instanceof SkilletBlockEntity) {
-				ItemScatterer.spawn(level, pos.getX(), pos.getY(), pos.getZ(), ((SkilletBlockEntity) tileEntity).getInventory().getStackInSlot(0));
+				ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), ((SkilletBlockEntity) tileEntity).getInventory().getStackInSlot(0));
 			}
 
-			super.onRemove(state, level, pos, newState, isMoving);
+			return super.onBreak(world, pos, state, player);
 		}
+		return super.onBreak(world, pos, state, player);
 	}
 
 	@Override
@@ -132,28 +132,28 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 
 		return this.getDefaultState()
 				.with(FACING, context.getHorizontalPlayerFacing())
-				.setValue(WATERLOGGED, fluid.getFluid() == Fluids.WATER)
-				.setValue(SUPPORT, getTrayState(context.getWorld(), context.getBlockPos()));
+				.with(WATERLOGGED, fluid.getFluid() == Fluids.WATER)
+				.with(SUPPORT, getTrayState(context.getWorld(), context.getBlockPos()));
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+	public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
 		if (state.get(WATERLOGGED)) {
-			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
+			tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
 		}
-		if (facing.getAxis().equals(Direction.Axis.Y)) {
-			return state.with(SUPPORT, getTrayState(level, currentPos));
+		if (direction.getAxis().equals(Direction.Axis.Y)) {
+			return state.with(SUPPORT, getTrayState(world, pos));
 		}
 		return state;
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(WorldView level, BlockPos pos, BlockState state) {
+	public ItemStack getPickStack(WorldView level, BlockPos pos, BlockState state, boolean allData) {
 		if (level.getBlockEntity(pos) instanceof SkilletBlockEntity skillet) {
 			return skillet.getSkilletAsItem();
 		}
 
-		return super.getPickStack(level, pos, state);
+		return super.getPickStack(level, pos, state, allData);
 	}
 
 	@Override
@@ -196,7 +196,7 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 		}
 	}
 
-	private boolean getTrayState(WorldAccess world, BlockPos pos) {
+	private boolean getTrayState(WorldView world, BlockPos pos) {
 		return world.getBlockState(pos.down()).isIn(ModTags.TRAY_HEAT_SOURCES);
 	}
 

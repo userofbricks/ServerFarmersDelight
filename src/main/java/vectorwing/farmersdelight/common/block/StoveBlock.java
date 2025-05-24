@@ -29,7 +29,9 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.Hand;
@@ -38,11 +40,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.StoveBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
@@ -60,11 +58,11 @@ public class StoveBlock extends BlockWithEntity
 	public static final MapCodec<StoveBlock> CODEC = createCodec(StoveBlock::new);
 
 	public static final BooleanProperty LIT = Properties.LIT;
-	public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
 
 	public StoveBlock(Settings properties) {
 		super(properties);
-		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).setValue(LIT, false));
+		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).with(LIT, false));
 		LandPathNodeTypesRegistry.registerDynamic(this, (state, world, pos, neighbor) -> getBlockPathType(state, world, pos));
 	}
 
@@ -74,14 +72,14 @@ public class StoveBlock extends BlockWithEntity
 	}
 
 	@Override
-	protected ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	protected ActionResult onUseWithItem(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		Item heldItem = heldStack.getItem();
 
 		if (state.get(LIT)) {
 			if (ItemAbility.SHOVEL_DIG.canPerformAction(heldStack)) {
 				extinguish(state, level, pos);
 				heldStack.damage(1, player, LivingEntity.getSlotForHand(hand));
-				return ItemInteractionResult.SUCCESS;
+				return ActionResult.SUCCESS;
 			} else if (heldItem == Items.WATER_BUCKET) {
 				if (!level.isClient()) {
 					level.playSound(null, pos, SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, 1.0F, 1.0F);
@@ -90,21 +88,21 @@ public class StoveBlock extends BlockWithEntity
 				if (!player.isCreative()) {
 					player.setStackInHand(hand, new ItemStack(Items.BUCKET));
 				}
-				return ItemInteractionResult.SUCCESS;
+				return ActionResult.SUCCESS;
 			}
 		} else {
 			if (heldItem instanceof FlintAndSteelItem) {
 				level.playSound(player, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, MathUtils.RAND.nextFloat() * 0.4F + 0.8F);
 				level.setBlockState(pos, state.with(Properties.LIT, Boolean.TRUE), 11);
 				heldStack.damage(1, player, LivingEntity.getSlotForHand(hand));
-				return ItemInteractionResult.SUCCESS;
+				return ActionResult.SUCCESS;
 			} else if (heldItem instanceof FireChargeItem) {
 				level.playSound(null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, (MathUtils.RAND.nextFloat() - MathUtils.RAND.nextFloat()) * 0.2F + 1.0F);
 				level.setBlockState(pos, state.with(Properties.LIT, Boolean.TRUE), 11);
 				if (!player.isCreative()) {
 					heldStack.decrement(1);
 				}
-				return ItemInteractionResult.SUCCESS;
+				return ActionResult.SUCCESS;
 			}
 		}
 
@@ -112,18 +110,18 @@ public class StoveBlock extends BlockWithEntity
 		if (tileEntity instanceof StoveBlockEntity stoveEntity) {
 			int stoveSlot = stoveEntity.getNextEmptySlot();
 			if (stoveSlot < 0 || stoveEntity.isStoveBlockedAbove()) {
-				return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+				return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
 			}
 			Optional<RecipeEntry<CampfireCookingRecipe>> recipe = stoveEntity.getMatchingRecipe(heldStack);
 			if (recipe.isPresent()) {
 				if (!level.isClient && stoveEntity.addItem(player.getAbilities().creativeMode ? heldStack.copy() : heldStack, recipe.get(), stoveSlot)) {
-					return ItemInteractionResult.SUCCESS;
+					return ActionResult.SUCCESS;
 				}
-				return ItemInteractionResult.CONSUME;
+				return ActionResult.CONSUME;
 			}
 		}
 
-		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
 	}
 
 	@Override
@@ -141,7 +139,7 @@ public class StoveBlock extends BlockWithEntity
 
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext context) {
-		return this.getDefaultState().with(FACING, context.getHorizontalPlayerFacing().getOpposite()).setValue(LIT, true);
+		return this.getDefaultState().with(FACING, context.getHorizontalPlayerFacing().getOpposite()).with(LIT, true);
 	}
 
 	@Override
@@ -155,15 +153,14 @@ public class StoveBlock extends BlockWithEntity
 	}
 
 	@Override
-	public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
-			BlockEntity tileEntity = level.getBlockEntity(pos);
+	public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+		if (state.getBlock() != world.getBlockState(pos).getBlock()) {
+			BlockEntity tileEntity = world.getBlockEntity(pos);
 			if (tileEntity instanceof StoveBlockEntity) {
-				ItemUtils.dropItems(level, pos, ((StoveBlockEntity) tileEntity).getInventory());
+				ItemUtils.dropItems(world, pos, ((StoveBlockEntity) tileEntity).getInventory());
 			}
-
-			super.onRemove(state, level, pos, newState, isMoving);
 		}
+		return super.onBreak(world, pos, state, player);
 	}
 
 	@Override

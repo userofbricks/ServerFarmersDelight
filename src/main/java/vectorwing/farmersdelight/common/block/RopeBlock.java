@@ -18,15 +18,18 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
+import net.minecraft.world.block.WireOrientation;
+import net.minecraft.world.tick.ScheduledTickView;
+import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 
-@SuppressWarnings("deprecation")
 public class RopeBlock extends PaneBlock
 {
 	public static final BooleanProperty TIED_TO_BELL = BooleanProperty.of("tied_to_bell");
@@ -62,7 +65,7 @@ public class RopeBlock extends PaneBlock
 		if (Configuration.ENABLE_ROPE_REELING.get() && player.shouldCancelInteraction()) {
 			if (player.getAbilities().allowModifyWorld && (player.getAbilities().creativeMode || player.getInventory().insertStack(new ItemStack(this.asItem())))) {
 				BlockPos.Mutable reelingPos = pos.mutableCopy().move(Direction.DOWN);
-				int minBuildHeight = level.getMinBuildHeight();
+				int minBuildHeight = level.getBottomY();
 
 				while (reelingPos.getY() >= minBuildHeight) {
 					BlockState blockStateBelow = level.getBlockState(reelingPos);
@@ -71,7 +74,7 @@ public class RopeBlock extends PaneBlock
 					} else {
 						reelingPos.move(Direction.UP);
 						level.breakBlock(reelingPos, false, player);
-						return ActionResult.sidedSuccess(level.isClient);
+						return ActionResult.SUCCESS;
 					}
 				}
 			}
@@ -111,20 +114,18 @@ public class RopeBlock extends PaneBlock
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
+	public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
 		if (state.get(HorizontalConnectingBlock.WATERLOGGED)) {
-			level.scheduleFluidTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(level));
+			tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
 		}
 
-		boolean tiedToBell = state.get(TIED_TO_BELL);
-		if (facing == Direction.UP) {
-			tiedToBell = level.getBlockState(facingPos).getBlock() == Blocks.BELL;
-		}
+		boolean tiedToBell= world.getBlockState(pos.up()).getBlock() == Blocks.BELL;
 
-		return facing.getAxis().isHorizontal()
-				? state.with(TIED_TO_BELL, tiedToBell).with(HorizontalConnectingBlock.FACING_PROPERTIES.get(facing), this.connectsTo(facingState, facingState.isSideSolidFullSquare(level, facingPos, facing.getOpposite())))
-				: super.getStateForNeighborUpdate(state.with(TIED_TO_BELL, tiedToBell), facing, facingState, level, currentPos, facingPos);
+		return direction.getAxis().isHorizontal()
+				? state.with(TIED_TO_BELL, tiedToBell).with(HorizontalConnectingBlock.FACING_PROPERTIES.get(direction), this.connectsTo(neighborState, neighborState.isSideSolidFullSquare(world, neighborPos, direction.getOpposite())))
+				: super.getStateForNeighborUpdate(state.with(TIED_TO_BELL, tiedToBell), world, tickView, pos, direction, neighborPos, neighborState, random);
 	}
+
 
 	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {

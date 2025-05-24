@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.BushBlock;
 import net.minecraft.block.Fertilizable;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.LivingEntity;
@@ -21,6 +20,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -28,14 +28,12 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import vectorwing.farmersdelight.common.tag.ModTags;
 import vectorwing.farmersdelight.common.utility.SoilUtils;
 
-@SuppressWarnings("deprecation")
-public class MushroomColonyBlock extends BushBlock implements Fertilizable
+public class MushroomColonyBlock extends FDBushBlock implements Fertilizable
 {
 	public static final MapCodec<MushroomColonyBlock> CODEC = RecordCodecBuilder.mapCodec(
 			builder -> builder.group(Registries.ITEM.getEntryCodec().fieldOf("mushroom").forGetter(block -> block.mushroomType), createSettingsCodec())
@@ -69,13 +67,13 @@ public class MushroomColonyBlock extends BushBlock implements Fertilizable
 	}
 
 	@Override
-	protected MapCodec<? extends BushBlock> getCodec() {
+	public MapCodec<MushroomColonyBlock> getCodec() {
 		return CODEC;
 	}
 
 	@Override
 	public boolean canPlantOnTop(BlockState state, BlockView level, BlockPos pos) {
-		return state.isOpaqueFullCube(level, pos);
+		return state.isOpaqueFullCube();
 	}
 
 	@Override
@@ -94,20 +92,20 @@ public class MushroomColonyBlock extends BushBlock implements Fertilizable
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	public ActionResult onUseWithItem(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		int age = state.get(COLONY_AGE);
 
 		if (age > 0 && heldStack.isIn(ConventionalItemTags.SHEAR_TOOLS)) {
-			dropStack(level, pos, getCloneItemStack(level, pos, state));
+			dropStack(level, pos, getPickStack(level, pos, state, true));
 			level.playSound(null, pos, SoundEvents.ENTITY_MOOSHROOM_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
 			level.setBlockState(pos, state.with(COLONY_AGE, age - 1), 2);
 			if (!level.isClient) {
 				heldStack.damage(1, player, LivingEntity.getSlotForHand(hand));
 			}
-			return ItemInteractionResult.SUCCESS;
+			return ActionResult.SUCCESS;
 		}
 
-		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
 	}
 
 	public int getMaxAge() {
@@ -124,7 +122,7 @@ public class MushroomColonyBlock extends BushBlock implements Fertilizable
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(WorldView level, BlockPos pos, BlockState state) {
+	public ItemStack getPickStack(WorldView level, BlockPos pos, BlockState state, boolean includeData) {
 		return new ItemStack(this.mushroomType.value());
 	}
 

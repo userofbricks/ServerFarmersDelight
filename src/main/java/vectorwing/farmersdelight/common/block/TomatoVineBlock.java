@@ -27,11 +27,9 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.*;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
@@ -52,10 +50,10 @@ public class TomatoVineBlock extends CropBlock
 		setDefaultState(stateManager.getDefaultState().with(getAgeProperty(), 0).with(ROPELOGGED, false));
 	}
 
-	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
+	protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
 		int age = state.get(getAgeProperty());
 		boolean isMature = age == getMaxAge();
-		return !isMature && stack.isOf(Items.BONE_MEAL) ? ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION : super.onUseWithItem(stack, state, level, pos, player, hand, hitResult);
+		return !isMature && stack.isOf(Items.BONE_MEAL) ? ActionResult.CONSUME : super.onUseWithItem(stack, state, level, pos, player, hand, hitResult);
 	}
 
 	@Override
@@ -192,16 +190,16 @@ public class TomatoVineBlock extends CropBlock
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		if (!state.canPlaceAt(level, currentPos)) {
-			level.scheduleBlockTick(currentPos, this, 1);
+	public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
+		if (!state.canPlaceAt(world, pos)) {
+			tickView.scheduleBlockTick(pos, this, 1);
 		}
 
 		return state;
 	}
 
 	public static void destroyAndPlaceRope(World level, BlockPos pos) {
-		Block configuredRopeBlock = Registries.BLOCK.getEntry(Identifier.of(Configuration.DEFAULT_TOMATO_VINE_ROPE.get()));
+		Block configuredRopeBlock = Registries.BLOCK.getEntry(Identifier.of(Configuration.DEFAULT_TOMATO_VINE_ROPE.get())).get().value();
 		Block finalRopeBlock = configuredRopeBlock != null ? configuredRopeBlock : ModBlocks.ROPE.get();
 		level.setBlockState(pos, finalRopeBlock.getDefaultState());
 	}

@@ -24,13 +24,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
-import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.block.entity.CabinetBlockEntity;
 import vectorwing.farmersdelight.common.registry.ModBlockEntityTypes;
 
-@SuppressWarnings("deprecation")
 public class CabinetBlock extends BlockWithEntity
 {
 	public static final MapCodec<CabinetBlock> CODEC = createCodec(CabinetBlock::new);
@@ -40,7 +37,7 @@ public class CabinetBlock extends BlockWithEntity
 
 	public CabinetBlock(Settings properties) {
 		super(properties);
-		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).setValue(OPEN, false));
+		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).with(OPEN, false));
 	}
 
 	@Override
@@ -60,14 +57,14 @@ public class CabinetBlock extends BlockWithEntity
 	}
 
 	@Override
-	public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
-			BlockEntity tileEntity = level.getBlockEntity(pos);
+	protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
+		if (state.getBlock() != world.getBlockState(pos).getBlock()) {
+			BlockEntity tileEntity = world.getBlockEntity(pos);
 			if (tileEntity instanceof Inventory) {
-				ItemScatterer.spawn(level, pos, (Inventory) tileEntity);
-				level.updateComparators(pos, this);
+				ItemScatterer.spawn(world, pos, (Inventory) tileEntity);
+				world.updateComparators(pos, this);
 			}
-			super.onRemove(state, level, pos, newState, isMoving);
+			super.onStateReplaced(state, world, pos, moved);
 		}
 	}
 

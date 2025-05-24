@@ -15,7 +15,6 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.block.*;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
 import vectorwing.farmersdelight.common.tag.ModTags;
@@ -93,27 +92,13 @@ public class RichSoilFarmlandBlock extends FarmlandBlock
 		}
 	}
 
-	/*
-	@Override
-	public TriState canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction facing, BlockState plantState) {
-//		PlantType plantType = plantable.getPlantType(world, pos.relative(facing));
-//		return plantType == PlantType.CROP || plantType == PlantType.PLAINS;
-
-		// TODO: Revisit this method to filter out plants correctly. Also, there's a chance Rich Soil Farmland won't need it anymore.
-		if (plantState.getBlock() instanceof CropBlock) {
-			return TriState.TRUE;
-		}
-		return TriState.DEFAULT;
-	}
-	 */
-
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext context) {
 		return !this.getDefaultState().canPlaceAt(context.getWorld(), context.getBlockPos()) ? ModBlocks.RICH_SOIL.get().getDefaultState() : super.getPlacementState(context);
 	}
 
 	@Override
-	public void fallOn(World level, BlockState state, BlockPos pos, Entity entityIn, float fallDistance) {
+	public void onLandedUpon(World world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
 		// Rich Soil is immune to trampling
 	}
 }

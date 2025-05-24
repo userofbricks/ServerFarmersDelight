@@ -3,7 +3,6 @@ package vectorwing.farmersdelight.common.block;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.BushBlock;
 import net.minecraft.block.Fertilizable;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.registry.RegistryKeys;
@@ -17,7 +16,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import vectorwing.farmersdelight.common.world.WildCropGeneration;
 
-public class SandyShrubBlock extends BushBlock implements Fertilizable
+public class SandyShrubBlock extends FDBushBlock implements Fertilizable
 {
 	public static final MapCodec<SandyShrubBlock> CODEC = createCodec(SandyShrubBlock::new);
 
@@ -28,7 +27,7 @@ public class SandyShrubBlock extends BushBlock implements Fertilizable
 	}
 
 	@Override
-	protected MapCodec<? extends BushBlock> getCodec() {
+	public MapCodec<SandyShrubBlock> getCodec() {
 		return CODEC;
 	}
 
@@ -50,12 +49,5 @@ public class SandyShrubBlock extends BushBlock implements Fertilizable
 	@Override
 	public boolean canGrow(World level, Random random, BlockPos pos, BlockState state) {
 		return true;
-	}
-
-	@Override
-	public void grow(ServerWorld level, Random random, BlockPos pos, BlockState state) {
-		level.getRegistryManager().registry(RegistryKeys.CONFIGURED_FEATURE).flatMap((value) -> value.getHolder(WildCropGeneration.FEATURE_PATCH_SANDY_SHRUB)).ifPresent((value) -> {
-			value.value().place(level, level.getChunkSource().getGenerator(), random, pos.above());
-		});
 	}
 }

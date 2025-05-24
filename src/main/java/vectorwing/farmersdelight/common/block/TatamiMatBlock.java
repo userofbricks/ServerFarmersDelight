@@ -17,17 +17,16 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 ;
 
-@SuppressWarnings("deprecation")
 public class TatamiMatBlock extends HorizontalFacingBlock
 {
 	public static final MapCodec<TatamiMatBlock> CODEC = createCodec(TatamiMatBlock::new);
@@ -64,11 +63,11 @@ public class TatamiMatBlock extends HorizontalFacingBlock
 	}
 
 	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		if (facing == getDirectionToOther(stateIn.get(PART), stateIn.get(HorizontalFacingBlock.FACING))) {
-			return stateIn.canPlaceAt(level, currentPos) && facingState.isOf(this) && facingState.get(PART) != stateIn.get(PART) ? stateIn : Blocks.AIR.getDefaultState();
+	public BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
+		if (direction == getDirectionToOther(state.get(PART), state.get(HorizontalFacingBlock.FACING))) {
+			return state.canPlaceAt(world, pos) && neighborState.isOf(this) && neighborState.get(PART) != state.get(PART) ? state : Blocks.AIR.getDefaultState();
 		} else {
-			return !stateIn.canPlaceAt(level, currentPos) ? Blocks.AIR.getDefaultState() : super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
+			return !state.canPlaceAt(world, pos) ? Blocks.AIR.getDefaultState() : super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
 		}
 	}
 
@@ -100,7 +99,7 @@ public class TatamiMatBlock extends HorizontalFacingBlock
 		if (!level.isClient) {
 			BlockPos facingPos = pos.offset(state.get(HorizontalFacingBlock.FACING));
 			level.setBlockState(facingPos, state.with(PART, BedPart.HEAD), 3);
-			level.blockUpdated(pos, Blocks.AIR);
+			level.updateNeighbor(pos, Blocks.AIR, null);
 			state.updateNeighbors(level, pos, 3);
 		}
 	}

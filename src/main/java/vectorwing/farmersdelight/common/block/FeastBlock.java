@@ -2,7 +2,6 @@ package vectorwing.farmersdelight.common.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,19 +11,19 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
 import java.util.function.Supplier;
@@ -32,7 +31,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("deprecation")
 public class FeastBlock extends Block
 {
-	public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
 	public static final IntProperty SERVINGS = IntProperty.of("servings", 0, 4);
 
 	public final Supplier<Item> servingItem;
@@ -58,7 +57,7 @@ public class FeastBlock extends Block
 		super(properties);
 		this.servingItem = servingItem;
 		this.hasLeftovers = hasLeftovers;
-		this.setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH).setValue(getServingsProperty(), getMaxServings()));
+		this.setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(getServingsProperty(), getMaxServings()));
 	}
 
 	public IntProperty getServingsProperty() {
@@ -79,23 +78,23 @@ public class FeastBlock extends Block
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	public ActionResult onUseWithItem(ItemStack heldStack, BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
 		if (level.isClient) {
-			if (this.takeServing(level, pos, state, player, hand).consumesAction()) {
-				return ItemInteractionResult.SUCCESS;
+			if (this.takeServing(level, pos, state, player, hand).isAccepted()) {
+				return ActionResult.SUCCESS;
 			}
 		}
 
 		return this.takeServing(level, pos, state, player, hand);
 	}
 
-	protected ItemInteractionResult takeServing(WorldAccess level, BlockPos pos, BlockState state, PlayerEntity player, Hand hand) {
+	protected ActionResult takeServing(WorldAccess level, BlockPos pos, BlockState state, PlayerEntity player, Hand hand) {
 		int servings = state.get(getServingsProperty());
 
 		if (servings == 0) {
 			level.playSound(null, pos, SoundEvents.BLOCK_WOOD_BREAK, SoundCategory.PLAYERS, 0.8F, 0.8F);
 			level.breakBlock(pos, true);
-			return ItemInteractionResult.SUCCESS;
+			return ActionResult.SUCCESS;
 		}
 
 		ItemStack serving = this.getServingItem(state);
@@ -114,22 +113,17 @@ public class FeastBlock extends Block
 					level.removeBlock(pos, false);
 				}
 				level.playSound(null, pos, SoundEvents.ITEM_ARMOR_EQUIP_GENERIC.value(), SoundCategory.BLOCKS, 1.0F, 1.0F);
-				return ItemInteractionResult.SUCCESS;
+				return ActionResult.SUCCESS;
 			} else {
 				player.sendMessage(TextUtils.getTranslation("block.feast.use_container", serving.getRecipeRemainder().getName()), true);
 			}
 		}
-		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
 	}
 
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext context) {
 		return this.getDefaultState().with(FACING, context.getHorizontalPlayerFacing().getOpposite());
-	}
-
-	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, WorldAccess level, BlockPos currentPos, BlockPos facingPos) {
-		return facing == Direction.DOWN && !stateIn.canPlaceAt(level, currentPos) ? Blocks.AIR.getDefaultState() : super.getStateForNeighborUpdate(stateIn, facing, facingState, level, currentPos, facingPos);
 	}
 
 	@Override
