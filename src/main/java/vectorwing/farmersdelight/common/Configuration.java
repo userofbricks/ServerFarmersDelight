@@ -17,7 +17,6 @@ public class Configuration {
 
     // COMMON
     public static final String CATEGORY_SETTINGS = "settings";
-    public static Supplier<Boolean> ENABLE_VANILLA_CROP_CRATES;
     public static Supplier<Boolean> FARMERS_BUY_FD_CROPS;
     public static Supplier<Boolean> WANDERING_TRADER_SELLS_FD_ITEMS;
     public static Supplier<Double> RICH_SOIL_BOOST_CHANCE;
@@ -66,8 +65,6 @@ public class Configuration {
         ConfigBuilder builder = ConfigBuilder.create(FarmersDelight.MODID, ConfigType.COMMON);
 
         builder.comment("Game settings").push(CATEGORY_SETTINGS);
-        ENABLE_VANILLA_CROP_CRATES = builder.comment("Farmer's Delight adds crates (3x3) for vanilla crops, similar to Quark and Thermal Cultivation. Should they be craftable?")
-                .define("enableVanillaCropCrates", true);
         FARMERS_BUY_FD_CROPS = builder.comment("Should Novice and Apprentice Farmers buy this mod's crops? (May reduce chances of other trades appearing)")
                 .define("farmersBuyFDCrops", true);
         WANDERING_TRADER_SELLS_FD_ITEMS = builder.comment("Should the Wandering Trader sell some of this mod's items? (Currently includes crop seeds and onions)")

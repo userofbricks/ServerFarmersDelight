@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.recipe.*;
+import net.minecraft.recipe.book.RecipeBookCategory;
 import vectorwing.farmersdelight.common.crafting.ingredient.ChanceResult;
 import vectorwing.farmersdelight.common.registry.ModRecipeSerializers;
 import vectorwing.farmersdelight.common.registry.ModRecipeTypes;
@@ -16,10 +18,6 @@ import java.util.stream.Collectors;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -29,6 +27,8 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
+
+import static net.minecraft.recipe.book.RecipeBookCategories.CAMPFIRE;
 
 public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 {
@@ -54,7 +54,7 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 	}
 
 	@Override
-	public ItemStack assemble(CuttingBoardRecipeInput inv, RegistryWrapper.WrapperLookup provider) {
+	public ItemStack craft(CuttingBoardRecipeInput inv, RegistryWrapper.WrapperLookup provider) {
 		return this.results.get(0).stack().copy();
 	}
 
@@ -69,19 +69,14 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 	}
 
 	@Override
-	public DefaultedList<Ingredient> getIngredients() {
-		DefaultedList<Ingredient> nonnulllist = DefaultedList.of();
-		nonnulllist.add(this.input);
-		return nonnulllist;
+	public IngredientPlacement getIngredientPlacement() {
+		DefaultedList<Optional<Ingredient>> nonnulllist = DefaultedList.of();
+		nonnulllist.add(Optional.of(input));
+		return IngredientPlacement.forMultipleSlots(nonnulllist);
 	}
 
 	public Ingredient getTool() {
 		return this.tool;
-	}
-
-	@Override
-	public ItemStack getResultItem(RegistryWrapper.WrapperLookup provider) {
-		return this.results.get(0).stack();
 	}
 
 	public List<ItemStack> getResults() {
@@ -109,23 +104,19 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 		return this.soundEvent;
 	}
 
-	protected int getMaxInputCount() {
-		return 1;
-	}
-
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= this.getMaxInputCount();
-	}
-
-	@Override
-	public RecipeSerializer<?> getSerializer() {
+	public RecipeSerializer<? extends Recipe<CuttingBoardRecipeInput>> getSerializer() {
 		return ModRecipeSerializers.CUTTING.get();
 	}
 
 	@Override
-	public RecipeType<?> getType() {
+	public RecipeType<? extends Recipe<CuttingBoardRecipeInput>> getType() {
 		return ModRecipeTypes.CUTTING.get();
+	}
+
+	@Override
+	public RecipeBookCategory getRecipeBookCategory() {
+		return CAMPFIRE;
 	}
 
 	@Override
@@ -159,22 +150,7 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 
 		private static final MapCodec<CuttingBoardRecipe> CODEC = RecordCodecBuilder.mapCodec(
 				inst -> inst.group(Codec.STRING.optionalFieldOf("group", "").forGetter(CuttingBoardRecipe::getGroup),
-								Ingredient.CODEC_NONEMPTY.listOf().fieldOf("ingredients").flatXmap(ingredients -> {
-									if (ingredients.isEmpty()) {
-										return DataResult.error(() -> "No ingredients for cutting recipe");
-									}
-									if (ingredients.size() > 1) {
-										return DataResult.error(
-												() -> "Too many ingredients for cutting recipe! Please define only one ingredient");
-									}
-									NonNullList<Ingredient> nonNullList = NonNullList.create();
-									nonNullList.add(ingredients.get(0));
-									return DataResult.success(ingredients.get(0));
-								}, ingredient -> {
-									NonNullList<Ingredient> nonNullList = NonNullList.create();
-									nonNullList.add(ingredient);
-									return DataResult.success(nonNullList);
-								}).forGetter(cuttingBoardRecipe -> cuttingBoardRecipe.input),
+								Ingredient.CODEC.fieldOf("ingredient").forGetter(cuttingBoardRecipe -> cuttingBoardRecipe.input),
 								Ingredient.CODEC.fieldOf("tool").forGetter(CuttingBoardRecipe::getTool),
 								Codec.list(ChanceResult.CODEC).fieldOf("result").flatXmap(chanceResults -> {
 									if (chanceResults.size() > 4) {
@@ -202,7 +178,7 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 			resultsIn.replaceAll(ignored -> ChanceResult.read(buffer));
 			Optional<SoundEvent> soundEventIn = Optional.empty();
 			if (buffer.readBoolean()) {
-				Optional<RegistryEntry.Reference<SoundEvent>> holder = Registries.SOUND_EVENT.getHolder(buffer.readRegistryKey(RegistryKeys.SOUND_EVENT));
+				Optional<RegistryEntry.Reference<SoundEvent>> holder = Registries.SOUND_EVENT.getOptional(buffer.readRegistryKey(RegistryKeys.SOUND_EVENT));
 				if (holder.isPresent() && holder.get().hasKeyAndValue()) {
 					soundEventIn = Optional.of(holder.get().value());
 				}

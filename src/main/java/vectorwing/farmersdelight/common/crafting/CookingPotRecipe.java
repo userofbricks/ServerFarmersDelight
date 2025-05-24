@@ -4,7 +4,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.item.Items;
+import net.minecraft.recipe.*;
 import net.minecraft.recipe.book.RecipeBookCategory;
+import net.minecraft.recipe.display.RecipeDisplay;
+import net.minecraft.recipe.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.recipe.display.SlotDisplay;
+import org.jetbrains.annotations.Nullable;
 import vectorwing.farmersdelight.common.registry.ModItems;
 import vectorwing.farmersdelight.common.registry.ModRecipeSerializers;
 import vectorwing.farmersdelight.common.registry.ModRecipeTypes;
@@ -13,13 +18,11 @@ import vectorwing.farmersdelight.refabricated.inventory.RecipeWrapper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 import static net.minecraft.recipe.book.RecipeBookCategories.CAMPFIRE;
 
@@ -34,6 +37,8 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 	private final ItemStack containerOverride;
 	private final float experience;
 	private final int cookTime;
+	@Nullable
+	private IngredientPlacement ingredientPlacement;
 
 	public CookingPotRecipe(String group, DefaultedList<Ingredient> inputItems, ItemStack output, ItemStack container, float experience, int cookTime) {
 		this.group = group;
@@ -58,12 +63,18 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 		return this.group;
 	}
 
-	@Override
 	public DefaultedList<Ingredient> getIngredients() {
 		return this.inputItems;
 	}
 
-	@Override
+	public IngredientPlacement getIngredientPlacement() {
+		if (this.ingredientPlacement == null) {
+			this.ingredientPlacement = IngredientPlacement.forShapeless(this.inputItems);
+		}
+
+		return this.ingredientPlacement;
+	}
+
 	public ItemStack getResultItem(RegistryWrapper.WrapperLookup provider) {
 		return this.output;
 	}
@@ -76,11 +87,6 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 		return this.containerOverride;
 	}
 
-	@Override
-	public ItemStack assemble(RecipeWrapper inv, RegistryWrapper.WrapperLookup provider) {
-		return this.output.copy();
-	}
-
 	public float getExperience() {
 		return this.experience;
 	}
@@ -91,16 +97,16 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 
 	@Override
 	public boolean matches(RecipeWrapper inv, World level) {
-		return inv.ingredientAmount() == this.inputItems.size() && inv.stackedContents().canCraft(this, null);
+		return inv.ingredientAmount() == this.inputItems.size() && inv.getRecipeMatcher().isCraftable(this, null);
 	}
 
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= this.inputItems.size();
+	public ItemStack craft(RecipeWrapper input, RegistryWrapper.WrapperLookup registries) {
+		return this.output.copy();
 	}
 
 	@Override
-	public RecipeSerializer<? extends Recipe<RecipeWrapper>> getSerializer() {
+	public RecipeSerializer<CookingPotRecipe> getSerializer() {
 		return ModRecipeSerializers.COOKING.get();
 	}
 
@@ -114,9 +120,8 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 		return CAMPFIRE;
 	}
 
-	@Override
-	public ItemStack getToastSymbol() {
-		return new ItemStack(ModItems.COOKING_POT.get());
+	public List<RecipeDisplay> getDisplays() {
+		return List.of(new ShapelessCraftingRecipeDisplay(this.inputItems.stream().map(Ingredient::toDisplay).toList(), new SlotDisplay.StackSlotDisplay(this.output), new SlotDisplay.ItemSlotDisplay(ModItems.COOKING_POT.get())));
 	}
 
 	@Override
@@ -149,11 +154,8 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 	{
 		private static final MapCodec<CookingPotRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
 				Codec.STRING.optionalFieldOf("group", "").forGetter(CookingPotRecipe::getGroup),
-				Ingredient.CODEC_NONEMPTY.listOf().fieldOf("ingredients").xmap(ingredients -> {
-					NonNullList<Ingredient> nonNullList = NonNullList.create();
-					nonNullList.addAll(ingredients);
-					return nonNullList;
-				}, ingredients -> ingredients).forGetter(CookingPotRecipe::getIngredients),
+				Ingredient.CODEC.listOf().fieldOf("ingredients").xmap(ingredients -> DefaultedList.copyOf(Ingredient.ofItem(ItemStack.EMPTY.getItem()),
+						ingredients.toArray(new Ingredient[0])), ingredients -> ingredients).forGetter(CookingPotRecipe::getIngredients),
 				ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(r -> r.output),
 				ItemStack.VALIDATED_CODEC.optionalFieldOf("container", ItemStack.EMPTY).forGetter(CookingPotRecipe::getContainerOverride),
 				Codec.FLOAT.optionalFieldOf("experience", 0.0F).forGetter(CookingPotRecipe::getExperience),
