@@ -6,6 +6,7 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 
 @SuppressWarnings("unused")
 public class ComfortEffect extends StatusEffect
@@ -20,7 +21,7 @@ public class ComfortEffect extends StatusEffect
 	}
 
 	@Override
-	public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+	public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
 		if (entity.hasStatusEffect(StatusEffects.REGENERATION)) {
 			return true;
 		}
