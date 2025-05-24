@@ -25,12 +25,12 @@ public class RottenTomatoEntity extends ThrownItemEntity
 		super(entityType, level);
 	}
 
-	public RottenTomatoEntity(World level, LivingEntity entity) {
-		super(ModEntityTypes.ROTTEN_TOMATO.get(), entity, level);
+	public RottenTomatoEntity(World level, LivingEntity entity, ItemStack stack) {
+		super(ModEntityTypes.ROTTEN_TOMATO.get(), entity, level, stack);
 	}
 
-	public RottenTomatoEntity(World level, double x, double y, double z) {
-		super(ModEntityTypes.ROTTEN_TOMATO.get(), x, y, z, level);
+	public RottenTomatoEntity(World level, double x, double y, double z, ItemStack stack) {
+		super(ModEntityTypes.ROTTEN_TOMATO.get(), x, y, z, level, stack);
 	}
 
 	@Override
