@@ -35,10 +35,10 @@ public class SmokerCookFunction extends ConditionalLootFunction
 		if (stack.isEmpty()) {
 			return stack;
 		} else {
-			Optional<RecipeEntry<SmokingRecipe>> recipe = context.getWorld().getRecipeManager().getAllRecipesFor(RecipeType.SMOKING).stream()
-					.filter(r -> r.value().getIngredients().get(0).test(stack)).findFirst();
+			Optional<RecipeEntry<SmokingRecipe>> recipe = context.getWorld().getRecipeManager().getAllOfType(RecipeType.SMOKING).stream()
+					.filter(r -> r.value().getIngredientPlacement().getIngredients().get(0).test(stack)).findFirst();
 			if (recipe.isPresent()) {
-				ItemStack result = recipe.get().value().getResultItem(context.getWorld().getRegistryManager()).copy();
+				ItemStack result = recipe.get().value().result().copy();
 				result.setCount(result.getCount() * stack.getCount());
 				return result;
 			} else {

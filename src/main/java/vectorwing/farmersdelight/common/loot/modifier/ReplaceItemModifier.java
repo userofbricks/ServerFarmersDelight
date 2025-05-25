@@ -1,6 +1,5 @@
 package vectorwing.farmersdelight.common.loot.modifier;
 
-import com.mojang.serialization.MapCodec;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;

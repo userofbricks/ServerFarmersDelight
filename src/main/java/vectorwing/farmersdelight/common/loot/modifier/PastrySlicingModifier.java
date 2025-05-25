@@ -39,7 +39,7 @@ public class PastrySlicingModifier extends LootModifier
 	@NotNull
 	@Override
 	protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
-		BlockState state = context.getParamOrNull(LootContextParameters.BLOCK_STATE);
+		BlockState state = context.get(LootContextParameters.BLOCK_STATE);
 		if (state != null) {
 			Block targetBlock = state.getBlock();
 			if (targetBlock instanceof CakeBlock) {
