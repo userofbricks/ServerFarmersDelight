@@ -4,28 +4,15 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CampfireBaleMixin",
-    "CuttingBoardDispenserMixin",
     "KeepRichSoilGiantTreeMixin",
     "KeepRichSoilTreeMixin",
     "refabricated.BushBlockMixin",
-    "refabricated.CactusBlockMixin",
     "refabricated.CropBlockMixin",
-    "refabricated.DoublePlantBlockMixin",
     "refabricated.ItemStackMixin",
-    "refabricated.LivingEntityMixin",
-    "refabricated.MushroomBlockMixin",
-    "refabricated.PlayerMixin",
-    "refabricated.RecipeBookSettingsMixin",
-    "refabricated.ReloadableServerRegistriesMixin",
-    "refabricated.ServerRecipeBookMixin",
-    "refabricated.StemBlockMixin",
-    "refabricated.SugarCaneBlockMixin"
+    "refabricated.MushroomBlockMixin"
   ],
   "client": [
-    "HideBlockBreakProgressMixin",
     "refabricated.GuiMixin",
-    "refabricated.HumanoidModelMixin",
-    "refabricated.RecipeBookCategoriesMixin",
     "refabricated.SpecialModelTypesMixin"
   ],
   "injectors": {

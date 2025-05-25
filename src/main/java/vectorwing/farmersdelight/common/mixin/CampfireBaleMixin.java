@@ -11,7 +11,7 @@ import vectorwing.farmersdelight.common.tag.ModTags;
 @Mixin(CampfireBlock.class)
 public abstract class CampfireBaleMixin
 {
-	@Inject(at = @At("HEAD"), method = "isSmokeSource", cancellable = true)
+	@Inject(at = @At("HEAD"), method = "isSignalFireBaseBlock", cancellable = true)
 	public void isFDSmokeSource(BlockState state, CallbackInfoReturnable<Boolean> cir) {
 		if (state.isIn(ModTags.CAMPFIRE_SIGNAL_SMOKE)) {
 			cir.setReturnValue(true);

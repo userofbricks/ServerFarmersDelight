@@ -18,7 +18,7 @@ import vectorwing.farmersdelight.common.utility.SoilUtils;
  */
 @Mixin(MushroomPlantBlock.class)
 public class MushroomBlockMixin {
-    @ModifyExpressionValue(method = "canSurvive", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/MushroomBlock;mayPlaceOn(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Z"))
+    @ModifyExpressionValue(method = "canPlaceAt", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/MushroomPlantBlock;canPlantOnTop(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)Z"))
     private boolean farmersdelightrefabricated$allowPlantsOnMushroom(boolean original, BlockState state, WorldView level, BlockPos pos) {
         if (state.getBlock() != (Object)this)
             return original;

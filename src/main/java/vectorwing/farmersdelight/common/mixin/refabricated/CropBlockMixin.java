@@ -18,7 +18,7 @@ import vectorwing.farmersdelight.common.utility.SoilUtils;
  */
 @Mixin(CropBlock.class)
 public class CropBlockMixin {
-    @ModifyVariable(method = "getGrowthSpeed", at = @At(value = "LOAD", ordinal = 1), ordinal = 1)
+    @ModifyVariable(method = "getAvailableMoisture", at = @At(value = "LOAD", ordinal = 1), ordinal = 1)
     private static float farmersdelightrefabricated$modifyGrowthSpeedForNonFarmland(float original, Block block, BlockView level, BlockPos pos) {
         BlockState belowState = level.getBlockState(pos.down());
         if (belowState.getBlock() instanceof RichSoilBlock && SoilUtils.isAbleToPlaceRichSoil(block) && original < 0.00001F)
