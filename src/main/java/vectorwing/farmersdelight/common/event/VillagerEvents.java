@@ -6,6 +6,7 @@ import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.village.TradeOffers;
 import net.minecraft.village.VillagerProfession;
+import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
@@ -35,11 +36,12 @@ public class VillagerEvents
 
 	public static void onWandererTrades() {
 		if (Configuration.WANDERING_TRADER_SELLS_FD_ITEMS.get()) {
-			TradeOfferHelper.registerWanderingTraderOffers(1, (trades) -> {
-				trades.add(itemForEmeraldTrade(ModItems.CABBAGE_SEEDS.get(), 1, 12));
-				trades.add(itemForEmeraldTrade(ModItems.TOMATO_SEEDS.get(), 1, 12));
-				trades.add(itemForEmeraldTrade(ModItems.RICE.get(), 1, 12));
-				trades.add(itemForEmeraldTrade(ModItems.ONION.get(), 1, 12));
+			TradeOfferHelper.registerWanderingTraderOffers((trades) -> {
+				trades.pool(FarmersDelight.res("food"), 1,
+						itemForEmeraldTrade(ModItems.CABBAGE_SEEDS.get(), 1, 12),
+						itemForEmeraldTrade(ModItems.TOMATO_SEEDS.get(), 1, 12),
+						itemForEmeraldTrade(ModItems.RICE.get(), 1, 12),
+						itemForEmeraldTrade(ModItems.ONION.get(), 1, 12));
 			});
 		}
 	}

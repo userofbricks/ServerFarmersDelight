@@ -1,11 +1,15 @@
 package vectorwing.farmersdelight.common.event;
 
+import net.minecraft.component.type.ConsumableComponent;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.consume.ConsumeEffect;
+import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.FoodValues;
@@ -20,18 +24,13 @@ public class CommonEvents {
     public static void handleVanillaSoupEffects(World level, LivingEntity livingEntity, ItemStack stack) {
         Item food = stack.getItem();
 
-        if (Configuration.RABBIT_STEW_BUFF.get() && food.equals(Items.RABBIT_STEW)) {
-            livingEntity.addStatusEffect(new StatusEffectInstance(MobEffects.JUMP, 200, 1));
+        if (food.equals(Items.RABBIT_STEW)) {
+            livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 200, 1));
         }
 
-        if (Configuration.VANILLA_SOUP_EXTRA_EFFECTS.get()) {
-            FoodComponent soupEffects = FoodValues.VANILLA_SOUP_EFFECTS.get(food);
-
-            if (soupEffects != null) {
-                for (FoodComponent.PossibleEffect effect : soupEffects.effects()) {
-                    livingEntity.addStatusEffect(effect.effect());
-                }
-            }
+        ConsumableComponent soupEffects = FoodValues.VANILLA_SOUP_EFFECTS.get(food);
+        if (soupEffects != null) {
+            soupEffects.consume(livingEntity, stack, Hand.MAIN_HAND);
         }
     }
 

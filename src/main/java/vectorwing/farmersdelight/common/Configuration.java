@@ -23,20 +23,8 @@ public class Configuration {
     public static Supplier<Double> CUTTING_BOARD_FORTUNE_BONUS;
     public static Supplier<Boolean> ENABLE_ROPE_REELING;
 
-    public static final String CATEGORY_FARMING = "farming";
-    public static Supplier<String> DEFAULT_TOMATO_VINE_ROPE;
-    public static Supplier<Boolean> ENABLE_TOMATO_VINE_CLIMBING_TAGGED_ROPES;
-
-    public static final String CATEGORY_RECIPE_BOOK = "recipe_book";
-
     public static final String CATEGORY_OVERRIDES = "overrides";
-    public static Supplier<Boolean> VANILLA_SOUP_EXTRA_EFFECTS;
-    public static Supplier<Boolean> RABBIT_STEW_BUFF;
     public static Supplier<Boolean> DISPENSER_TOOLS_CUTTING_BOARD;
-
-    public static final String CATEGORY_OVERRIDES_STACK_SIZE = "stack_size";
-    public static Supplier<Boolean> ENABLE_STACKABLE_SOUP_ITEMS;
-    public static Supplier<List<String>> SOUP_ITEM_LIST;
 
     public static final String CATEGORY_WORLD = "world";
     public static Supplier<Boolean> GENERATE_FD_CHEST_LOOT;
@@ -77,29 +65,9 @@ public class Configuration {
                 .define("enableRopeReeling", true);
         builder.pop();
 
-        builder.comment("Farming").push(CATEGORY_FARMING);
-        DEFAULT_TOMATO_VINE_ROPE = builder.comment("Which rope should Tomato Vines leave behind when mined by hand?")
-                .define("defaultTomatoVineRope", "farmersdelight:rope");
-        ENABLE_TOMATO_VINE_CLIMBING_TAGGED_ROPES = builder.comment("Should tomato vines be able to climb any rope tagged as farmersdelight:ropes?\n"+
-                        "Beware: this will convert these blocks into the block specified in defaultTomatoVineRope.")
-                .define("enableTomatoVineClimbingTaggedRopes", true);
-        builder.pop();
-
         builder.comment("Vanilla item overrides").push(CATEGORY_OVERRIDES);
-        VANILLA_SOUP_EXTRA_EFFECTS = builder.comment("Should soups and stews from vanilla Minecraft grant additional effects, like meals from this mod?")
-                .define("vanillaSoupExtraEffects", true);
-        RABBIT_STEW_BUFF = builder.comment("Should Rabbit Stew be buffed with improved food stats?")
-                .define("rabbitStewBuff", true);
         DISPENSER_TOOLS_CUTTING_BOARD = builder.comment("Should the Dispenser be able to operate a Cutting Board in front of it?")
                 .define("dispenserUsesToolsOnCuttingBoard", true);
-
-        builder.comment("Stack size overrides").push(CATEGORY_OVERRIDES_STACK_SIZE);
-        ENABLE_STACKABLE_SOUP_ITEMS = builder.comment("Should BowlFoodItems in the following list become stackable to 16, much like Farmer's Delight's meals?")
-                .define("enableStackableSoupItems", true);
-        SOUP_ITEM_LIST = builder.comment("List of BowlFoodItems. They must extend this class to be affected. Default: vanilla soups and stews.")
-                .define("soupItemList", List.of("minecraft:mushroom_stew", "minecraft:beetroot_soup", "minecraft:rabbit_stew"), obj -> true);
-        builder.pop();
-
         builder.pop();
 
         builder.comment("World generation").push(CATEGORY_WORLD);

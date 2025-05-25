@@ -8,6 +8,9 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.FoodValues;
+import vectorwing.farmersdelight.common.tag.ModTags;
+
+import java.util.function.Predicate;
 
 public class CommonModBusEvents
 {
@@ -16,14 +19,7 @@ public class CommonModBusEvents
 	}
 
 	public static void onModifyDefaultComponents(DefaultItemComponentEvents.ModifyContext context) {
-		if (Configuration.ENABLE_STACKABLE_SOUP_ITEMS.get()) {
-			Configuration.SOUP_ITEM_LIST.get().forEach((key) -> {
-				Item item = Registries.ITEM.getEntry(Identifier.of(key));
-				context.modify(item, (builder) -> builder.add(DataComponentTypes.MAX_STACK_SIZE, 16));
-			});
-		}
-		if (Configuration.RABBIT_STEW_BUFF.get()) {
-			context.modify(Items.RABBIT_STEW, (builder) -> builder.add(DataComponentTypes.FOOD, FoodValues.RABBIT_STEW_BUFF));
-		}
+		context.modify(item -> item.getRegistryEntry().isIn(ModTags.MAX_STACK_SIZE_16), (builder, item) -> builder.add(DataComponentTypes.MAX_STACK_SIZE, 16));
+		context.modify(Items.RABBIT_STEW, (builder) -> builder.add(DataComponentTypes.FOOD, FoodValues.RABBIT_STEW_BUFF).add(DataComponentTypes.CONSUMABLE, FoodValues.RABBIT_STEW_BUFF_CONSUMABLE));
 	}
 }

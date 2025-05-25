@@ -77,12 +77,6 @@ public class ModTags
 	// Knife items for game logic.
 	public static final TagKey<Item> KNIVES = modItemTag("tools/knives");
 
-	// Canvas Signs items for crafting.
-	public static final TagKey<Item> CANVAS_SIGNS = modItemTag("canvas_signs");
-
-	// Canvas Signs items for crafting.
-	public static final TagKey<Item> HANGING_CANVAS_SIGNS = modItemTag("hanging_canvas_signs");
-
 	// Wooden Cabinet items for crafting.
 	public static final TagKey<Item> WOODEN_CABINETS = modItemTag("cabinets/wooden");
 
@@ -91,6 +85,9 @@ public class ModTags
 
 	// Items commonly used to contain products. Used by the Cooking Pot for sneak-clicking actions.
 	public static final TagKey<Item> SERVING_CONTAINERS = modItemTag("serving_containers");
+
+	//Food related Items that need there max stack size extended to 16.
+	public static final TagKey<Item> MAX_STACK_SIZE_16 = modItemTag("max_stack_size_16");
 
 	// Items which render in 2D, laying down flat, when placed on the Cutting Board.
 	public static final TagKey<Item> FLAT_ON_CUTTING_BOARD = modItemTag("flat_on_cutting_board");

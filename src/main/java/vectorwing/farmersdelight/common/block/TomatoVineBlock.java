@@ -99,7 +99,7 @@ public class TomatoVineBlock extends CropBlock
 		if (random.nextFloat() < 0.3F) {
 			BlockPos posAbove = pos.up();
 			BlockState stateAbove = level.getBlockState(posAbove);
-			boolean canClimb = Configuration.ENABLE_TOMATO_VINE_CLIMBING_TAGGED_ROPES.get() ? stateAbove.isIn(ModTags.ROPES) : stateAbove.isOf(ModBlocks.ROPE.get());
+			boolean canClimb = stateAbove.isOf(ModBlocks.ROPE.get());
 			if (canClimb) {
 				int vineHeight;
 				for (vineHeight = 1; level.getBlockState(pos.down(vineHeight)).isOf(this); ++vineHeight) {
@@ -199,7 +199,7 @@ public class TomatoVineBlock extends CropBlock
 	}
 
 	public static void destroyAndPlaceRope(World level, BlockPos pos) {
-		Block configuredRopeBlock = Registries.BLOCK.getEntry(Identifier.of(Configuration.DEFAULT_TOMATO_VINE_ROPE.get())).get().value();
+		Block configuredRopeBlock = ModBlocks.ROPE.get();
 		Block finalRopeBlock = configuredRopeBlock != null ? configuredRopeBlock : ModBlocks.ROPE.get();
 		level.setBlockState(pos, finalRopeBlock.getDefaultState());
 	}
