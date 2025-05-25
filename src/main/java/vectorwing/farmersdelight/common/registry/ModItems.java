@@ -1,19 +1,13 @@
 package vectorwing.farmersdelight.common.registry;
 
 import com.google.common.collect.Sets;
-import net.minecraft.block.Block;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.FoodComponent;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.item.TallBlockItem;
-import net.minecraft.world.item.*;
+import net.minecraft.item.*;
 import vectorwing.farmersdelight.common.FoodValues;
 import vectorwing.farmersdelight.common.item.*;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import static vectorwing.farmersdelight.refabricated.RegUtils.regItem;
@@ -34,10 +28,6 @@ public class ModItems
 		return new Item.Settings();
 	}
 
-	public static Item.Settings knifeItem(Tier tier) {
-		return new Item.Settings().attributeModifiers(KnifeItem.createAttributes(tier, 0.5F, -2.0F));
-	}
-
 	public static Item.Settings foodItem(FoodComponent food) {
 		return new Item.Settings().food(food);
 	}
@@ -51,137 +41,76 @@ public class ModItems
 	}
 
 	// Blocks
-	public static final Supplier<Item> STOVE = registerWithTab("stove",
-			() -> new BlockItem(ModBlocks.STOVE.get(), basicItem()));
-	public static final Supplier<Item> COOKING_POT = registerWithTab("cooking_pot",
-			() -> new CookingPotItem(ModBlocks.COOKING_POT.get(), basicItem().maxCount(1)));
-	public static final Supplier<Item> SKILLET = registerWithTab("skillet",
-			() -> new SkilletItem(ModBlocks.SKILLET.get(), basicItem().maxCount(1).attributeModifiers(SkilletItem.createAttributes(SkilletItem.SKILLET_TIER, 5.0F, -3.1F))));
-	public static final Supplier<Item> CUTTING_BOARD = registerWithTab("cutting_board",
-			() -> new FuelBlockItem(ModBlocks.CUTTING_BOARD.get(), basicItem(), 200));
-	public static final Supplier<Item> BASKET = registerWithTab("basket",
-			() -> new FuelBlockItem(ModBlocks.BASKET.get(), basicItem(), 300));
+	public static final Supplier<Item> STOVE = registerWithTab("stove", () -> new BlockItem(ModBlocks.STOVE.get(), basicItem()));
+	public static final Supplier<Item> COOKING_POT = registerWithTab("cooking_pot", () -> new CookingPotItem(ModBlocks.COOKING_POT.get(), basicItem().maxCount(1)));
+	public static final Supplier<Item> SKILLET = registerWithTab("skillet", () -> new SkilletItem(ModBlocks.SKILLET.get(), basicItem().maxCount(1).attributeModifiers(SkilletItem.createAttributes(SkilletItem.SKILLET_TIER, 5.0F, -3.1F))));
+	public static final Supplier<Item> CUTTING_BOARD = registerWithTab("cutting_board", () -> new FuelBlockItem(ModBlocks.CUTTING_BOARD.get(), basicItem(), 200));
+	public static final Supplier<Item> BASKET = registerWithTab("basket", () -> new FuelBlockItem(ModBlocks.BASKET.get(), basicItem(), 300));
 
-	public static final Supplier<Item> CARROT_CRATE = registerWithTab("carrot_crate",
-			() -> new BlockItem(ModBlocks.CARROT_CRATE.get(), basicItem()));
-	public static final Supplier<Item> POTATO_CRATE = registerWithTab("potato_crate",
-			() -> new BlockItem(ModBlocks.POTATO_CRATE.get(), basicItem()));
-	public static final Supplier<Item> BEETROOT_CRATE = registerWithTab("beetroot_crate",
-			() -> new BlockItem(ModBlocks.BEETROOT_CRATE.get(), basicItem()));
-	public static final Supplier<Item> CABBAGE_CRATE = registerWithTab("cabbage_crate",
-			() -> new BlockItem(ModBlocks.CABBAGE_CRATE.get(), basicItem()));
-	public static final Supplier<Item> TOMATO_CRATE = registerWithTab("tomato_crate",
-			() -> new BlockItem(ModBlocks.TOMATO_CRATE.get(), basicItem()));
-	public static final Supplier<Item> ONION_CRATE = registerWithTab("onion_crate",
-			() -> new BlockItem(ModBlocks.ONION_CRATE.get(), basicItem()));
-	public static final Supplier<Item> RICE_BALE = registerWithTab("rice_bale",
-			() -> new BlockItem(ModBlocks.RICE_BALE.get(), basicItem()));
-	public static final Supplier<Item> RICE_BAG = registerWithTab("rice_bag",
-			() -> new BlockItem(ModBlocks.RICE_BAG.get(), basicItem()));
-	public static final Supplier<Item> STRAW_BALE = registerWithTab("straw_bale",
-			() -> new BlockItem(ModBlocks.STRAW_BALE.get(), basicItem()));
+	public static final Supplier<Item> CARROT_CRATE = registerWithTab("carrot_crate", () -> new BlockItem(ModBlocks.CARROT_CRATE.get(), basicItem()));
+	public static final Supplier<Item> POTATO_CRATE = registerWithTab("potato_crate", () -> new BlockItem(ModBlocks.POTATO_CRATE.get(), basicItem()));
+	public static final Supplier<Item> BEETROOT_CRATE = registerWithTab("beetroot_crate",() -> new BlockItem(ModBlocks.BEETROOT_CRATE.get(), basicItem()));
+	public static final Supplier<Item> CABBAGE_CRATE = registerWithTab("cabbage_crate",() -> new BlockItem(ModBlocks.CABBAGE_CRATE.get(), basicItem()));
+	public static final Supplier<Item> TOMATO_CRATE = registerWithTab("tomato_crate", () -> new BlockItem(ModBlocks.TOMATO_CRATE.get(), basicItem()));
+	public static final Supplier<Item> ONION_CRATE = registerWithTab("onion_crate", () -> new BlockItem(ModBlocks.ONION_CRATE.get(), basicItem()));
+	public static final Supplier<Item> RICE_BALE = registerWithTab("rice_bale", () -> new BlockItem(ModBlocks.RICE_BALE.get(), basicItem()));
+	public static final Supplier<Item> RICE_BAG = registerWithTab("rice_bag", () -> new BlockItem(ModBlocks.RICE_BAG.get(), basicItem()));
+	public static final Supplier<Item> STRAW_BALE = registerWithTab("straw_bale", () -> new BlockItem(ModBlocks.STRAW_BALE.get(), basicItem()));
 
-	public static final Supplier<Item> SAFETY_NET = registerWithTab("safety_net",
-			() -> new FuelBlockItem(ModBlocks.SAFETY_NET.get(), basicItem(), 200));
-	public static final Supplier<Item> OAK_CABINET = registerWithTab("oak_cabinet",
-			() -> new FuelBlockItem(ModBlocks.OAK_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> SPRUCE_CABINET = registerWithTab("spruce_cabinet",
-			() -> new FuelBlockItem(ModBlocks.SPRUCE_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> BIRCH_CABINET = registerWithTab("birch_cabinet",
-			() -> new FuelBlockItem(ModBlocks.BIRCH_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> JUNGLE_CABINET = registerWithTab("jungle_cabinet",
-			() -> new FuelBlockItem(ModBlocks.JUNGLE_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> ACACIA_CABINET = registerWithTab("acacia_cabinet",
-			() -> new FuelBlockItem(ModBlocks.ACACIA_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> DARK_OAK_CABINET = registerWithTab("dark_oak_cabinet",
-			() -> new FuelBlockItem(ModBlocks.DARK_OAK_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> MANGROVE_CABINET = registerWithTab("mangrove_cabinet",
-			() -> new FuelBlockItem(ModBlocks.MANGROVE_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> CHERRY_CABINET = registerWithTab("cherry_cabinet",
-			() -> new FuelBlockItem(ModBlocks.CHERRY_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> BAMBOO_CABINET = registerWithTab("bamboo_cabinet",
-			() -> new FuelBlockItem(ModBlocks.BAMBOO_CABINET.get(), basicItem(), 300));
-	public static final Supplier<Item> CRIMSON_CABINET = registerWithTab("crimson_cabinet",
-			() -> new BlockItem(ModBlocks.CRIMSON_CABINET.get(), basicItem()));
-	public static final Supplier<Item> WARPED_CABINET = registerWithTab("warped_cabinet",
-			() -> new BlockItem(ModBlocks.WARPED_CABINET.get(), basicItem()));
-	public static final Supplier<Item> TATAMI = registerWithTab("tatami",
-			() -> new FuelBlockItem(ModBlocks.TATAMI.get(), basicItem(), 400));
-	public static final Supplier<Item> FULL_TATAMI_MAT = registerWithTab("full_tatami_mat",
-			() -> new FuelBlockItem(ModBlocks.FULL_TATAMI_MAT.get(), basicItem(), 200));
-	public static final Supplier<Item> HALF_TATAMI_MAT = registerWithTab("half_tatami_mat",
-			() -> new FuelBlockItem(ModBlocks.HALF_TATAMI_MAT.get(), basicItem()));
-	public static final Supplier<Item> CANVAS_RUG = registerWithTab("canvas_rug",
-			() -> new FuelBlockItem(ModBlocks.CANVAS_RUG.get(), basicItem(), 200));
-	public static final Supplier<Item> ORGANIC_COMPOST = registerWithTab("organic_compost",
-			() -> new BlockItem(ModBlocks.ORGANIC_COMPOST.get(), basicItem()));
-	public static final Supplier<Item> RICH_SOIL = registerWithTab("rich_soil",
-			() -> new BlockItem(ModBlocks.RICH_SOIL.get(), basicItem()));
-	public static final Supplier<Item> RICH_SOIL_FARMLAND = registerWithTab("rich_soil_farmland",
-			() -> new BlockItem(ModBlocks.RICH_SOIL_FARMLAND.get(), basicItem()));
-	public static final Supplier<Item> ROPE = registerWithTab("rope",
-			() -> new RopeItem(ModBlocks.ROPE.get(), basicItem()));
+	public static final Supplier<Item> SAFETY_NET = registerWithTab("safety_net", () -> new FuelBlockItem(ModBlocks.SAFETY_NET.get(), basicItem(), 200));
+	public static final Supplier<Item> OAK_CABINET = registerWithTab("oak_cabinet", () -> new FuelBlockItem(ModBlocks.OAK_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> SPRUCE_CABINET = registerWithTab("spruce_cabinet", () -> new FuelBlockItem(ModBlocks.SPRUCE_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> BIRCH_CABINET = registerWithTab("birch_cabinet", () -> new FuelBlockItem(ModBlocks.BIRCH_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> JUNGLE_CABINET = registerWithTab("jungle_cabinet", () -> new FuelBlockItem(ModBlocks.JUNGLE_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> ACACIA_CABINET = registerWithTab("acacia_cabinet", () -> new FuelBlockItem(ModBlocks.ACACIA_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> DARK_OAK_CABINET = registerWithTab("dark_oak_cabinet", () -> new FuelBlockItem(ModBlocks.DARK_OAK_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> MANGROVE_CABINET = registerWithTab("mangrove_cabinet", () -> new FuelBlockItem(ModBlocks.MANGROVE_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> CHERRY_CABINET = registerWithTab("cherry_cabinet", () -> new FuelBlockItem(ModBlocks.CHERRY_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> BAMBOO_CABINET = registerWithTab("bamboo_cabinet", () -> new FuelBlockItem(ModBlocks.BAMBOO_CABINET.get(), basicItem(), 300));
+	public static final Supplier<Item> CRIMSON_CABINET = registerWithTab("crimson_cabinet", () -> new BlockItem(ModBlocks.CRIMSON_CABINET.get(), basicItem()));
+	public static final Supplier<Item> WARPED_CABINET = registerWithTab("warped_cabinet", () -> new BlockItem(ModBlocks.WARPED_CABINET.get(), basicItem()));
+	public static final Supplier<Item> TATAMI = registerWithTab("tatami", () -> new FuelBlockItem(ModBlocks.TATAMI.get(), basicItem(), 400));
+	public static final Supplier<Item> FULL_TATAMI_MAT = registerWithTab("full_tatami_mat", () -> new FuelBlockItem(ModBlocks.FULL_TATAMI_MAT.get(), basicItem(), 200));
+	public static final Supplier<Item> HALF_TATAMI_MAT = registerWithTab("half_tatami_mat", () -> new FuelBlockItem(ModBlocks.HALF_TATAMI_MAT.get(), basicItem()));
+	public static final Supplier<Item> CANVAS_RUG = registerWithTab("canvas_rug", () -> new FuelBlockItem(ModBlocks.CANVAS_RUG.get(), basicItem(), 200));
+	public static final Supplier<Item> ORGANIC_COMPOST = registerWithTab("organic_compost", () -> new BlockItem(ModBlocks.ORGANIC_COMPOST.get(), basicItem()));
+	public static final Supplier<Item> RICH_SOIL = registerWithTab("rich_soil", () -> new BlockItem(ModBlocks.RICH_SOIL.get(), basicItem()));
+	public static final Supplier<Item> RICH_SOIL_FARMLAND = registerWithTab("rich_soil_farmland", () -> new BlockItem(ModBlocks.RICH_SOIL_FARMLAND.get(), basicItem()));
+	public static final Supplier<Item> ROPE = registerWithTab("rope", () -> new RopeItem(ModBlocks.ROPE.get(), basicItem()));
 
 	// Tools
-	public static final Supplier<Item> FLINT_KNIFE = registerWithTab("flint_knife",
-			() -> new KnifeItem(ModMaterials.FLINT, knifeItem(ModMaterials.FLINT)));
-	public static final Supplier<Item> IRON_KNIFE = registerWithTab("iron_knife",
-			() -> new KnifeItem(Tiers.IRON, knifeItem(Tiers.IRON)));
-	public static final Supplier<Item> DIAMOND_KNIFE = registerWithTab("diamond_knife",
-			() -> new KnifeItem(Tiers.DIAMOND, knifeItem(Tiers.DIAMOND)));
-	public static final Supplier<Item> NETHERITE_KNIFE = registerWithTab("netherite_knife",
-			() -> new KnifeItem(Tiers.NETHERITE, knifeItem(Tiers.NETHERITE).fireResistant()));
-	public static final Supplier<Item> GOLDEN_KNIFE = registerWithTab("golden_knife",
-			() -> new KnifeItem(Tiers.GOLD, knifeItem(Tiers.GOLD)));
+	public static final Supplier<Item> FLINT_KNIFE = registerWithTab("flint_knife", () -> new KnifeItem(new Item.Settings(), ModMaterials.FLINT));
+	public static final Supplier<Item> IRON_KNIFE = registerWithTab("iron_knife", () -> new KnifeItem(new Item.Settings(), ToolMaterial.IRON));
+	public static final Supplier<Item> DIAMOND_KNIFE = registerWithTab("diamond_knife", () -> new KnifeItem(new Item.Settings(), ToolMaterial.DIAMOND));
+	public static final Supplier<Item> NETHERITE_KNIFE = registerWithTab("netherite_knife", () -> new KnifeItem(new Item.Settings().fireproof(), ToolMaterial.NETHERITE));
+	public static final Supplier<Item> GOLDEN_KNIFE = registerWithTab("golden_knife", () -> new KnifeItem(new Item.Settings(), ToolMaterial.GOLD));
 
 	public static final Supplier<Item> STRAW = registerWithTab("straw", () -> new FuelItem(basicItem()));
 	public static final Supplier<Item> CANVAS = registerWithTab("canvas", () -> new FuelItem(basicItem(), 400));
 	public static final Supplier<Item> TREE_BARK = registerWithTab("tree_bark", () -> new FuelItem(basicItem(), 200));
 
 	// Wild Crops
-	public static final Supplier<Item> SANDY_SHRUB = registerWithTab("sandy_shrub",
-			() -> new BlockItem(ModBlocks.SANDY_SHRUB.get(), basicItem()));
-	public static final Supplier<Item> WILD_CABBAGES = registerWithTab("wild_cabbages",
-			() -> new BlockItem(ModBlocks.WILD_CABBAGES.get(), basicItem()));
-	public static final Supplier<Item> WILD_ONIONS = registerWithTab("wild_onions",
-			() -> new BlockItem(ModBlocks.WILD_ONIONS.get(), basicItem()));
-	public static final Supplier<Item> WILD_TOMATOES = registerWithTab("wild_tomatoes",
-			() -> new BlockItem(ModBlocks.WILD_TOMATOES.get(), basicItem()));
-	public static final Supplier<Item> WILD_CARROTS = registerWithTab("wild_carrots",
-			() -> new BlockItem(ModBlocks.WILD_CARROTS.get(), basicItem()));
-	public static final Supplier<Item> WILD_POTATOES = registerWithTab("wild_potatoes",
-			() -> new BlockItem(ModBlocks.WILD_POTATOES.get(), basicItem()));
-	public static final Supplier<Item> WILD_BEETROOTS = registerWithTab("wild_beetroots",
-			() -> new BlockItem(ModBlocks.WILD_BEETROOTS.get(), basicItem()));
-	public static final Supplier<Item> WILD_RICE = registerWithTab("wild_rice",
-			() -> new TallBlockItem(ModBlocks.WILD_RICE.get(), basicItem()));
+	public static final Supplier<Item> SANDY_SHRUB = registerWithTab("sandy_shrub", () -> new BlockItem(ModBlocks.SANDY_SHRUB.get(), basicItem()));
+	public static final Supplier<Item> WILD_CABBAGES = registerWithTab("wild_cabbages", () -> new BlockItem(ModBlocks.WILD_CABBAGES.get(), basicItem()));
+	public static final Supplier<Item> WILD_ONIONS = registerWithTab("wild_onions", () -> new BlockItem(ModBlocks.WILD_ONIONS.get(), basicItem()));
+	public static final Supplier<Item> WILD_TOMATOES = registerWithTab("wild_tomatoes", () -> new BlockItem(ModBlocks.WILD_TOMATOES.get(), basicItem()));
+	public static final Supplier<Item> WILD_CARROTS = registerWithTab("wild_carrots", () -> new BlockItem(ModBlocks.WILD_CARROTS.get(), basicItem()));
+	public static final Supplier<Item> WILD_POTATOES = registerWithTab("wild_potatoes", () -> new BlockItem(ModBlocks.WILD_POTATOES.get(), basicItem()));
+	public static final Supplier<Item> WILD_BEETROOTS = registerWithTab("wild_beetroots", () -> new BlockItem(ModBlocks.WILD_BEETROOTS.get(), basicItem()));
+	public static final Supplier<Item> WILD_RICE = registerWithTab("wild_rice", () -> new TallBlockItem(ModBlocks.WILD_RICE.get(), basicItem()));
 
-	public static final Supplier<Item> BROWN_MUSHROOM_COLONY = registerWithTab("brown_mushroom_colony",
-			() -> new MushroomColonyItem(ModBlocks.BROWN_MUSHROOM_COLONY.get(), basicItem()));
-	public static final Supplier<Item> RED_MUSHROOM_COLONY = registerWithTab("red_mushroom_colony",
-			() -> new MushroomColonyItem(ModBlocks.RED_MUSHROOM_COLONY.get(), basicItem()));
+	public static final Supplier<Item> BROWN_MUSHROOM_COLONY = registerWithTab("brown_mushroom_colony", () -> new MushroomColonyItem(ModBlocks.BROWN_MUSHROOM_COLONY.get(), basicItem()));
+	public static final Supplier<Item> RED_MUSHROOM_COLONY = registerWithTab("red_mushroom_colony", () -> new MushroomColonyItem(ModBlocks.RED_MUSHROOM_COLONY.get(), basicItem()));
 
 	// Basic Crops
-	public static final Supplier<Item> CABBAGE = registerWithTab("cabbage",
-			() -> new Item(foodItem(FoodValues.CABBAGE)));
-	public static final Supplier<Item> TOMATO = registerWithTab("tomato",
-			() -> new Item(foodItem(FoodValues.TOMATO)));
-	public static final Supplier<Item> ONION = registerWithTab("onion",
-			() -> new ItemNameBlockItem(ModBlocks.ONION_CROP.get(), foodItem(FoodValues.ONION)));
+	public static final Supplier<Item> CABBAGE = registerWithTab("cabbage", () -> new Item(foodItem(FoodValues.CABBAGE)));
+	public static final Supplier<Item> TOMATO = registerWithTab("tomato", () -> new Item(foodItem(FoodValues.TOMATO)));
+	public static final Supplier<Item> ONION = registerWithTab("onion", () -> new BlockItem(ModBlocks.ONION_CROP.get(), foodItem(FoodValues.ONION)));
 	public static final Supplier<Item> RICE_PANICLE = registerWithTab("rice_panicle", () -> new Item(basicItem()));
-	public static final Supplier<Item> RICE = registerWithTab("rice",
-			() -> new RiceItem(ModBlocks.RICE_CROP.get(), basicItem()));
-	public static final Supplier<Item> CABBAGE_SEEDS = registerWithTab("cabbage_seeds", () -> new ItemNameBlockItem(ModBlocks.CABBAGE_CROP.get(), basicItem()));
-	public static final Supplier<Item> TOMATO_SEEDS = registerWithTab("tomato_seeds", () -> new ItemNameBlockItem(ModBlocks.BUDDING_TOMATO_CROP.get(), basicItem())
-	{
-		@Override
-		public void registerBlocks(Map<Block, Item> blockToItemMap, Item item) {
-			super.registerBlocks(blockToItemMap, item);
-			blockToItemMap.put(ModBlocks.TOMATO_CROP.get(), item);
-		}
-	});
-	public static final Supplier<Item> ROTTEN_TOMATO = registerWithTab("rotten_tomato",
-			() -> new RottenTomatoItem(new Item.Settings().maxCount(16)));
+	public static final Supplier<Item> RICE = registerWithTab("rice", () -> new RiceItem(ModBlocks.RICE_CROP.get(), basicItem()));
+	public static final Supplier<Item> CABBAGE_SEEDS = registerWithTab("cabbage_seeds", () -> new BlockItem(ModBlocks.CABBAGE_CROP.get(), basicItem()));
+	public static final Supplier<Item> TOMATO_SEEDS = registerWithTab("tomato_seeds", () -> new BlockItem(ModBlocks.BUDDING_TOMATO_CROP.get(), basicItem()));
+	public static final Supplier<Item> ROTTEN_TOMATO = registerWithTab("rotten_tomato", () -> new RottenTomatoItem(new Item.Settings().maxCount(16)));
 
 	// Foodstuffs
 	public static final Supplier<Item> FRIED_EGG = registerWithTab("fried_egg", () -> new Item(foodItem(FoodValues.FRIED_EGG)));

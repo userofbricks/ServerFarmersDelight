@@ -12,9 +12,7 @@ import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -24,36 +22,19 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.item.DiggerItem;
-import net.minecraft.world.item.Tier;
 import vectorwing.farmersdelight.common.registry.ModItems;
 import vectorwing.farmersdelight.common.tag.ModTags;
 import vectorwing.farmersdelight.common.utility.ItemUtils;
-import vectorwing.farmersdelight.refabricated.ItemAbility;
 
-import java.util.Set;
-
-public class KnifeItem extends DiggerItem
+public class KnifeItem extends Item
 {
-    //uhmm whats this for??
-	public static final Set<ItemAbility> KNIFE_ACTIONS = Set.of(ItemAbility.SHEARS_CARVE, ItemAbility.SWORD_DIG);
 
-    public KnifeItem(Tier tier, Properties properties) {
-        super(tier, ModTags.MINEABLE_WITH_KNIFE, properties);
+    public KnifeItem(Settings properties, ToolMaterial toolMaterial) {
+        super(properties.tool(toolMaterial, ModTags.MINEABLE_WITH_KNIFE, 0.5F, -2.0F, 0));
     }
 
     public static void init() {
         UseBlockCallback.EVENT.register(KnifeEvents::onCakeInteraction);
-    }
-
-    @Override
-    public boolean canAttackBlock(BlockState state, World level, BlockPos pos, PlayerEntity player) {
-        return !player.isCreative();
-    }
-
-    @Override
-    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        return true;
     }
 
     public boolean canBeEnchantedWith(ItemStack stack, RegistryEntry<Enchantment> enchantment, EnchantingContext context) {
@@ -111,14 +92,14 @@ public class KnifeItem extends DiggerItem
                         -0.05, 0, 0);
                 level.playSound(null, pos, SoundEvents.BLOCK_WOOL_BREAK, SoundCategory.PLAYERS, 0.8F, 0.8F);
 
-                return ActionResult.sidedSuccess(level.isClient);
+                return ActionResult.SUCCESS;
             }
             return ActionResult.PASS;
         }
     }
 
     @Override
-    public ActionResult useOn(ItemUsageContext context) {
+    public ActionResult useOnBlock(ItemUsageContext context) {
         World level = context.getWorld();
         ItemStack toolStack = context.getStack();
         BlockPos pos = context.getBlockPos();
@@ -136,7 +117,7 @@ public class KnifeItem extends DiggerItem
                 level.spawnEntity(itemEntity);
                 toolStack.damage(1, player, LivingEntity.getSlotForHand(context.getHand()));
             }
-            return ActionResult.sidedSuccess(level.isClient);
+            return ActionResult.SUCCESS;
         } else {
             return ActionResult.PASS;
         }

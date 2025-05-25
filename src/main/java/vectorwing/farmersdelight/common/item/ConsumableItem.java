@@ -1,9 +1,14 @@
 package vectorwing.farmersdelight.common.item;
 
+import net.minecraft.component.type.TooltipDisplayComponent;
+import net.minecraft.item.tooltip.TooltipData;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.LivingEntity;
@@ -88,15 +93,13 @@ public class ConsumableItem extends Item
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType isAdvanced) {
-		if (Configuration.FOOD_EFFECT_TOOLTIP.get()) {
-			if (this.hasCustomTooltip) {
-				MutableText textEmpty = TextUtils.getTranslation("tooltip." + Registries.ITEM.getId(this).getPath());
-				tooltip.add(textEmpty.formatted(Formatting.BLUE));
-			}
-			if (this.hasFoodEffectTooltip) {
-				TextUtils.addFoodEffectTooltip(stack, tooltip::add, 1.0F, context.getUpdateTickRate());
-			}
+	public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> textConsumer, TooltipType type) {
+		if (this.hasCustomTooltip) {
+			MutableText textEmpty = TextUtils.getTranslation("tooltip." + Registries.ITEM.getId(this).getPath());
+			textConsumer.accept(textEmpty.formatted(Formatting.BLUE));
+		}
+		if (this.hasFoodEffectTooltip) {
+			TextUtils.addFoodEffectTooltip(stack, textConsumer::accept, 1.0F, context.getUpdateTickRate());
 		}
 	}
 }

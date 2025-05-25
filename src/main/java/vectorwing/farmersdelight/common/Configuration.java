@@ -47,7 +47,6 @@ public class Configuration {
 
     public static Supplier<Boolean> NOURISHED_HUNGER_OVERLAY;
     public static Supplier<Boolean> COMFORT_HEALTH_OVERLAY;
-    public static Supplier<Boolean> FOOD_EFFECT_TOOLTIP;
 
     static {
         ConfigBuilder builder = ConfigBuilder.create(FarmersDelight.MODID, ConfigType.COMMON);
@@ -140,8 +139,6 @@ public class Configuration {
                     .define("nourishmentHungerOverlay", true);
             COMFORT_HEALTH_OVERLAY = clientBuilder.comment("Should the health bar have a silver sheen when the player has the Comfort effect?")
                     .define("comfortHealthOverlay", true);
-            FOOD_EFFECT_TOOLTIP = clientBuilder.comment("Should meal and drink tooltips display which effects they provide?")
-                    .define("foodEffectTooltip", true);
             clientBuilder.pop();
 
             CLIENT_CONFIG = clientBuilder.build();

@@ -101,6 +101,8 @@ public class ModTags
 	// Entities that should be given a TemptGoal for Horse Feed, allowing players to call them with it.
 	public static final TagKey<EntityType<?>> HORSE_FEED_TEMPTED = modEntityTag("horse_feed_tempted");
 
+	public static final TagKey<Item> FLINT_TOOL_MATERIALS = modItemTag("flint_tool_materials");
+
 	// Refabricated: new tags
 	// TODO: 1.22, move these to their own subdirectory.
 	public static final TagKey<Biome> HAS_BROWN_MUSHROOM_COLONY = modBiomeTag("has_brown_mushroom_colony");

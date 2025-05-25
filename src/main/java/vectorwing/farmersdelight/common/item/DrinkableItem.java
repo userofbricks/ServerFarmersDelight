@@ -5,10 +5,10 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
+import net.minecraft.item.consume.UseAction;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.World;
-import net.minecraft.world.item.UseAnim;
 
 public class DrinkableItem extends ConsumableItem
 {
@@ -25,8 +25,8 @@ public class DrinkableItem extends ConsumableItem
 	}
 
 	@Override
-	public UseAnim getUseAnimation(ItemStack stack) {
-		return UseAnim.DRINK;
+	public UseAction getUseAction(ItemStack stack) {
+		return UseAction.DRINK;
 	}
 
 	@Override
@@ -35,14 +35,14 @@ public class DrinkableItem extends ConsumableItem
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(World level, PlayerEntity player, Hand hand) {
+	public ActionResult use(World level, PlayerEntity player, Hand hand) {
 		ItemStack heldStack = player.getStackInHand(hand);
 		if (heldStack.contains(DataComponentTypes.FOOD)) {
 			if (player.canConsume(heldStack.get(DataComponentTypes.FOOD).canAlwaysEat())) {
 				player.setCurrentHand(hand);
-				return InteractionResultHolder.consume(heldStack);
+				return ActionResult.CONSUME;
 			} else {
-				return InteractionResultHolder.fail(heldStack);
+				return ActionResult.FAIL;
 			}
 		}
 		return ItemUsage.consumeHeldItem(level, player, hand);

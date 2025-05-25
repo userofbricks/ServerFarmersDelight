@@ -12,7 +12,7 @@ import net.minecraft.util.math.MathHelper;
 
 public class CookingPotItem extends BlockItem
 {
-	private static final int BAR_COLOR = MathHelper.color(0.4F, 0.4F, 1.0F);
+	private static final int BAR_COLOR = MathHelper.hsvToRgb(0.4F, 0.4F, 1.0F);
 
 	public CookingPotItem(Block block, net.minecraft.item.Item.Settings properties) {
 		super(block, properties);
