@@ -1,12 +1,10 @@
 package vectorwing.farmersdelight.common.crafting.ingredient;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.util.math.random.Random;
-import vectorwing.farmersdelight.common.Configuration;
 
 /**
  * Credits to the Create team for the implementation of results with chances!

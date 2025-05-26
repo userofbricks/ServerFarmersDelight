@@ -2,15 +2,9 @@ package vectorwing.farmersdelight.common.event;
 
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.FoodValues;
 import vectorwing.farmersdelight.common.tag.ModTags;
-
-import java.util.function.Predicate;
 
 public class CommonModBusEvents
 {

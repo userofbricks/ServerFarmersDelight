@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.village.TradeOffers;
 import net.minecraft.village.VillagerProfession;
 import vectorwing.farmersdelight.FarmersDelight;
-import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
 public class VillagerEvents

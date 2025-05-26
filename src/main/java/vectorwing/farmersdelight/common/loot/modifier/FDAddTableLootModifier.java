@@ -7,7 +7,6 @@ import net.minecraft.loot.condition.LootCondition;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.registry.RegistryKey;
 import org.jetbrains.annotations.NotNull;
-import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.refabricated.LootModifier;
 
 /**
@@ -25,14 +24,12 @@ public class FDAddTableLootModifier extends LootModifier {
     @NotNull
     @Override
     protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
-        if (Configuration.GENERATE_FD_CHEST_LOOT.get()) {
-            // Refabricated: The game will loop if we don't make a new context.
-//            LootContext extraContext = new LootContext.Builder(((LootContextAccessor) context).getParams()).create(Optional.empty());
-//            extraContext.setQueriedLootTableId(this.lootTable.location());
-//            context.getResolver().get(Registries.LOOT_TABLE, this.lootTable).ifPresent((extraTable) -> {
-//                extraTable.value().getRandomItemsRaw(extraContext, createStackSplitter(context.getLevel(), generatedLoot::add));
-//            });
-        }
+        // Refabricated: The game will loop if we don't make a new context.
+//      LootContext extraContext = new LootContext.Builder(((LootContextAccessor) context).getParams()).create(Optional.empty());
+//      extraContext.setQueriedLootTableId(this.lootTable.location());
+//      context.getResolver().get(Registries.LOOT_TABLE, this.lootTable).ifPresent((extraTable) -> {
+//          extraTable.value().getRandomItemsRaw(extraContext, createStackSplitter(context.getLevel(), generatedLoot::add));
+//      });
         return generatedLoot;
     }
 

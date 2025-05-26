@@ -5,7 +5,6 @@ import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import vectorwing.farmersdelight.common.CommonSetup;
-import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.block.CuttingBoardBlock;
 import vectorwing.farmersdelight.common.block.RichSoilBlock;
 import vectorwing.farmersdelight.common.block.entity.CookingPotBlockEntity;
@@ -34,8 +33,6 @@ public class FarmersDelight implements ModInitializer
 
 	@Override
 	public void onInitialize() {
-		Configuration.touch();
-
 		ModSounds.touch();
 		ModBlocks.touch();
 		ModEffects.touch();

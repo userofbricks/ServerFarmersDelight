@@ -1,17 +1,14 @@
 package vectorwing.farmersdelight.common.event;
 
 import net.minecraft.component.type.ConsumableComponent;
-import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.consume.ConsumeEffect;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
-import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.FoodValues;
 
 public class CommonEvents {

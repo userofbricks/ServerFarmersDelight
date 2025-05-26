@@ -1,12 +1,8 @@
 package vectorwing.farmersdelight.common.item;
 
 import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.item.tooltip.TooltipData;
-import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import net.minecraft.advancement.criterion.Criteria;
