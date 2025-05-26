@@ -62,7 +62,7 @@ public class RopeBlock extends PaneBlock
 
 	@Override
 	public ActionResult onUse(BlockState state, World level, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-		if (Configuration.ENABLE_ROPE_REELING.get() && player.shouldCancelInteraction()) {
+		if (player.shouldCancelInteraction()) {
 			if (player.getAbilities().allowModifyWorld && (player.getAbilities().creativeMode || player.getInventory().insertStack(new ItemStack(this.asItem())))) {
 				BlockPos.Mutable reelingPos = pos.mutableCopy().move(Direction.DOWN);
 				int minBuildHeight = level.getBottomY();

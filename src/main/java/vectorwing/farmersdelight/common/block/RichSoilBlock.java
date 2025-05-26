@@ -46,12 +46,8 @@ public class RichSoilBlock extends Block
 				return;
 			}
 
-			if (Configuration.RICH_SOIL_BOOST_CHANCE.get() == 0.0) {
-				return;
-			}
-
 			// If all else fails, and it's a plant, give it a growth boost now and then!
-			if (aboveBlock instanceof Fertilizable growable && MathUtils.RAND.nextFloat() <= Configuration.RICH_SOIL_BOOST_CHANCE.get()) {
+			if (aboveBlock instanceof Fertilizable growable && MathUtils.RAND.nextFloat() <= 0.2f) {
 				if (growable.isFertilizable(level, pos.up(), aboveState)) {
 					growable.grow(level, level.random, pos.up(), aboveState);
 					level.syncWorldEvent(1505, pos.up(), 0);

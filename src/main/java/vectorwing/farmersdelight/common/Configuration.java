@@ -1,6 +1,5 @@
 package vectorwing.farmersdelight.common;
 
-import com.google.common.collect.ImmutableList;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import vectorwing.farmersdelight.FarmersDelight;
@@ -8,24 +7,12 @@ import vectorwing.farmersdelight.refabricated.mlconfigs.ConfigBuilder;
 import vectorwing.farmersdelight.refabricated.mlconfigs.ConfigType;
 import vectorwing.farmersdelight.refabricated.mlconfigs.ModConfigHolder;
 
-import java.util.List;
 import java.util.function.Supplier;
 
 public class Configuration {
     public static ModConfigHolder COMMON_CONFIG;
-    public static ModConfigHolder CLIENT_CONFIG;
 
     // COMMON
-    public static final String CATEGORY_SETTINGS = "settings";
-    public static Supplier<Boolean> FARMERS_BUY_FD_CROPS;
-    public static Supplier<Boolean> WANDERING_TRADER_SELLS_FD_ITEMS;
-    public static Supplier<Double> RICH_SOIL_BOOST_CHANCE;
-    public static Supplier<Double> CUTTING_BOARD_FORTUNE_BONUS;
-    public static Supplier<Boolean> ENABLE_ROPE_REELING;
-
-    public static final String CATEGORY_OVERRIDES = "overrides";
-    public static Supplier<Boolean> DISPENSER_TOOLS_CUTTING_BOARD;
-
     public static final String CATEGORY_WORLD = "world";
     public static Supplier<Boolean> GENERATE_FD_CHEST_LOOT;
     public static Supplier<Boolean> GENERATE_VILLAGE_COMPOST_HEAPS;
@@ -42,32 +29,8 @@ public class Configuration {
     public static Supplier<Boolean> GENERATE_RED_MUSHROOM_COLONIES;
     public static Supplier<Integer> CHANCE_RED_MUSHROOM_COLONIES;
 
-    // CLIENT
-    public static final String CATEGORY_CLIENT = "client";
-
-    public static Supplier<Boolean> NOURISHED_HUNGER_OVERLAY;
-    public static Supplier<Boolean> COMFORT_HEALTH_OVERLAY;
-
     static {
         ConfigBuilder builder = ConfigBuilder.create(FarmersDelight.MODID, ConfigType.COMMON);
-
-        builder.comment("Game settings").push(CATEGORY_SETTINGS);
-        FARMERS_BUY_FD_CROPS = builder.comment("Should Novice and Apprentice Farmers buy this mod's crops? (May reduce chances of other trades appearing)")
-                .define("farmersBuyFDCrops", true);
-        WANDERING_TRADER_SELLS_FD_ITEMS = builder.comment("Should the Wandering Trader sell some of this mod's items? (Currently includes crop seeds and onions)")
-                .define("wanderingTraderSellsFDItems", true);
-        RICH_SOIL_BOOST_CHANCE = builder.comment("How often (in percentage) should Rich Soil succeed in boosting a plant's growth at each random tick? Set it to 0.0 to disable this.")
-                .define("richSoilBoostChance", 0.2, 0.0, 1.0);
-        CUTTING_BOARD_FORTUNE_BONUS = builder.comment("How much of a bonus (in percentage) should each level of Fortune grant to Cutting Board chances? Set it to 0.0 to disable this.")
-                .define("cuttingBoardFortuneBonus", 0.1, 0.0, 1.0);
-        ENABLE_ROPE_REELING = builder.comment("Should players be able to reel back rope, bottom to top, when sneak-using with an empty hand on them?")
-                .define("enableRopeReeling", true);
-        builder.pop();
-
-        builder.comment("Vanilla item overrides").push(CATEGORY_OVERRIDES);
-        DISPENSER_TOOLS_CUTTING_BOARD = builder.comment("Should the Dispenser be able to operate a Cutting Board in front of it?")
-                .define("dispenserUsesToolsOnCuttingBoard", true);
-        builder.pop();
 
         builder.comment("World generation").push(CATEGORY_WORLD);
         GENERATE_FD_CHEST_LOOT = builder.comment("Should this mod add some of its items (ropes, seeds, knives, meals etc.) as extra chest loot across Minecraft?")
@@ -130,22 +93,6 @@ public class Configuration {
 
         COMMON_CONFIG = builder.build();
         COMMON_CONFIG.forceLoad(); //need for data component event that's fired very early
-
-        if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-            ConfigBuilder clientBuilder = ConfigBuilder.create(FarmersDelight.MODID, ConfigType.CLIENT);
-
-            clientBuilder.comment("Client settings").push(CATEGORY_CLIENT);
-            NOURISHED_HUNGER_OVERLAY = clientBuilder.comment("Should the hunger bar have a gilded overlay when the player has the Nourishment effect?")
-                    .define("nourishmentHungerOverlay", true);
-            COMFORT_HEALTH_OVERLAY = clientBuilder.comment("Should the health bar have a silver sheen when the player has the Comfort effect?")
-                    .define("comfortHealthOverlay", true);
-            clientBuilder.pop();
-
-            CLIENT_CONFIG = clientBuilder.build();
-            CLIENT_CONFIG.forceLoad();
-        }else{
-            CLIENT_CONFIG = null;
-        }
     }
 
     public static void touch() {

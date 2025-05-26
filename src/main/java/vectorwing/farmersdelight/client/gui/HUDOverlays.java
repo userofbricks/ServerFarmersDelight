@@ -77,11 +77,8 @@ public class HUDOverlays
 
 		@Override
 		public boolean shouldRenderOverlay(MinecraftClient mc, PlayerEntity player, DrawContext guiGraphics, int guiTicks) {
-			if (!super.shouldRenderOverlay(mc, player, guiGraphics, guiTicks))
-				return false;
-
-			return Configuration.NOURISHED_HUNGER_OVERLAY.get();
-		}
+            return super.shouldRenderOverlay(mc, player, guiGraphics, guiTicks);
+        }
 	}
 
 	public static class ComfortOverlay extends BaseOverlay
@@ -106,11 +103,8 @@ public class HUDOverlays
 
 		@Override
 		public boolean shouldRenderOverlay(MinecraftClient mc, PlayerEntity player, DrawContext guiGraphics, int guiTicks) {
-			if (!super.shouldRenderOverlay(mc, player, guiGraphics, guiTicks))
-				return false;
-
-			return Configuration.COMFORT_HEALTH_OVERLAY.get();
-		}
+            return super.shouldRenderOverlay(mc, player, guiGraphics, guiTicks);
+        }
 	}
 
 	public static void drawNourishmentOverlay(HungerManager foodData, MinecraftClient minecraft, DrawContext graphics, int right, int top, boolean naturalHealing) {
@@ -118,7 +112,7 @@ public class HUDOverlays
 		int foodLevel = foodData.getFoodLevel();
 		int ticks = minecraft.inGameHud.getTicks();
 		Random rand = new Random();
-		rand.setSeed(ticks * 312871);
+		rand.setSeed(ticks * 312871L);
 
 		for (int j = 0; j < 10; ++j) {
 			int x = right - j * 8 - 9;
@@ -145,7 +139,7 @@ public class HUDOverlays
 	public static void drawComfortOverlay(PlayerEntity player, MinecraftClient minecraft, DrawContext graphics, int left, int top) {
 		int ticks = minecraft.inGameHud.getTicks();
 		Random rand = new Random();
-		rand.setSeed((long) (ticks * 312871));
+		rand.setSeed(ticks * 312871L);
 
 		int health = MathHelper.ceil(player.getHealth());
 		float absorb = MathHelper.ceil(player.getAbsorptionAmount());

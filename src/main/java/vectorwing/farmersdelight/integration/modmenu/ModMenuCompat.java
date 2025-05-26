@@ -14,7 +14,7 @@ public class ModMenuCompat implements ModMenuApi {
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         return parent -> new FabricConfigListScreen(FarmersDelight.MODID, ModItems.STOVE.get().getDefaultStack(),
                 Text.translatable(FarmersDelight.MODID), null,
-                parent, Configuration.CLIENT_CONFIG, Configuration.COMMON_CONFIG);
+                parent, Configuration.COMMON_CONFIG);
     }
 
 }

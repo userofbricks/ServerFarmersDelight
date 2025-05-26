@@ -71,10 +71,6 @@ public class RichSoilFarmlandBlock extends FarmlandBlock
 		} else if (moisture < 7) {
 			level.setBlockState(pos, state.with(MOISTURE, 7), 2);
 		} else if (moisture == 7) {
-			if (Configuration.RICH_SOIL_BOOST_CHANCE.get() == 0.0) {
-				return;
-			}
-
 			BlockPos abovePos = pos.up();
 			BlockState aboveState = level.getBlockState(abovePos);
 			Block aboveBlock = aboveState.getBlock();
@@ -83,7 +79,7 @@ public class RichSoilFarmlandBlock extends FarmlandBlock
 				return;
 			}
 
-			if (aboveBlock instanceof Fertilizable growable && MathUtils.RAND.nextFloat() <= Configuration.RICH_SOIL_BOOST_CHANCE.get()) {
+			if (aboveBlock instanceof Fertilizable growable && MathUtils.RAND.nextFloat() <= 0.2f) {
 				if (growable.isFertilizable(level, abovePos, aboveState)) {
 					growable.grow(level, level.random, abovePos, aboveState);
 					level.syncWorldEvent(1505, abovePos, 15);

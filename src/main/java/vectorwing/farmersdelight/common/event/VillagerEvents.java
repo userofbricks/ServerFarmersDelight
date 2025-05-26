@@ -21,8 +21,6 @@ public class VillagerEvents
 	}
 
 	public static void onVillagerTrades() {
-		if (!Configuration.FARMERS_BUY_FD_CROPS.get()) return;
-
 		TradeOfferHelper.registerVillagerOffers(VillagerProfession.FARMER, 1, (trades) -> {
 			trades.add(emeraldForItemsTrade(ModItems.ONION.get(), 26, 16, 2));
 			trades.add(emeraldForItemsTrade(ModItems.TOMATO.get(), 26, 16, 2));
@@ -35,15 +33,13 @@ public class VillagerEvents
 	}
 
 	public static void onWandererTrades() {
-		if (Configuration.WANDERING_TRADER_SELLS_FD_ITEMS.get()) {
-			TradeOfferHelper.registerWanderingTraderOffers((trades) -> {
-				trades.pool(FarmersDelight.res("food"), 1,
-						itemForEmeraldTrade(ModItems.CABBAGE_SEEDS.get(), 1, 12),
-						itemForEmeraldTrade(ModItems.TOMATO_SEEDS.get(), 1, 12),
-						itemForEmeraldTrade(ModItems.RICE.get(), 1, 12),
-						itemForEmeraldTrade(ModItems.ONION.get(), 1, 12));
-			});
-		}
+		TradeOfferHelper.registerWanderingTraderOffers((trades) -> {
+			trades.pool(FarmersDelight.res("food"), 1,
+					itemForEmeraldTrade(ModItems.CABBAGE_SEEDS.get(), 1, 12),
+					itemForEmeraldTrade(ModItems.TOMATO_SEEDS.get(), 1, 12),
+					itemForEmeraldTrade(ModItems.RICE.get(), 1, 12),
+					itemForEmeraldTrade(ModItems.ONION.get(), 1, 12));
+		});
 	}
 
 	public static TradeOffers.Factory emeraldForItemsTrade(ItemConvertible item, int count, int maxTrades, int xp) {
