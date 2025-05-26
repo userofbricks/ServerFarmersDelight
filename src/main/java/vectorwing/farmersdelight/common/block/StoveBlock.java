@@ -193,14 +193,14 @@ public class StoveBlock extends BlockWithEntity
 	@Nullable
 	@Override
 	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-		return ModBlockEntityTypes.STOVE.get().instantiate(pos, state);
+		return ModBlockEntityTypes.STOVE.instantiate(pos, state);
 	}
 
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World level, BlockState state, BlockEntityType<T> blockEntityType) {
 		if (state.get(LIT)) {
-			return validateTicker(blockEntityType, ModBlockEntityTypes.STOVE.get(), level.isClient
+			return validateTicker(blockEntityType, ModBlockEntityTypes.STOVE, level.isClient
 					? StoveBlockEntity::animationTick
 					: StoveBlockEntity::cookingTick);
 		}

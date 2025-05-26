@@ -23,9 +23,9 @@ public class ClientSetupEvents
 
 	public static void onRegisterRenderers() {
 		EntityRendererRegistry.register(ModEntityTypes.ROTTEN_TOMATO.get(), FlyingItemEntityRenderer::new);
-		BlockEntityRendererFactories.register(ModBlockEntityTypes.STOVE.get(), StoveRenderer::new);
-		BlockEntityRendererFactories.register(ModBlockEntityTypes.CUTTING_BOARD.get(), CuttingBoardRenderer::new);
-		BlockEntityRendererFactories.register(ModBlockEntityTypes.SKILLET.get(), SkilletRenderer::new);
+		BlockEntityRendererFactories.register(ModBlockEntityTypes.STOVE, StoveRenderer::new);
+		BlockEntityRendererFactories.register(ModBlockEntityTypes.CUTTING_BOARD, CuttingBoardRenderer::new);
+		BlockEntityRendererFactories.register(ModBlockEntityTypes.SKILLET, SkilletRenderer::new);
 	}
 
 	public static void registerParticles() {

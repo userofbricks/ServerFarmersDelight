@@ -45,7 +45,7 @@ public class SkilletBlockEntity extends SyncedBlockEntity implements HeatableBlo
 	private final ServerRecipeManager.MatchGetter<SingleStackRecipeInput, CampfireCookingRecipe> quickCheck;
 
 	public SkilletBlockEntity(BlockPos pos, BlockState state) {
-		super(ModBlockEntityTypes.SKILLET.get(), pos, state);
+		super(ModBlockEntityTypes.SKILLET, pos, state);
 		skilletStack = new ItemStack(ModItems.SKILLET.get());
 		quickCheck = ServerRecipeManager.createCachedMatchGetter(RecipeType.CAMPFIRE_COOKING);
 	}

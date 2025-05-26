@@ -45,7 +45,6 @@ public class ModItems
 	public static final Supplier<Item> COOKING_POT = registerWithTab("cooking_pot", () -> new CookingPotItem(ModBlocks.COOKING_POT.get(), basicItem().maxCount(1)));
 	public static final Supplier<Item> SKILLET = registerWithTab("skillet", () -> new SkilletItem(ModBlocks.SKILLET.get(), basicItem().maxCount(1).attributeModifiers(SkilletItem.createAttributes(SkilletItem.SKILLET_TIER, 5.0F, -3.1F))));
 	public static final Supplier<Item> CUTTING_BOARD = registerWithTab("cutting_board", () -> new FuelBlockItem(ModBlocks.CUTTING_BOARD.get(), basicItem(), 200));
-	public static final Supplier<Item> BASKET = registerWithTab("basket", () -> new FuelBlockItem(ModBlocks.BASKET.get(), basicItem(), 300));
 
 	public static final Supplier<Item> CARROT_CRATE = registerWithTab("carrot_crate", () -> new BlockItem(ModBlocks.CARROT_CRATE.get(), basicItem()));
 	public static final Supplier<Item> POTATO_CRATE = registerWithTab("potato_crate", () -> new BlockItem(ModBlocks.POTATO_CRATE.get(), basicItem()));

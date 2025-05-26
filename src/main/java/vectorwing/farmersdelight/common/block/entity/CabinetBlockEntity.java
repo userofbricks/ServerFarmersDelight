@@ -54,7 +54,7 @@ public class CabinetBlockEntity extends LootableContainerBlockEntity
 	};
 
 	public CabinetBlockEntity(BlockPos pos, BlockState state) {
-		super(ModBlockEntityTypes.CABINET.get(), pos, state);
+		super(ModBlockEntityTypes.CABINET, pos, state);
 	}
 
 	@Override

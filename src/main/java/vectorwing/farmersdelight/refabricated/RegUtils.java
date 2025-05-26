@@ -1,8 +1,16 @@
 
 package vectorwing.farmersdelight.refabricated;
 
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.datafixer.TypeReferences;
+import net.minecraft.entity.Entity;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
 import vectorwing.farmersdelight.FarmersDelight;
 
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.minecraft.advancement.criterion.Criterion;
@@ -33,8 +41,8 @@ public class RegUtils {
         return () -> object;
     }
 
-    public static <B extends EntityType<?>> Supplier<B> regEntity(String name, Supplier<B> supplier) {
-        return register(name, supplier, Registries.ENTITY_TYPE);
+    public static <B extends Entity> Supplier<EntityType<B>> regEntity(String name, Supplier<EntityType.Builder<B>> supplier) {
+        return register(name, () -> supplier.get().build(RegistryKey.of(Registries.ENTITY_TYPE.getKey(), FarmersDelight.res(name))), Registries.ENTITY_TYPE);
     }
 
     public static <B extends ScreenHandlerType<?>> Supplier<B> regMenu(String name, Supplier<B> supplier) {
@@ -69,8 +77,13 @@ public class RegUtils {
         return register(name, supplier, Registries.FEATURE);
     }
 
-    public static <B extends BlockEntityType<?>> Supplier<B> regBlockEntity(String name, Supplier<B> supplier) {
-        return register(name, supplier, Registries.BLOCK_ENTITY_TYPE);
+    public static <T extends BlockEntity> BlockEntityType<T> regBlockEntity(
+            String name,
+            FabricBlockEntityTypeBuilder.Factory<? extends T> entityFactory,
+            Block... blocks
+    ) {
+        Identifier id = FarmersDelight.res(name);
+        return Registry.register(Registries.BLOCK_ENTITY_TYPE, id, FabricBlockEntityTypeBuilder.<T>create(entityFactory, blocks).build());
     }
 
     public static <B extends ItemGroup> Supplier<B> regTab(String name, Supplier<B> supplier) {

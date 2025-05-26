@@ -39,7 +39,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 	private final ServerRecipeManager.MatchGetter<SingleStackRecipeInput, CampfireCookingRecipe> quickCheck;
 
 	public StoveBlockEntity(BlockPos pos, BlockState state) {
-		super(ModBlockEntityTypes.STOVE.get(), pos, state);
+		super(ModBlockEntityTypes.STOVE, pos, state);
 		inventory = createHandler();
 		cookingTimes = new int[INVENTORY_SLOT_COUNT];
 		cookingTimesTotal = new int[INVENTORY_SLOT_COUNT];

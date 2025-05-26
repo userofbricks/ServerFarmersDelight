@@ -1,5 +1,6 @@
 package vectorwing.farmersdelight.common.registry;
 
+import net.minecraft.registry.RegistryKey;
 import vectorwing.farmersdelight.common.entity.RottenTomatoEntity;
 
 import java.util.function.Supplier;
@@ -13,8 +14,7 @@ public class ModEntityTypes {
             EntityType.Builder.<RottenTomatoEntity>create(RottenTomatoEntity::new, SpawnGroup.MISC)
                     .dimensions(0.25F, 0.25F)
                     .maxTrackingRange(4)
-                    .trackingTickInterval(10)
-                    .build()));
+                    .trackingTickInterval(10)));
 
 	public static void touch() {
 

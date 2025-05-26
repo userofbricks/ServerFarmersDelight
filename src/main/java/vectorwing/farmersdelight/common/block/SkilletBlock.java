@@ -184,15 +184,15 @@ public class SkilletBlock extends BlockWithEntity implements Waterloggable
 	@Nullable
 	@Override
 	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-		return ModBlockEntityTypes.SKILLET.get().instantiate(pos, state);
+		return ModBlockEntityTypes.SKILLET.instantiate(pos, state);
 	}
 
 	@Nullable
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World level, BlockState state, BlockEntityType<T> blockEntity) {
 		if (level.isClient) {
-			return validateTicker(blockEntity, ModBlockEntityTypes.SKILLET.get(), SkilletBlockEntity::animationTick);
+			return validateTicker(blockEntity, ModBlockEntityTypes.SKILLET, SkilletBlockEntity::animationTick);
 		} else {
-			return validateTicker(blockEntity, ModBlockEntityTypes.SKILLET.get(), SkilletBlockEntity::cookingTick);
+			return validateTicker(blockEntity, ModBlockEntityTypes.SKILLET, SkilletBlockEntity::cookingTick);
 		}
 	}
 

@@ -13,6 +13,6 @@ public class ModDamageTypes
 	public static final RegistryKey<DamageType> STOVE_BURN = RegistryKey.of(RegistryKeys.DAMAGE_TYPE, Identifier.of(FarmersDelight.MODID, "stove_burn"));
 
 	public static DamageSource getSimpleDamageSource(World level, RegistryKey<DamageType> type) {
-		return new DamageSource(level.getRegistryManager().registryOrThrow(RegistryKeys.DAMAGE_TYPE).getHolderOrThrow(type));
+		return new DamageSource(level.getRegistryManager().getOrThrow(RegistryKeys.DAMAGE_TYPE).getOrThrow(type));
 	}
 }

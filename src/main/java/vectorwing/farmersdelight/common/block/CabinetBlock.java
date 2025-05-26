@@ -100,7 +100,7 @@ public class CabinetBlock extends BlockWithEntity
 	@Nullable
 	@Override
 	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-		return ModBlockEntityTypes.CABINET.get().instantiate(pos, state);
+		return ModBlockEntityTypes.CABINET.instantiate(pos, state);
 	}
 
 	@Override
