@@ -18,7 +18,6 @@ import net.minecraft.structure.processor.StructureProcessorRule;
 import net.minecraft.structure.rule.AlwaysTrueRuleTest;
 import net.minecraft.structure.rule.RandomBlockMatchRuleTest;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.level.levelgen.structure.templatesystem.*;
 import vectorwing.farmersdelight.FarmersDelight;
 import vectorwing.farmersdelight.common.Configuration;
 import vectorwing.farmersdelight.common.registry.ModBlocks;
@@ -35,8 +34,8 @@ public class VillageStructures
 
 	public static void addNewVillageBuilding(MinecraftServer server) {
 		if (Configuration.GENERATE_VILLAGE_COMPOST_HEAPS.get()) {
-			Registry<StructurePool> templatePools = server.getRegistryManager().registry(RegistryKeys.TEMPLATE_POOL).get();
-			Registry<StructureProcessorList> processorLists = server.getRegistryManager().registry(RegistryKeys.PROCESSOR_LIST).get();
+			Registry<StructurePool> templatePools = server.getRegistryManager().getOrThrow(RegistryKeys.TEMPLATE_POOL);
+			Registry<StructureProcessorList> processorLists = server.getRegistryManager().getOrThrow(RegistryKeys.PROCESSOR_LIST);
 
 			VillageStructures.addBuildingToPool(templatePools, processorLists, Identifier.of("minecraft:village/plains/houses"), FarmersDelight.MODID + ":village/houses/plains_compost_pile", 5);
 			VillageStructures.addBuildingToPool(templatePools, processorLists, Identifier.of("minecraft:village/snowy/houses"), FarmersDelight.MODID + ":village/houses/snowy_compost_pile", 3);
@@ -46,7 +45,7 @@ public class VillageStructures
 		}
 
 		if (Configuration.GENERATE_VILLAGE_FARM_FD_CROPS.get()) {
-			Registry<StructureProcessorList> processorLists = server.getRegistryManager().registry(RegistryKeys.PROCESSOR_LIST).orElseThrow();
+			Registry<StructureProcessorList> processorLists = server.getRegistryManager().getOrThrow(RegistryKeys.PROCESSOR_LIST);
 
 			StructureProcessor temperateCropProcessor = new RuleStructureProcessor(List.of(
 					new StructureProcessorRule(new RandomBlockMatchRuleTest(Blocks.WHEAT, 0.3F), AlwaysTrueRuleTest.INSTANCE, ModBlocks.CABBAGE_CROP.get().getDefaultState()),
@@ -75,11 +74,11 @@ public class VillageStructures
 	}
 
 	public static void addBuildingToPool(Registry<StructurePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, Identifier poolRL, String nbtPieceRL, int weight) {
-		StructurePool pool = templatePoolRegistry.getEntry(poolRL);
+		StructurePool pool = templatePoolRegistry.getEntry(poolRL).get().value();
 		if (pool == null) return;
 
 		Identifier emptyProcessor = Identifier.ofVanilla("empty");
-		RegistryEntry<StructureProcessorList> processorHolder = processorListRegistry.getHolderOrThrow(RegistryKey.of(RegistryKeys.PROCESSOR_LIST, emptyProcessor));
+		RegistryEntry<StructureProcessorList> processorHolder = processorListRegistry.getOrThrow(RegistryKey.of(RegistryKeys.PROCESSOR_LIST, emptyProcessor));
 
 		SinglePoolElement piece = SinglePoolElement.ofProcessedSingle(nbtPieceRL, processorHolder).apply(StructurePool.Projection.RIGID);
 
