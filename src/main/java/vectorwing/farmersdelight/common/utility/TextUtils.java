@@ -2,6 +2,9 @@ package vectorwing.farmersdelight.common.utility;
 
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.component.type.ConsumableComponent;
+import net.minecraft.item.consume.ApplyEffectsConsumeEffect;
+import net.minecraft.item.consume.ConsumeEffect;
 import vectorwing.farmersdelight.FarmersDelight;
 
 import java.util.List;
@@ -40,35 +43,36 @@ public class TextUtils
 	 * An alternate version of PotionUtils.addPotionTooltip, that obtains the item's food-property potion effects instead.
 	 */
 	public static void addFoodEffectTooltip(ItemStack stack, Consumer<Text> tooltipAdder, float durationFactor, float tickRate) {
-		FoodComponent foodStats = stack.get(DataComponentTypes.FOOD);
+		ConsumableComponent foodStats = stack.get(DataComponentTypes.CONSUMABLE);
 		if (foodStats == null) {
 			return;
 		}
 
-		List<FoodComponent.PossibleEffect> effectList = foodStats.effects();
+		List<ApplyEffectsConsumeEffect> effectList = foodStats.onConsumeEffects().stream().filter(consumeEffect -> consumeEffect instanceof ApplyEffectsConsumeEffect).map(consumeEffect -> (ApplyEffectsConsumeEffect)consumeEffect).toList();
 		List<Pair<RegistryEntry<EntityAttribute>, EntityAttributeModifier>> attributeList = Lists.newArrayList();
 		MutableText mutableComponent;
 
 		if (effectList.isEmpty()) {
 			tooltipAdder.accept(NO_EFFECTS);
 		} else {
-			for (FoodComponent.PossibleEffect possibleEffect : effectList) {
-				StatusEffectInstance instance = possibleEffect.effect();
-				mutableComponent = Text.translatable(instance.getTranslationKey());
-				StatusEffect effect = instance.getEffectType().value();
-				effect.forEachAttributeModifier(instance.getAmplifier(), (attributeHolder, attributeModifier) -> {
-					attributeList.add(new Pair<>(attributeHolder, attributeModifier));
-				});
+			for (ApplyEffectsConsumeEffect possibleEffect : effectList) {
+				for (StatusEffectInstance instance : possibleEffect.effects()) {
+					mutableComponent = Text.translatable(instance.getTranslationKey());
+					StatusEffect effect = instance.getEffectType().value();
+					effect.forEachAttributeModifier(instance.getAmplifier(), (attributeHolder, attributeModifier) -> {
+						attributeList.add(new Pair<>(attributeHolder, attributeModifier));
+					});
 
-				if (instance.getAmplifier() > 0) {
-					mutableComponent = Text.translatable("potion.withAmplifier", mutableComponent, Text.translatable("potion.potency." + instance.getAmplifier()));
+					if (instance.getAmplifier() > 0) {
+						mutableComponent = Text.translatable("potion.withAmplifier", mutableComponent, Text.translatable("potion.potency." + instance.getAmplifier()));
+					}
+
+					if (instance.getDuration() > 20) {
+						mutableComponent = Text.translatable("potion.withDuration", mutableComponent, StatusEffectUtil.getDurationText(instance, durationFactor, tickRate));
+					}
+
+					tooltipAdder.accept(mutableComponent.formatted(effect.getCategory().getFormatting()));
 				}
-
-				if (instance.getDuration() > 20) {
-					mutableComponent = Text.translatable("potion.withDuration", mutableComponent, StatusEffectUtil.getDurationText(instance, durationFactor, tickRate));
-				}
-
-				tooltipAdder.accept(mutableComponent.formatted(effect.getCategory().getFormatting()));
 			}
 		}
 

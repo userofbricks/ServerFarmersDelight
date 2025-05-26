@@ -1,9 +1,5 @@
 package vectorwing.farmersdelight.common.utility;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.resources.model.BakedModel;
-
 /**
  * Util for helping with rendering elements across the mod.
  */

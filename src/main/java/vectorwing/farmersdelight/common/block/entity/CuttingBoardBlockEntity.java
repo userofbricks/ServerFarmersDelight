@@ -50,14 +50,14 @@ public class CuttingBoardBlockEntity extends SyncedBlockEntity
 	private boolean isItemCarvingBoard;
 
 	public CuttingBoardBlockEntity(BlockPos pos, BlockState state) {
-		super(ModBlockEntityTypes.CUTTING_BOARD.get(), pos, state);
+		super(ModBlockEntityTypes.CUTTING_BOARD, pos, state);
 		inventory = createHandler();
 		isItemCarvingBoard = false;
 		quickCheck = ServerRecipeManager.createCachedMatchGetter(ModRecipeTypes.CUTTING.get());
 	}
 
     public static void init() {
-        ItemStorage.SIDED.registerForBlockEntity(CuttingBoardBlockEntity::getStorage, ModBlockEntityTypes.CUTTING_BOARD.get());
+        ItemStorage.SIDED.registerForBlockEntity(CuttingBoardBlockEntity::getStorage, ModBlockEntityTypes.CUTTING_BOARD);
     }
 
     @NotNull
