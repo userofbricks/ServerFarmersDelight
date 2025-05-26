@@ -3,14 +3,11 @@ package vectorwing.farmersdelight.refabricated;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.datafixer.TypeReferences;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import vectorwing.farmersdelight.FarmersDelight;
 
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.minecraft.advancement.criterion.Criterion;
@@ -98,12 +95,6 @@ public class RegUtils {
         ComponentType.Builder<A> builder = ComponentType.builder();
         stuff.accept(builder);
         return register(name, builder::build, Registries.DATA_COMPONENT_TYPE);
-    }
-
-    public static <A> Supplier<ComponentType<A>> regEnchComponent(String name, Consumer<ComponentType.Builder<A>> stuff) {
-        ComponentType.Builder<A> builder = ComponentType.builder();
-        stuff.accept(builder);
-        return register(name, builder::build, Registries.ENCHANTMENT_EFFECT_COMPONENT_TYPE);
     }
 
     public static <B extends StatusEffect> Supplier<B> regEffect(String name, Supplier<B> supplier) {

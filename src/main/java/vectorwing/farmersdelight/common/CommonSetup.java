@@ -1,12 +1,9 @@
 package vectorwing.farmersdelight.common;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import net.minecraft.entity.passive.VillagerEntity;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
-import java.util.Set;
 import net.minecraft.block.DispenserBlock;
-import net.minecraft.item.Item;
 
 public class CommonSetup
 {
@@ -20,15 +17,9 @@ public class CommonSetup
 	}
 
 	public static void registerItemSetAdditions() {
-		Set<Item> newWantedItems = Sets.newHashSet(
-				ModItems.CABBAGE.get(),
-				ModItems.TOMATO.get(),
-				ModItems.ONION.get(),
-				ModItems.RICE.get(),
-				ModItems.CABBAGE_SEEDS.get(),
-				ModItems.TOMATO_SEEDS.get(),
-				ModItems.RICE_PANICLE.get());
-		newWantedItems.addAll(Villager.WANTED_ITEMS);
-		Villager.WANTED_ITEMS = ImmutableSet.copyOf(newWantedItems);
+		VillagerEntity.ITEM_FOOD_VALUES.put(ModItems.CABBAGE.get(), 1);
+		VillagerEntity.ITEM_FOOD_VALUES.put(ModItems.TOMATO.get(), 1);
+		VillagerEntity.ITEM_FOOD_VALUES.put(ModItems.ONION.get(), 1);
+		VillagerEntity.ITEM_FOOD_VALUES.put(ModItems.RICE.get(), 1);
 	}
 }

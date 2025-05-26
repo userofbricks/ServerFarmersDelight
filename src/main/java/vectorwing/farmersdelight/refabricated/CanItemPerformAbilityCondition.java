@@ -7,7 +7,7 @@ import net.minecraft.loot.condition.LootCondition;
 import net.minecraft.loot.condition.LootConditionType;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
+import net.minecraft.util.context.ContextParameter;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -23,12 +23,12 @@ public record CanItemPerformAbilityCondition(ItemAbility ability) implements Loo
 
     @Override
     public boolean test(LootContext context) {
-        ItemStack stack = context.getParam(LootContextParameters.TOOL);
+        ItemStack stack = context.get(LootContextParameters.TOOL);
         return ability.canPerformAction(stack);
     }
 
     @Override
-    public Set<LootContextParam<?>> getAllowedParameters() {
+    public Set<ContextParameter<?>> getAllowedParameters() {
         return Set.of(LootContextParameters.TOOL);
     }
 
