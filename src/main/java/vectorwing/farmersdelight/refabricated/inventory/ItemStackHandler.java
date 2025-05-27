@@ -233,10 +233,10 @@ public class ItemStackHandler implements ItemHandler {
         for (int i = 0; i < slots.size(); ++i) {
             setStackInSlot(i, ItemStack.EMPTY);
         }
-        NbtList listTag = tag.getList("Items", NbtElement.COMPOUND_TYPE);
+        NbtList listTag = tag.getList("Items").orElseThrow();
         for (int i = 0; i < listTag.size(); ++i) {
-            NbtCompound compound = listTag.getCompound(i);
-            slots.get(compound.getInt("Slot")).readNbt(compound, provider);
+            NbtCompound compound = listTag.getCompound(i).orElseThrow();
+            slots.get(compound.getInt("Slot").orElseThrow()).readNbt(compound, provider);
         }
     }
 

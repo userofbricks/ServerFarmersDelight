@@ -24,8 +24,6 @@ public class FarmersDelightClient implements ClientModInitializer {
 
         HandledScreens.register(ModMenuTypes.COOKING_POT.get(), CookingPotScreen::new);
 
-        ModNetworking.initClient();
-
         // Obscure Fabric event to the rescue!
         ClientPreAttackCallback.EVENT.register((client, player, clickCount) -> {
             if (player != null && !player.isSpectator() && player.isUsingItem() && player.getActiveItem().getItem() instanceof SkilletItem && clickCount != 0 && !player.getActiveItem().contains(ModDataComponents.SKILLET_FLIP_TIMESTAMP.get())) {

@@ -31,7 +31,7 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 	public static final int INPUT_SLOTS = 6;
 
 	private final String group;
-	private final DefaultedList<Ingredient> inputItems;
+	private final List<Ingredient> inputItems;
 	private final ItemStack output;
 	private final ItemStack container;
 	private final ItemStack containerOverride;
@@ -40,7 +40,7 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 	@Nullable
 	private IngredientPlacement ingredientPlacement;
 
-	public CookingPotRecipe(String group, DefaultedList<Ingredient> inputItems, ItemStack output, ItemStack container, float experience, int cookTime) {
+	public CookingPotRecipe(String group, List<Ingredient> inputItems, ItemStack output, ItemStack container, float experience, int cookTime) {
 		this.group = group;
 		this.inputItems = inputItems;
 		this.output = output;
@@ -63,7 +63,7 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 		return this.group;
 	}
 
-	public DefaultedList<Ingredient> getIngredients() {
+	public List<Ingredient> getIngredients() {
 		return this.inputItems;
 	}
 
@@ -154,8 +154,7 @@ public class CookingPotRecipe implements Recipe<RecipeWrapper>
 	{
 		private static final MapCodec<CookingPotRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
 				Codec.STRING.optionalFieldOf("group", "").forGetter(CookingPotRecipe::getGroup),
-				Ingredient.CODEC.listOf().fieldOf("ingredients").xmap(ingredients -> DefaultedList.copyOf(Ingredient.ofItem(ItemStack.EMPTY.getItem()),
-						ingredients.toArray(new Ingredient[0])), ingredients -> ingredients).forGetter(CookingPotRecipe::getIngredients),
+				Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(CookingPotRecipe::getIngredients),
 				ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(r -> r.output),
 				ItemStack.VALIDATED_CODEC.optionalFieldOf("container", ItemStack.EMPTY).forGetter(CookingPotRecipe::getContainerOverride),
 				Codec.FLOAT.optionalFieldOf("experience", 0.0F).forGetter(CookingPotRecipe::getExperience),

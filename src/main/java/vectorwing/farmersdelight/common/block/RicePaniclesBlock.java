@@ -18,7 +18,7 @@ import vectorwing.farmersdelight.common.registry.ModItems;
 
 public class RicePaniclesBlock extends CropBlock
 {
-	public static final IntProperty RICE_AGE = Properties.AGE_3;
+	public static final IntProperty RICE_AGE = Properties.AGE_7;
 	private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[]{
 			Block.createCuboidShape(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D),
 			Block.createCuboidShape(3.0D, 0.0D, 3.0D, 13.0D, 10.0D, 13.0D),

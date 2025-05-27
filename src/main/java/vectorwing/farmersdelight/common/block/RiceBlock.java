@@ -38,7 +38,7 @@ public class RiceBlock extends FDBushBlock implements Fertilizable, FluidFillabl
 {
 	public static final MapCodec<RiceBlock> CODEC = createCodec(RiceBlock::new);
 
-	public static final IntProperty AGE = Properties.AGE_3;
+	public static final IntProperty AGE = Properties.AGE_7;
 	public static final BooleanProperty SUPPORTING = BooleanProperty.of("supporting");
 	private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[]{
 			Block.createCuboidShape(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D),

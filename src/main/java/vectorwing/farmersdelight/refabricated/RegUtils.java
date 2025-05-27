@@ -105,14 +105,6 @@ public class RegUtils {
         return register(name, supplier, Registries.LOOT_FUNCTION_TYPE);
     }
 
-    public static <B extends Item> Supplier<B> regItem(String name, Supplier<B> supplier) {
-        return register(name, supplier, Registries.ITEM);
-    }
-
-    public static <B extends Block> Supplier<B> regBlock(String name, Supplier<B> supplier) {
-        return register(name, supplier, Registries.BLOCK);
-    }
-
     public static <B extends Criterion<?>> Supplier<B> regTrigger(String name, Supplier<B> supplier) {
         return register(name, supplier, Registries.CRITERION);
     }

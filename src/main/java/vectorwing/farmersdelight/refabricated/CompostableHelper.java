@@ -11,14 +11,14 @@ import net.minecraft.util.Identifier;
 public class CompostableHelper {
 
     public static void apply() {
-        JsonElement je = new Gson().fromJson(COMPOSTABLES, JsonElement.class);
+        /*JsonElement je = new Gson().fromJson(COMPOSTABLES, JsonElement.class);
         if (je != null) {
             var j = je.getAsJsonObject().get("values");
             for (var v : j.getAsJsonObject().asMap().entrySet()) {
                 Item i = Registries.ITEM.getEntry(Identifier.tryParse(v.getKey().toString())).get().value();
                 CompostingChanceRegistry.INSTANCE.add(i, v.getValue().getAsJsonObject().get("chance").getAsFloat());
             }
-        }
+        }*/
     }
 
     //just here so we can copy paste FD one here

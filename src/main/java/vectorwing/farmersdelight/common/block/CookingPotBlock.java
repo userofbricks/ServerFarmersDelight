@@ -140,7 +140,7 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
     public ItemStack getPickStack(WorldView level, BlockPos pos, BlockState state, boolean includeData) {
         ItemStack stack = super.getPickStack(level, pos, state, includeData);
 
-        Optional<CookingPotBlockEntity> cookingPot = level.getBlockEntity(pos, ModBlockEntityTypes.COOKING_POT.get());
+        Optional<CookingPotBlockEntity> cookingPot = level.getBlockEntity(pos, ModBlockEntityTypes.COOKING_POT);
         if (cookingPot.isPresent()) {
             stack = cookingPot.get().getAsItem();
         }
@@ -209,14 +209,14 @@ public class CookingPotBlock extends BlockWithEntity implements Waterloggable {
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return ModBlockEntityTypes.COOKING_POT.get().instantiate(pos, state);
+        return ModBlockEntityTypes.COOKING_POT.instantiate(pos, state);
     }
 
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World level, BlockState state, BlockEntityType<T> blockEntity) {
         if (level.isClient) {
-            return validateTicker(blockEntity, ModBlockEntityTypes.COOKING_POT.get(), CookingPotBlockEntity::animationTick);
+            return validateTicker(blockEntity, ModBlockEntityTypes.COOKING_POT, CookingPotBlockEntity::animationTick);
         }
-        return validateTicker(blockEntity, ModBlockEntityTypes.COOKING_POT.get(), CookingPotBlockEntity::cookingTick);
+        return validateTicker(blockEntity, ModBlockEntityTypes.COOKING_POT, CookingPotBlockEntity::cookingTick);
     }
 }

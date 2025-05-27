@@ -23,9 +23,6 @@
     ],
     "client": [
       "vectorwing.farmersdelight.client.FarmersDelightClient"
-    ],
-    "mm:early_risers": [
-      "vectorwing.farmersdelight.refabricated.FarmersDelightASM"
     ]
   },
   "mixins": [

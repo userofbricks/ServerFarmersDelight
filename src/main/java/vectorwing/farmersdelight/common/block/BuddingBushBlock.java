@@ -7,6 +7,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.BushBlock;
 import net.minecraft.block.FarmlandBlock;
 import net.minecraft.block.ShapeContext;
+import net.minecraft.block.enums.RailShape;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCollisionHandler;
 import net.minecraft.entity.mob.RavagerEntity;
@@ -15,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
@@ -34,16 +36,20 @@ public class BuddingBushBlock extends FDBushBlock
 	public static final MapCodec<BuddingBushBlock> CODEC = createCodec(BuddingBushBlock::new);
 
 	public static final int MAX_AGE = 3;
-	public static final IntProperty AGE = IntProperty.of("age", 0, 4);
+	public static final IntProperty AGE = Properties.AGE_7;
 	private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[]{
 			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D),
 			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 6.0D, 16.0D),
 			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D),
 			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
+			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
 			Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D)};
 
 	public BuddingBushBlock(Settings properties) {
 		super(properties);
+		this.setDefaultState(this.stateManager.getDefaultState().with(AGE, 0));
 	}
 
 	@Override

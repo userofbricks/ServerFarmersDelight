@@ -86,9 +86,6 @@ public class ModTags
 	// Items commonly used to contain products. Used by the Cooking Pot for sneak-clicking actions.
 	public static final TagKey<Item> SERVING_CONTAINERS = modItemTag("serving_containers");
 
-	//Food related Items that need there max stack size extended to 16.
-	public static final TagKey<Item> MAX_STACK_SIZE_16 = modItemTag("max_stack_size_16");
-
 	// Items which render in 2D, laying down flat, when placed on the Cutting Board.
 	public static final TagKey<Item> FLAT_ON_CUTTING_BOARD = modItemTag("flat_on_cutting_board");
 
@@ -125,8 +122,6 @@ public class ModTags
 
     public static final TagKey<Block> SURVIVES_RICH_SOIL_FARMLAND = modBlockTag("survives/rich_soil_farmland");
     public static final TagKey<Block> DOES_NOT_SURVIVE_RICH_SOIL_FARMLAND = modBlockTag("does_not_survive/rich_soil_farmland");
-
-	public static final TagKey<EntityType<?>> DROPS_LEATHER = modEntityTag("drops_leather");
 
 	public static final TagKey<StatusEffect> HOT_COCOA_IGNORED = modEffectTag("ignored/hot_cocoa");
 	public static final TagKey<StatusEffect> MILK_BOTTLE_IGNORED = modEffectTag("ignored/milk_bottle");

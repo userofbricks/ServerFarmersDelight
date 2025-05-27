@@ -195,7 +195,7 @@ public class CuttingBoardBlock extends BlockWithEntity implements Waterloggable
 	@Nullable
 	@Override
 	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-		return ModBlockEntityTypes.CUTTING_BOARD.get().instantiate(pos, state);
+		return ModBlockEntityTypes.CUTTING_BOARD.instantiate(pos, state);
 	}
 
 	@Override

@@ -37,7 +37,7 @@ import vectorwing.farmersdelight.common.registry.ModSounds;
 @SuppressWarnings("deprecation")
 public class TomatoVineBlock extends CropBlock
 {
-	public static final IntProperty VINE_AGE = Properties.AGE_3;
+	public static final IntProperty VINE_AGE = Properties.AGE_7;
 	public static final BooleanProperty ROPELOGGED = BooleanProperty.of("ropelogged");
 	private static final VoxelShape SHAPE = Block.createCuboidShape(2.0D, 0.0D, 2.0D, 14.0D, 16.0D, 14.0D);
 

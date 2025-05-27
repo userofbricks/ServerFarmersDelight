@@ -1,10 +1,7 @@
 package vectorwing.farmersdelight.common.block.entity;
 
-import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -13,7 +10,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.ComponentsAccess;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -22,24 +18,19 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeUnlocker;
 import net.minecraft.recipe.ServerRecipeManager;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Nameable;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +46,6 @@ import vectorwing.farmersdelight.common.utility.ItemUtils;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 import vectorwing.farmersdelight.refabricated.inventory.ItemStackHandler;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -101,7 +91,7 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	private final ServerRecipeManager.MatchGetter<RecipeWrapper, CookingPotRecipe> quickCheck;
 
 	public CookingPotBlockEntity(BlockPos pos, BlockState state) {
-		super(ModBlockEntityTypes.COOKING_POT.get(), pos, state);
+		super(ModBlockEntityTypes.COOKING_POT, pos, state);
 		this.inventory = createHandler();
 		this.inputHandler = new CookingPotItemHandler(inventory, Direction.UP);
 		this.outputHandler = new CookingPotItemHandler(inventory, Direction.DOWN);
@@ -111,7 +101,7 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	}
 
 	public static void init() {
-		ItemStorage.SIDED.registerForBlockEntity(CookingPotBlockEntity::getStorage, ModBlockEntityTypes.COOKING_POT.get());
+		ItemStorage.SIDED.registerForBlockEntity(CookingPotBlockEntity::getStorage, ModBlockEntityTypes.COOKING_POT);
 	}
 
 	public static ItemStack getMealFromItem(ItemStack cookingPotStack) {
