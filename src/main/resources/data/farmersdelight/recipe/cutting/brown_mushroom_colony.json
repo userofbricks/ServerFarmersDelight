@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "farmersdelight:brown_mushroom_colony",
+  "result": [
+    {
+      "item": {
+        "count": 5,
+        "id": "minecraft:brown_mushroom"
+      }
+    }
+  ],
+  "tool": "#c:tools/knife"
+}

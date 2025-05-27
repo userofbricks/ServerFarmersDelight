@@ -133,8 +133,8 @@ public class CookingPotBlockEntity extends SyncedBlockEntity implements Extended
 	public void readNbt(NbtCompound compound, RegistryWrapper.WrapperLookup registries) {
 		super.readNbt(compound, registries);
 		inventory.deserializeNBT(registries, compound.getCompound("Inventory").orElseThrow());
-		cookTime = compound.getInt("CookTime").orElseThrow();
-		cookTimeTotal = compound.getInt("CookTimeTotal").orElseThrow();
+		cookTime = compound.getInt("CookTime").orElse(0);
+		cookTimeTotal = compound.getInt("CookTimeTotal").orElse(0);
 		mealContainerStack = compound.get("Container", ItemStack.OPTIONAL_CODEC, registries.getOps(NbtOps.INSTANCE)).orElseThrow();
 		if (compound.contains("CustomName")) {
 			customName = Text.Serialization.fromJson(compound.getString("CustomName").orElseThrow(), registries);

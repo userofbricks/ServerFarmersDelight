@@ -37,10 +37,10 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 	private final String group;
 	private final Ingredient input;
 	private final Ingredient tool;
-	private final DefaultedList<ChanceResult> results;
+	private final List<ChanceResult> results;
 	private final Optional<SoundEvent> soundEvent;
 
-	public CuttingBoardRecipe(String group, Ingredient input, Ingredient tool, DefaultedList<ChanceResult> results, Optional<SoundEvent> soundEvent) {
+	public CuttingBoardRecipe(String group, Ingredient input, Ingredient tool, List<ChanceResult> results, Optional<SoundEvent> soundEvent) {
 		this.group = group;
 		this.input = input;
 		this.tool = tool;
@@ -85,13 +85,13 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 				.collect(Collectors.toList());
 	}
 
-	public DefaultedList<ChanceResult> getRollableResults() {
+	public List<ChanceResult> getRollableResults() {
 		return this.results;
 	}
 
 	public List<ItemStack> rollResults(Random rand, int fortuneLevel) {
 		List<ItemStack> results = new ArrayList<>();
-		DefaultedList<ChanceResult> rollableResults = getRollableResults();
+		List<ChanceResult> rollableResults = getRollableResults();
 		for (ChanceResult output : rollableResults) {
 			ItemStack stack = output.rollOutput(rand, fortuneLevel);
 			if (!stack.isEmpty())
@@ -152,15 +152,13 @@ public class CuttingBoardRecipe implements Recipe<CuttingBoardRecipeInput>
 				inst -> inst.group(Codec.STRING.optionalFieldOf("group", "").forGetter(CuttingBoardRecipe::getGroup),
 								Ingredient.CODEC.fieldOf("ingredient").forGetter(cuttingBoardRecipe -> cuttingBoardRecipe.input),
 								Ingredient.CODEC.fieldOf("tool").forGetter(CuttingBoardRecipe::getTool),
-								Codec.list(ChanceResult.CODEC).fieldOf("result").flatXmap(chanceResults -> {
+								ChanceResult.CODEC.listOf().fieldOf("result").flatXmap(chanceResults -> {
 									if (chanceResults.size() > 4) {
 										return DataResult.error(
 												() -> "Too many results for cutting recipe! The maximum quantity of unique results is "
 														+ MAX_RESULTS);
 									}
-									DefaultedList<ChanceResult> nonNullList = DefaultedList.of();
-									nonNullList.addAll(chanceResults);
-									return DataResult.success(nonNullList);
+									return DataResult.success(chanceResults);
 								}, DataResult::success).forGetter(CuttingBoardRecipe::getRollableResults),
 								SoundEvent.CODEC.optionalFieldOf("sound").forGetter(CuttingBoardRecipe::getSoundEvent))
 						.apply(inst, CuttingBoardRecipe::new));

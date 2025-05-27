@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "minecraft:cooked_mutton",
+  "result": [
+    {
+      "item": {
+        "count": 2,
+        "id": "farmersdelight:cooked_mutton_chops"
+      }
+    }
+  ],
+  "tool": "#c:tools/knife"
+}

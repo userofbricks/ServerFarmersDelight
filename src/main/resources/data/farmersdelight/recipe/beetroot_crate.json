@@ -6,9 +6,7 @@
     "###"
   ],
   "key": {
-    "#": {
-      "item": "minecraft:beetroot"
-    }
+    "#": "minecraft:beetroot"
   },
   "result": {
     "count": 1,

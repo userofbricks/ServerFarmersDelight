@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "minecraft:dandelion",
+  "result": [
+    {
+      "item": {
+        "count": 2,
+        "id": "minecraft:yellow_dye"
+      }
+    }
+  ],
+  "tool": "#c:tools/knife"
+}

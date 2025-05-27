@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "minecraft:leather_helmet",
+  "result": [
+    {
+      "item": {
+        "count": 1,
+        "id": "minecraft:leather"
+      }
+    }
+  ],
+  "tool": "#c:tools/shear"
+}

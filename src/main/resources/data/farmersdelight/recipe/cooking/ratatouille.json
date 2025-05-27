@@ -1,0 +1,19 @@
+{
+  "type": "farmersdelight:cooking",
+  "experience": 1.0,
+  "ingredients": [
+    "#c:crops/tomato",
+    "#c:crops/onion",
+    "minecraft:beetroot",
+    {
+      "fabric:type": "fabric:difference",
+      "base": "#c:foods/vegetable",
+      "subtracted": "minecraft:melon_slice"
+    }
+  ],
+  "recipe_book_tab": "meals",
+  "result": {
+    "count": 1,
+    "id": "farmersdelight:ratatouille"
+  }
+}

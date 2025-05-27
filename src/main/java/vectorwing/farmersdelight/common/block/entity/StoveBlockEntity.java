@@ -170,7 +170,7 @@ public class StoveBlockEntity extends SyncedBlockEntity
 
 	public Optional<RecipeEntry<CampfireCookingRecipe>> getMatchingRecipe(ItemStack stack) {
 		if (world == null) return Optional.empty();
-		return this.quickCheck.getFirstMatch(new SingleStackRecipeInput(stack), (ServerWorld) this.world);
+		return world instanceof ServerWorld serverWorld ? this.quickCheck.getFirstMatch(new SingleStackRecipeInput(stack), serverWorld) : Optional.empty();
 	}
 
 	public ItemStackHandler getInventory() {

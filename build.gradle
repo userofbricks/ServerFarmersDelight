@@ -15,6 +15,12 @@ loom {
     accessWidenerPath = file("src/main/resources/farmersdelight.accesswidener")
 }
 
+fabricApi {
+    configureDataGeneration() {
+        client = true
+    }
+}
+
 sourceSets.main.resources {
     srcDirs += 'src/generated/resources'
 }

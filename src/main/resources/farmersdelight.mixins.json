@@ -12,8 +12,7 @@
     "refabricated.MushroomBlockMixin"
   ],
   "client": [
-    "refabricated.GuiMixin",
-    "refabricated.SpecialModelTypesMixin"
+    "refabricated.GuiMixin"
   ],
   "injectors": {
     "defaultRequire": 1

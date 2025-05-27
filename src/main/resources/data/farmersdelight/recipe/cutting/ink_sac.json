@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "minecraft:ink_sac",
+  "result": [
+    {
+      "item": {
+        "count": 2,
+        "id": "minecraft:black_dye"
+      }
+    }
+  ],
+  "tool": "#c:tools/knife"
+}

@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "minecraft:pumpkin",
+  "result": [
+    {
+      "item": {
+        "count": 4,
+        "id": "farmersdelight:pumpkin_slice"
+      }
+    }
+  ],
+  "tool": "#c:tools/knife"
+}

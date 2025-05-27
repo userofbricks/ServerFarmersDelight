@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "minecraft:torchflower",
+  "result": [
+    {
+      "item": {
+        "count": 2,
+        "id": "minecraft:orange_dye"
+      }
+    }
+  ],
+  "tool": "#c:tools/knife"
+}

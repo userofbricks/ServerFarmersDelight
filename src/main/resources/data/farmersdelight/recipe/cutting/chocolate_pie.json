@@ -1,0 +1,13 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredient": "farmersdelight:chocolate_pie",
+  "result": [
+    {
+      "item": {
+        "count": 4,
+        "id": "farmersdelight:chocolate_pie_slice"
+      }
+    }
+  ],
+  "tool": "#c:tools/knife"
+}

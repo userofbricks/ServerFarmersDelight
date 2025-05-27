@@ -112,7 +112,7 @@ public class CuttingBoardBlockEntity extends SyncedBlockEntity
 	private Optional<RecipeEntry<CuttingBoardRecipe>> getMatchingRecipe(ItemStack toolStack, @Nullable PlayerEntity player) {
 		if (world == null) return Optional.empty();
 
-		Optional<RecipeEntry<CuttingBoardRecipe>> recipe = quickCheck.getFirstMatch(new CuttingBoardRecipeInput(getStoredItem(), toolStack), (ServerWorld) world);
+		Optional<RecipeEntry<CuttingBoardRecipe>> recipe = world instanceof ServerWorld serverWorld? quickCheck.getFirstMatch(new CuttingBoardRecipeInput(getStoredItem(), toolStack), serverWorld) : Optional.empty();
 		if (recipe.isPresent()) {
 			if (recipe.get().value().getTool().test(toolStack)) {
 				return recipe;
